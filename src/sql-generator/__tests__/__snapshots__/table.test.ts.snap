@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generateCreateTableSql should generate a simple table 1`] = `
+"CREATE TABLE organization (
+	id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+	api_key TEXT NOT NULL UNIQUE
+)"
+`;

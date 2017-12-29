@@ -1,0 +1,49 @@
+{
+  "name": "@ff00ff/db",
+  "version": "0.2.0",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "bin": {
+    "db": "./bin/db.js"
+  },
+  "scripts": {
+    "test": "NODE_ENV=test jest",
+    "build": "rimraf ./lib && tsc",
+    "prepublishOnly": "yarn build"
+  },
+  "devDependencies": {
+    "@types/jest": "^21.1.8",
+    "@types/lodash": "^4.14.91",
+    "@types/minimist": "^1.2.0",
+    "@types/node": "^8.0.57",
+    "@types/pg": "^7.4.1",
+    "jest": "^21.2.1",
+    "prettier": "^1.9.1",
+    "rimraf": "^2.6.2",
+    "standard-version": "^4.2.0",
+    "ts-jest": "^21.2.4",
+    "ts-node": "^3.3.0",
+    "tslint": "^5.8.0",
+    "tslint-config-airbnb": "^5.4.2",
+    "tslint-config-prettier": "^1.6.0",
+    "typescript": "^2.6.2"
+  },
+  "dependencies": {
+    "chalk": "^2.3.0",
+    "lodash": "^4.17.4",
+    "minimist": "^1.2.0",
+    "pg": "^7.4.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "testRegex": "/__tests__/.*\\.test\\.tsx?$",
+    "transform": {
+      "\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    }
+  }
+}

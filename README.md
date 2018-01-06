@@ -6,6 +6,8 @@ yarn add @ff00ff/db
 
 A (mostly) type-safe Postgres query builder for TypeScript. **This is not for the front-end, but for the back-end.**
 
+![Select autocomplete](https://user-images.githubusercontent.com/178230/34638202-1f7cca3c-f2c7-11e7-9207-55b6e0b8fe78.gif)
+
 ### Quick start
 ```ts
 const rows = await db.list
@@ -63,6 +65,8 @@ const numberOfUpdates = await db.list
 ### Insert
 
 To insert a row.
+
+![Insert autocomplete](https://user-images.githubusercontent.com/178230/34638201-1f66ed98-f2c7-11e7-8d93-c5792226b044.gif)
 
 ```ts
 const numberOfRows = await db.list

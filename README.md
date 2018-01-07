@@ -1,5 +1,8 @@
 # Db
 
+[![Build Status](https://travis-ci.org/Ff00ff/db.svg?branch=master)](https://travis-ci.org/Ff00ff/db)
+[![Coverage Status](https://coveralls.io/repos/github/Ff00ff/db/badge.svg?branch=master)](https://coveralls.io/github/Ff00ff/db?branch=master)
+
 ```
 yarn add @ff00ff/db
 ```

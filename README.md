@@ -32,7 +32,7 @@ const rows: {
 
 ### Create
 
-To create a table.
+To create a table. Using `db migrations generate` you can generate migrations of your tables and `db migrations apply` applies the migrations in your database. When you applied the migrations, change your tables and generate your migrations again, a new migration file with only the changes is created. See [Migrations](#migrations) section for more info.
 
 ```ts
 class List {

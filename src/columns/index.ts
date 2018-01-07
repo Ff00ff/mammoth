@@ -1,4 +1,4 @@
-import { Default, Keyword } from '../database';
+import { Default, Keyword } from '../keywords';
 import { PartialQuery } from '../query';
 import { TableWrapper } from '../table';
 import { CollectionToken, GroupToken, ParameterToken, StringToken, Token } from '../tokens';
@@ -57,6 +57,7 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
 
 	/** @internal */
 	getName() {
+		// TODO: this should be a string, not string | undefined.
 		return this.name;
 	}
 
@@ -103,9 +104,9 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
 	}
 
 	default(sql: T | Unsafe | Keyword): Column<T, T | null, ST, UT | Default> {
-		this.config.default = typeof sql === `string`
-			? sql
-			: sql.toString();
+		this.config.default = (sql && (sql instanceof Unsafe || sql instanceof Keyword))
+			? sql.toSql()
+			: sql;
 		return this as any as Column<T, T | null, ST, UT | Default>;
 	}
 

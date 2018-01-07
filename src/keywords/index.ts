@@ -1,11 +1,11 @@
 import { StringToken } from "../tokens";
 
 export abstract class Keyword {
-  abstract toString(): string;
+  abstract toSql(): string;
 
   toTokens() {
     return [
-      new StringToken(this.toString()),
+      new StringToken(this.toSql()),
     ];
   }
 }

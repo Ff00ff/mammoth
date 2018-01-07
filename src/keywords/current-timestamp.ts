@@ -1,5 +1,5 @@
 import { Keyword } from ".";
 
 export class CurrentTimestamp extends Keyword {
-  toString() { return `CURRENT_TIMESTAMP`; }
+  toSql() { return `CURRENT_TIMESTAMP`; }
 }

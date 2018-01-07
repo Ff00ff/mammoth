@@ -3,7 +3,7 @@ import * as url from 'url';
 import { Now } from './keywords';
 import { PartialQuery, Tokenable } from './query';
 import { Table, TableWrapper } from './table';
-import { GroupToken, StringToken, Token } from './tokens';
+import { GroupToken, StringToken } from './tokens';
 import { Transaction } from './transaction';
 
 // FIXME: any should be replaced by something specific. But specifying Table, which should be the

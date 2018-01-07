@@ -7,6 +7,10 @@ export class Unsafe {
     this.sql = sql;
   }
 
+  toSql() {
+    return this.sql;
+  }
+
   toTokens() {
     return [
       new StringToken(this.sql),

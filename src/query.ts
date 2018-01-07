@@ -1,6 +1,6 @@
 
 import { Column } from './columns';
-import { Keyword } from './database';
+import { Keyword } from './keywords';
 import { TableWrapper } from './table';
 import { CollectionToken, GroupToken, ParameterToken, SeparatorToken, StringToken, Token } from './tokens';
 
@@ -133,15 +133,13 @@ export class Query<T extends TableWrapper<Row, InsertRow, UpdateRow>, Row, Inser
 	selectWithAlias<
 		SelectMap extends { [alias: string]: Column<string | number | Date> },
 		R = { [P in keyof SelectMap]: SelectMap[P]['selectType'] }
-	>(columns: SelectMap): Query<T, Row, InsertRow, UpdateRow, R, R[]> {
+	>(columns: SelectMap): Query<T, Row, InsertRow, UpdateRow, R[], R> {
 		this.type = 'ROWS';
 
 		this.append `SELECT`;
 		this.tokens.push(new SeparatorToken(`,`, Object.keys(columns)
 			.map(alias => {
 				const column = columns[alias];
-
-				// TODO: if this is an AggregateType get the correct sql. I guess we should use toTokens()?
 
 				return new CollectionToken([
 					...column.toTokens(),
@@ -150,7 +148,7 @@ export class Query<T extends TableWrapper<Row, InsertRow, UpdateRow>, Row, Inser
 			})
 		));
 
-		return this as any as Query<T, Row, InsertRow, UpdateRow, R, R[]>;
+		return this as any as Query<T, Row, InsertRow, UpdateRow, R[], R>;
 	}
 
 	selectWithStrings<
@@ -384,7 +382,7 @@ export class Query<T extends TableWrapper<Row, InsertRow, UpdateRow>, Row, Inser
 							new StringToken(column!.name!),
 							new StringToken(`=`),
 							value instanceof Keyword
-								? new StringToken(value.toString())
+								? new StringToken(value.toSql())
 								: new ParameterToken(value),
 						]);
 					}),

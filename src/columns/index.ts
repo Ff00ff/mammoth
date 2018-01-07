@@ -1,7 +1,7 @@
-import { Default } from '../database';
+import { Default, Keyword } from '../database';
 import { PartialQuery } from '../query';
 import { TableWrapper } from '../table';
-import { GroupToken, ParameterToken, StringToken } from '../tokens';
+import { CollectionToken, GroupToken, ParameterToken, StringToken, Token } from '../tokens';
 import { Unsafe } from '../unsafe';
 
 export interface ColumnConfig<T> {
@@ -102,10 +102,10 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
 		return this;
 	}
 
-	default(sql: T | Unsafe): Column<T, T | null, ST, UT | Default> {
-		this.config.default = sql instanceof Unsafe
-			? sql.toString()
-			: sql;
+	default(sql: T | Unsafe | Keyword): Column<T, T | null, ST, UT | Default> {
+		this.config.default = typeof sql === `string`
+			? sql
+			: sql.toString();
 		return this as any as Column<T, T | null, ST, UT | Default>;
 	}
 
@@ -133,7 +133,7 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
 	private compare(value: T | Column<any> | PartialQuery, comparator: string) {
 		const query = new PartialQuery();
 		query.tokens.push(
-			new StringToken(`${this.table!.getName()}.${this.name}`),
+			new StringToken(this.toSql()),
 			new StringToken(comparator),
 		);
 
@@ -152,7 +152,7 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
 	isNull() {
 		const query = new PartialQuery();
 		query.tokens.push(
-			new StringToken(`${this.table!.getName()}.${this.name}`),
+			new StringToken(this.toSql()),
 			new StringToken(`IS NULL`),
 		);
 		return query;
@@ -161,18 +161,18 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
 	isNotNull() {
 		const query = new PartialQuery();
 		query.tokens.push(
-			new StringToken(`${this.table!.getName()}.${this.name}`),
+			new StringToken(this.toSql()),
 			new StringToken(`IS NOT NULL`),
 		);
 		return query;
 	}
 
 	asc() {
-		return new PartialQuery(new StringToken(`${this.table!.getName()}.${this.name}`), new StringToken(`ASC`));
+		return new PartialQuery(new StringToken(this.toSql()), new StringToken(`ASC`));
 	}
 
 	desc() {
-		return new PartialQuery(new StringToken(`${this.table!.getName()}.${this.name}`), new StringToken(`DESC`));
+		return new PartialQuery(new StringToken(this.toSql()), new StringToken(`DESC`));
 	}
 
 	in(array: T[]) {
@@ -186,7 +186,21 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
 	private aggregate(aggregateType: AggregateType) {
 		// TODO: the selectType probably needs an update depending on the aggregate type?
 
-		return new AggregateColumn<T, IT, ST, UT>(aggregateType, this.name!, this.key!);
+		const aggregateColumn = new AggregateColumn<T, IT, ST, UT>(aggregateType, this.name!, this.key!);
+
+		// TODO: this is a bit ugly. Is there anything else we need to set?
+		aggregateColumn.table = this.table;
+		return aggregateColumn;
+	}
+
+	toSql() {
+		return `${this.table!.getName()}.${this.name}`;
+	}
+
+	toTokens(): Token[] {
+		return [
+			new StringToken(this.toSql()),
+		];
 	}
 
 	count() { return this.aggregate(`COUNT`); }
@@ -213,19 +227,17 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
 	// TODO: should this only be on TextColumn exclusively?
 	concat(value: T | Column<any>) {
 		return new PartialQuery(
-			new StringToken(`${this.table!.getName()}.${this.name}`),
+			new StringToken(this.toSql()),
 			new StringToken(`||`),
-
-			// TODO: What if this is an aggregate column? We should have a toSql/toTokens method or something?
 			value instanceof Column
-				? new StringToken(`${value.table!.getName()}.${value.name}`)
+				? new CollectionToken(value.toTokens())
 				: new ParameterToken(value),
 		);
 	}
 
 	between(a: T, b: T) {
 		return new PartialQuery(
-			new StringToken(`${this.table!.getName()}.${this.name}`),
+			new StringToken(this.toSql()),
 			new StringToken(`BETWEEN`),
 			new ParameterToken(a),
 			new StringToken(`AND`),
@@ -250,6 +262,16 @@ export class AggregateColumn<T, IT, ST, UT> extends Column<T, IT, ST, UT> {
 		this.aggregateType = aggregateType;
 		this.name = name;
 		this.key = key;
+	}
+
+	toTokens() {
+		return [
+			new GroupToken(
+				[new StringToken(this.toSql())],
+				`${this.aggregateType}(`,
+				`)`,
+			),
+		];
 	}
 }
 

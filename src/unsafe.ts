@@ -1,3 +1,5 @@
+import { StringToken } from "./tokens";
+
 export class Unsafe {
   private sql: string;
 
@@ -5,7 +7,9 @@ export class Unsafe {
     this.sql = sql;
   }
 
-  toString(): string {
-    return this.sql;
+  toTokens() {
+    return [
+      new StringToken(this.sql),
+    ];
   }
 }

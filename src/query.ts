@@ -5,7 +5,7 @@ import { TableWrapper } from './table';
 import { CollectionToken, GroupToken, ParameterToken, SeparatorToken, StringToken, Token } from './tokens';
 
 export interface Tokenable {
-	tokens: Token[];
+	toTokens(): Token[];
 }
 
 export class QueryBuilder {
@@ -27,6 +27,7 @@ export const createState = (tokens: Token[], numberOfParameters: number): State 
 		text: [],
 		parameters: [],
 	};
+
 	return tokens.reduce((tokenState, token) =>
 		token.reduce(tokenState, tokenState.parameters.length + numberOfParameters), initialState);
 }
@@ -142,7 +143,10 @@ export class Query<T extends TableWrapper<Row, InsertRow, UpdateRow>, Row, Inser
 
 				// TODO: if this is an AggregateType get the correct sql. I guess we should use toTokens()?
 
-				return new StringToken(`${column.table!.getName()}.${column.name} AS "${alias}"`);
+				return new CollectionToken([
+					...column.toTokens(),
+					new StringToken(`AS "${alias}"`),
+				]);
 			})
 		));
 
@@ -269,13 +273,13 @@ export class Query<T extends TableWrapper<Row, InsertRow, UpdateRow>, Row, Inser
 	// TODO: if we set a type of the joined table somewhere we could make this a bit safer?
 	on(tokenable: Tokenable) {
 		this.append `ON`;
-		this.tokens.push(...tokenable.tokens);
+		this.tokens.push(...tokenable.toTokens());
 		return this;
 	}
 
 	where(tokenable: Tokenable) {
 		this.append `WHERE`;
-		this.tokens.push(...tokenable.tokens);
+		this.tokens.push(...tokenable.toTokens());
 		return this;
 	}
 
@@ -391,14 +395,16 @@ export class Query<T extends TableWrapper<Row, InsertRow, UpdateRow>, Row, Inser
 
 	having(tokenable: Tokenable) {
 		this.append `HAVING`;
-		this.tokens.push(...tokenable.tokens);
+
+		// TODO: should we add a separator here as well?
+		this.tokens.push(...tokenable.toTokens());
 		return this;
 	}
 
 	orderBy(...tokenables: Tokenable[]) {
 		this.tokens.push(
 			new StringToken(`ORDER BY`),
-			new SeparatorToken(`,`, ([] as Token[]).concat(...tokenables.map(tokenable => tokenable.tokens))),
+			new SeparatorToken(`,`, tokenables.map(tokenable => new CollectionToken(tokenable.toTokens()))),
 		);
 		return this;
 	}
@@ -411,7 +417,7 @@ export class Query<T extends TableWrapper<Row, InsertRow, UpdateRow>, Row, Inser
 					? this.getColumn(columnName)
 					: columnName)
 				.filter(column => Boolean(column))
-				.map(column => new StringToken(`${this.table.getName()}.${column!.name!}`)),
+				.map(column => new CollectionToken(column!.toTokens())),
 			),
 		);
 		return this;

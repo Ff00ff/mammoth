@@ -11,7 +11,7 @@ const toSnakeCase = (string: string) => string.replace(/([^A-Z]|[A-Z]{1,})([A-Z]
 export class TableWrapper<Row, InsertRow = Row, UpdateRow = Row> {
 	private readonly $name: string;
   private readonly $columnNames: ReadonlyArray<keyof Row>;
-  private $db?: Database;
+  private $db?: Database<any>;
 
   constructor(table: Table, name: string) {
 		this.$name = toSnakeCase(name);
@@ -39,7 +39,7 @@ export class TableWrapper<Row, InsertRow = Row, UpdateRow = Row> {
     });
   }
 
-  init(db: Database) {
+  init(db: Database<any>) {
     this.$db = db;
 
     const self = this as any;
@@ -233,7 +233,7 @@ export class TableWrapper<Row, InsertRow = Row, UpdateRow = Row> {
 		columnNameF?: F,
 		columnNameG?: G,
 		columnNameH?: H,
-	) {
+	): Query<this, Row, InsertRow, UpdateRow, any> {
     if (typeof columnNameA === 'object') {
       return this.query().selectWithAlias(columnNameA);
     }

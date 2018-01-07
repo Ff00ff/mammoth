@@ -1,7 +1,7 @@
 import { Database } from "../../database";
 import { createMigrationTable, getAppliedMigrations, getMigrations } from "./migration";
 
-export const apply = async (db: Database, migrationsDir: string) => {
+export const apply = async (db: Database<any>, migrationsDir: string) => {
   await createMigrationTable(db);
 
   const appliedMigrations = await getAppliedMigrations(db);

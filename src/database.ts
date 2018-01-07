@@ -1,11 +1,10 @@
 import * as pg from 'pg';
 import * as url from 'url';
-import { Column } from './columns';
-import { PartialQuery, Query, Tokenable } from './query';
+import { Now } from './keywords';
+import { PartialQuery, Tokenable } from './query';
 import { Table, TableWrapper } from './table';
-import { GroupToken, StringToken } from './tokens';
+import { GroupToken, StringToken, Token } from './tokens';
 import { Transaction } from './transaction';
-import { Unsafe } from './unsafe';
 
 // FIXME: any should be replaced by something specific. But specifying Table, which should be the
 // right type, breaks functionality. Table adds an index signature which means doing keyof MyTable
@@ -122,59 +121,16 @@ export class Database<Tables> {
 		}
   }
 
-  now() {
-    const query = new PartialQuery();
-    query.tokens.push(new StringToken(`NOW()`));
-    return query;
-  }
-
-  default() {
-    return new Default();
-  }
-
-  uuidGenerateV4() {
-    return new Unsafe(`uuid_generate_v4()`);
-  }
-
-  excluded(_column: Column<any>) {
-    //
-  }
-
-  exists(_query: Query<any, any, any, any>) {
-    //
-  }
-
   not(tokenable: Tokenable) {
     return new PartialQuery(
       new StringToken(`NOT`),
-      new GroupToken(tokenable.tokens),
+      new GroupToken(tokenable.toTokens()),
     );
   }
-}
 
-export abstract class Keyword {
-  abstract toString(): string;
-
-  toTokens() {
-    return [
-      new StringToken(this.toString()),
-    ];
+  now() {
+    return new PartialQuery(...new Now().toTokens());
   }
-}
-export class Default extends Keyword {
-  toString() { return `DEFAULT`; }
-}
-
-export class UuidGenerateV4 extends Keyword {
-  toString() { return `uuid_generate_v4()`; }
-}
-
-export class Now extends Keyword {
-  toString() { return `NOW()`; }
-}
-
-export class CurrentTimestamp extends Keyword {
-  toString() { return `CURRENT_TIMESTAMP`; }
 }
 
 export const createDatabase = <T extends TableMap>(tables: T) => {

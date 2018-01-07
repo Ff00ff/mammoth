@@ -55,7 +55,7 @@ const createFromSimulator = (migrationsDir: string) => {
   return from;
 }
 
-const createToSimulator = (db: Database) => {
+const createToSimulator = (db: Database<any>) => {
   const to = new Simulator();
 
   db.tableNames.forEach(tableName => {

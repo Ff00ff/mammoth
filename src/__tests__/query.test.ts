@@ -1,5 +1,6 @@
 import { IntegerColumn, TimestampWithTimeZoneColumn, UuidColumn } from '../columns';
 import { createDatabase } from '../database';
+import { Default } from '../keywords';
 import { Query } from '../query';
 import { Unsafe } from '../unsafe';
 
@@ -41,21 +42,6 @@ describe('Query', () => {
     beforeEach(() => db.exec(`INSERT INTO account (value) VALUES (123), (100), (42)`));
 
     afterEach(() => db.exec(`DROP TABLE account`));
-
-    db.transaction(async db => {
-      const account = await db.account
-        .insert({
-          id: null,
-          createdAt: null,
-          updatedAt: null,
-          value: 0,
-        })
-        .returning('id')
-        .
-        .first();
-
-
-    });
 
     it('simple select', async () => {
       const rows = await db.account
@@ -126,6 +112,7 @@ describe('Query', () => {
     text: string;
     parameters?: any[];
     query: Query<any, any, any, any, any>;
+    only?: boolean;
   }
 
   const account = {
@@ -175,7 +162,7 @@ describe('Query', () => {
       .select('id', 'createdAt')
       .from(db.account)
       .where(db.account.createdAt.gt(db.now().minus(`2 days`)))
-      .limit(10)
+      .limit(10),
   }, {
     text: `SELECT account.id FROM account WHERE account.value = $1 LIMIT 1`,
     parameters: [123],
@@ -206,10 +193,11 @@ describe('Query', () => {
     text: `SELECT account.id FROM account ORDER BY account.created_at DESC, account.updated_at ASC`,
   }, {
     query: db.account.select(`id`).from(db.account).having(db.account.value.gt(100)),
-    text: `SELECT account.id FROM account HAVING account.value > 100`,
+    text: `SELECT account.id FROM account HAVING account.value > $1`,
+    parameters: [100],
   }, {
     query: db.account.select(`id`).from(db.account).having(db.account.value.in([1, 2, 3])),
-    text: `SELECT account.id FROM account HAVING account.id IN ($1)`,
+    text: `SELECT account.id FROM account HAVING account.value IN ($1)`,
     parameters: [[1, 2, 3]],
   }, {
     query: db.account.select(`id`).from(db.account).where(db.not(db.account.value.eq(123))),
@@ -220,7 +208,7 @@ describe('Query', () => {
     text: `SELECT account.id FROM account GROUP BY account.value`,
   }, {
     query: db.account.select({ count: db.account.id.count() }).from(db.account).groupBy(db.account.value),
-    text: `SELECT COUNT(account.id) FROM account GROUP BY account.value`,
+    text: `SELECT COUNT(account.id) AS "count" FROM account GROUP BY account.value`,
   }, {
     query: db.account.select(`id`).from(db.account).where(db.account.value.between(0, 100)),
     text: `SELECT account.id FROM account WHERE account.value BETWEEN $1 AND $2`,
@@ -272,15 +260,16 @@ describe('Query', () => {
     text: `UPDATE account SET value = $1 WHERE account.id = $2 LIMIT 1`,
     parameters: [1, `123`],
   }, {
-    query: db.account.update({ createdAt: db.default() }),
+    query: db.account.update({ createdAt: new Default() }),
     parameters: [],
     text: `UPDATE account SET created_at = DEFAULT`,
   }, {
     query: db.account.update({ value: db.account.value.plus(1) }),
-    text: `UPDATE account SET account.value = account.value + 1`,
+    text: `UPDATE account SET value = account.value + $1`,
+    parameters: [1],
   }];
 
-  queries.forEach(queryTest => {
+  (queries.filter(queryTest => queryTest.only) || queries).forEach(queryTest => {
     it(queryTest.text, () => {
       const query = queryTest.query.toQuery();
 

@@ -22,7 +22,7 @@ export const getMigrations = (migrationsDir: string): Migration[] =>
       name: migrationName,
     }));
 
-export const createMigrationTable = async (db: Database) => {
+export const createMigrationTable = async (db: Database<any>) => {
   try {
     await db.sql `CREATE SCHEMA db CREATE TABLE migration (
       name TEXT NOT NULL PRIMARY KEY,
@@ -41,13 +41,13 @@ export const createMigrationTable = async (db: Database) => {
   }
 }
 
-export const getAppliedMigrations = async (db: Database): Promise<Set<string>> => {
+export const getAppliedMigrations = async (db: Database<any>): Promise<Set<string>> => {
   const result = await db.sql `SELECT name FROM db.migration`;
 
   return new Set(result.rows.map(row => row.name));
 }
 
-export const getLatestAppliedMigrationName = async (db: Database): Promise<string | undefined> => {
+export const getLatestAppliedMigrationName = async (db: Database<any>): Promise<string | undefined> => {
   const result = await db.sql `SELECT name FROM db.migration ORDER BY name DESC LIMIT 1`;
 
   if (result.rows.length > 0) {
@@ -58,7 +58,7 @@ export const getLatestAppliedMigrationName = async (db: Database): Promise<strin
   return undefined;
 }
 
-export const getLatestAppliedMigration = async (db: Database, migrationsDir: string): Promise<Migration | undefined> => {
+export const getLatestAppliedMigration = async (db: Database<any>, migrationsDir: string): Promise<Migration | undefined> => {
   const migrationName = await getLatestAppliedMigrationName(db);
 
   if (migrationName) {

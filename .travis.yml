@@ -8,5 +8,8 @@ before_script:
   - psql -c 'create database test;' -U postgres
 script:
   - yarn test
+after_script:
+  - yarn test --coverage
+  - yarn reportCoverage
 env:
   - DATABASE_URL=postgres://postgres@localhost/test DB_DISABLE_SSL=true

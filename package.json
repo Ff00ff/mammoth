@@ -10,7 +10,8 @@
   "scripts": {
     "test": "NODE_ENV=test jest",
     "build": "rimraf ./lib && tsc",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build",
+    "reportCoverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "devDependencies": {
     "@types/jest": "^21.1.8",
@@ -18,6 +19,7 @@
     "@types/minimist": "^1.2.0",
     "@types/node": "^8.0.57",
     "@types/pg": "^7.4.1",
+    "coveralls": "^3.0.0",
     "jest": "^21.2.1",
     "prettier": "^1.9.1",
     "rimraf": "^2.6.2",

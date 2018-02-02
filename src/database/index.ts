@@ -1,7 +1,7 @@
 import * as pg from 'pg';
 import { ColumnWrapper } from '../columns';
 import { DeleteQuery, InsertQuery, PartialQuery, SelectQuery, UpdateQuery } from '../query';
-import { Table, TableWrapper } from '../table';
+import { TableWrapper } from '../table';
 import { CollectionToken, ParameterToken, SeparatorToken, StringToken } from '../tokens';
 
 // FIXME: any should be replaced by something specific. But specifying Table, which should be the

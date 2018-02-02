@@ -58,14 +58,9 @@ const createFromSimulator = (migrationsDir: string) => {
 const createToSimulator = (db: Database<any>) => {
   const to = new Simulator();
 
-  db.tableNames.forEach(tableName => {
-    console.log(`createToSimulator(): Create ${tableName}`);
-
+  const tableNames = db.getTableNames();
+  tableNames.forEach(tableName => {
     const table = (db as any)[tableName] as TableWrapper<any, any> & Table;
-
-    console.log(`Table = `);
-    console.log(table);
-
     const query = generateCreateTableSql(table);
 
     to.simulateQuery(query);

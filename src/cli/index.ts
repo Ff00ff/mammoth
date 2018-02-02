@@ -97,7 +97,7 @@ const main = async () => {
   }
   finally {
     if (db) {
-      db.pool.end();
+      await db.destroy();
     }
   }
 };

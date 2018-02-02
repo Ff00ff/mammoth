@@ -4,19 +4,28 @@
 [![Coverage Status](https://coveralls.io/repos/github/Ff00ff/db/badge.svg?branch=master)](https://coveralls.io/github/Ff00ff/db?branch=master)
 
 ```
-yarn add @ff00ff/db
+yarn add @ff00ff/mammoth
 ```
 
 A (mostly) type-safe Postgres query builder for TypeScript. **This is not for the front-end, but for the back-end.**
 
-![Select autocomplete](https://user-images.githubusercontent.com/178230/34638202-1f7cca3c-f2c7-11e7-9207-55b6e0b8fe78.gif)
+## Features
+
+- Type-safe query builder.
+- Supports Postgres only.
+- Excellent autocomplete.
+- Transactions.
+- Automatic migration generation based on changes to your schema.
+- Connection pooling.
+- Automatic camelCase to snake_case conversion.
+- CLI.
 
 ### Quick start
 ```ts
-const rows = await db.list
-  .select('id', 'name', 'createdAt', 'value')
+const rows = await db
+  .select(db.list.id, db.list.createdAt)
   .from(db.list)
-  .where(db.list.createdAt.gt(db.now().minus(`2 days`)).or(db.list.value.eq(0)))
+  .where(db.list.createdAt.gt(now().minus(`2 days`)).or(db.list.value.eq(0)))
   .limit(10);
 ```
 _A select should not require declaring an additional interface explicitly._
@@ -58,8 +67,9 @@ class ListItem {
 To update rows.
 
 ```ts
-const numberOfUpdates = await db.list
-  .update({
+const numberOfUpdates = await db
+  .update(db.list)
+  .set({
     name: `New Name`
   })
   .where(db.list.id.eq(`acb82ff3-3311-430e-9d1d-8ff600abee31`));
@@ -69,23 +79,23 @@ const numberOfUpdates = await db.list
 
 To insert a row.
 
-![Insert autocomplete](https://user-images.githubusercontent.com/178230/34638201-1f66ed98-f2c7-11e7-8d93-c5792226b044.gif)
-
 ```ts
-const numberOfRows = await db.list
-  .insert({
-    id: undefined,
-    createdAt: undefined,
+const numberOfRows = await db
+  .insertInto(db.list)
+  .values({
+    id: null,
+    createdAt: null,
     name: `My List`,
   });
 ```
 _You do need to explicitly set all values. The return type is automatically handled._
 
 ```ts
-const rows = await db.list
-  .insert({
-    id: undefined,
-    createdAt: undefined,
+const rows = await db
+  .insertInto(db.list)
+  .values({
+    id: null,
+    createdAt: null,
     name: `My List`,
   })
   .returning(`id`, `createdAt`, `name`);
@@ -99,26 +109,29 @@ You can call `db.transaction(callback)` which begins a transaction and depending
 Best practice is to shadow your database variable, generally `db`, so you do not mistakenly execute queries outside the transaction.
 
 ```ts
-db.transaction(db => {
-  const listId = await db.list
-    .insert({
-      id: undefined,
-      createdAt: undefined,
+const list = await db.transaction(db => {
+  const list = await db
+    .intoInto(db.list)
+    .values({
+      id: null,
+      createdAt: null,
       name: `My List`,
     })
     .returning(`id`)
     .first();
 
-  await db.listItem
-    .insert({
-      id: undefined,
+  await db
+    .insertInto(db.listItem)
+    .values({
+      id: null,
       createdAt: undefined,
-      listId,
+      listId: list.id,
       name: `My Item`,
     });
+
+  return list;
 });
 ```
-__Even though transactions are designed, it's implementation is still a work-in-progress.__
 
 ### Migrations
 
@@ -130,7 +143,7 @@ The idea is to automatically generate migrations based on the changes in your ta
 For example, in `src/db.ts`:
 
 ```ts
-import { createDatabase, UuidColumn, TextColumn, IntegerColumn } from '@ff00ff/db';
+import { createDatabase, UuidColumn, TextColumn, IntegerColumn } from '@ff00ff/mammoth';
 
 class Test {
   id = new UuidColumn().primaryKey().notNull().default(new UuidGenerateV4());
@@ -146,11 +159,30 @@ export type Database = typeof db;
 ```
 _It's a best practice to place your tables in `src/tables` instead of directly in `src/db.ts`._
 
-`db migrations generate` should read your tables, read your migrations and generate a new migration based on the changes between them.
+`db migrations generate` should read your tables in `src/tables`, read your migrations and generate a new migration based on the changes between them.
+
+### Raw queries
+
+When a new keyword is introduced in Postgres which you want to use badly but is not supported in this library yet, you can always fall back to raw sql. You can mix the type-safe functions with raw sql:
+
+```ts
+db.select(db.account.id)
+  .from(db.account)
+  .append `MAGIC NEW ORDER BY`;
+```
+```sql
+SELECT account.id FROM account MAGIC NEW ORDER BY
+```
+
+You can also write raw sql completely. This is not advised, obviously, because it defeats the whole purpose of this library.
+```ts
+const result = await db.sql `SELECT * FROM account WHERE account.name = ${name}`;
+
+
+```
 
 ### Up next
 
-- Get feedback on the public API.
 - Refactor internal API as some bits are a bit in a proof on concept state.
 - Extend SQL keywords e.g. UNION, WITH, INSERT INTO-SELECT, etc.
 - Improve upsert, delete.
@@ -158,8 +190,8 @@ _It's a best practice to place your tables in `src/tables` instead of directly i
 
 ### Stay in touch!
 
-Please star or watch this repo. Because Db is still in development you can sign up to receive the announcement once we hit 1.0 http://eepurl.com/dgySSz (this is a Mailchimp sign up form). You can also start a discussion on e.g. GitHub to give feedback on the public API.
+Please star or watch this repo. Because Mammoth is still in development you can sign up to receive the announcement once we hit 1.0 http://eepurl.com/dgySSz (this is a Mailchimp sign up form). You can also start a discussion on e.g. GitHub to give feedback on the public API.
 
 ### Versioning
 
-A final note on the versioning: we're at version 0.X until we consider Db not production-ready. Once we consider the project production-ready we bump to 1.0 and stricly abide to semver.
+A final note on the versioning: we're at version 0.X until we consider Mammoth not production-ready. Once we consider the project production-ready we bump to 1.0 and stricly abide to semver.

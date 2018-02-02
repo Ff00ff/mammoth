@@ -1,4 +1,4 @@
-import { createDatabase, IntegerColumn, Now, TextColumn, TimestampWithTimeZoneColumn, UuidColumn, UuidGenerateV4 } from "../src";
+import { createDatabase, IntegerColumn, Now, TextColumn, TimestampWithTimeZoneColumn, UuidColumn, UuidGenerateV4 } from "../lib";
 
 export class Test {
   id = new UuidColumn().primaryKey().notNull().default(new UuidGenerateV4());
@@ -12,4 +12,3 @@ export const db = createDatabase({
 });
 
 export type Db = typeof db;
-

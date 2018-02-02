@@ -7,18 +7,6 @@ export class Transaction {
     this.client = client;
   }
 
-  sql(strings: TemplateStringsArray, ...parameters: any[]) {
-    const text = strings.reduce((query, string, index) => query + String(index + 1) + string, '');
-
-    try {
-      return this.client.query(text, parameters);
-    }
-    catch (e) {
-      e.query = text;
-      throw e;
-    }
-  }
-
   begin() {
     return this.client.query(`BEGIN`);
   }

@@ -1,7 +1,7 @@
-# Db
+# Mammoth
 
-[![Build Status](https://travis-ci.org/Ff00ff/db.svg?branch=master)](https://travis-ci.org/Ff00ff/db)
-[![Coverage Status](https://coveralls.io/repos/github/Ff00ff/db/badge.svg?branch=master)](https://coveralls.io/github/Ff00ff/db?branch=master)
+[![Build Status](https://travis-ci.org/Ff00ff/mammoth.svg?branch=master)](https://travis-ci.org/Ff00ff/mammoth)
+[![Coverage Status](https://coveralls.io/repos/github/Ff00ff/mammoth/badge.svg?branch=master)](https://coveralls.io/github/Ff00ff/mammoth?branch=master)
 
 ```
 yarn add @ff00ff/mammoth

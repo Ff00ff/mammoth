@@ -111,6 +111,28 @@ describe('Query', () => {
       }])
     });
 
+    it(`should select with max aggregate`, async () => {
+      const row = await db
+        .select(db.account.value.max().as(`test`))
+        .from(db.account)
+        .limit(1)
+        .first();
+
+      expect(row).toBeDefined();
+      expect(row!.test).toEqual(123);
+    });
+
+    it(`should select with count aggregate`, async () => {
+      const row = await db
+        .select(db.account.id.count().as(`test`))
+        .from(db.account)
+        .limit(1)
+        .first();
+
+      expect(row).toBeDefined();
+      expect(row!.test).toEqual('3');
+    });
+
     it('should insert row with returning', async () => {
       const rows = await db.insertInto(db.account)
         .values({

@@ -59,7 +59,7 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
 	}
 
 	as<A extends string>(aliasName: A): ColumnWrapper<A, BaseType, SelectType, InsertType, UpdateType> {
-		return new AliasedColumnWrapper(aliasName, this.table, this.column, this.camelCaseName, this.snakeCaseName);
+		return new AliasedColumnWrapper(aliasName, this.toTokens(), this.table, this.column, this.camelCaseName, this.snakeCaseName);
 	}
 
 	isNull() {
@@ -90,21 +90,21 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
 
 	in(array: BaseType[]) {
 		return new PartialQuery(
+			// TODO: should we change this to a toTokens() call instead?
 			new StringToken(`${this.table.getName()}.${this.name}`),
 			new StringToken(`IN`),
 			new GroupToken([new ParameterToken(array)]),
 		)
 	}
 
-	private aggregate(aggregateType: AggregateType) {
-		// TODO: the selectType probably needs an update depending on the aggregate type?
+	private aggregate<Type = BaseType>(aggregateType: AggregateType) {
+		// TODO: the type probably needs to change in case of count?
+		const defaultName = aggregateType.toLowerCase();
 
-		return new AggregateColumnWrapper(aggregateType, this.table, this.column, this.camelCaseName, this.snakeCaseName);
+		return new AggregateColumnWrapper<typeof defaultName, Type, Type, Type, Type>(aggregateType, this.table, this.column, this.camelCaseName, this.snakeCaseName);
 	}
 
 	toSql() {
-		// TODO: in an alias we just use the alias name here.
-
 		return `${this.table!.getName()}.${this.snakeCaseName}`;
 	}
 
@@ -114,7 +114,11 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
 		];
 	}
 
-	count() { return this.aggregate(`COUNT`); }
+	toReferenceExpressionTokens(): Token[] {
+		return this.toTokens();
+	}
+
+	count() { return this.aggregate<string>(`COUNT`); }
 	sum() { return this.aggregate(`SUM`); }
 	min() { return this.aggregate(`MIN`); }
 	max() { return this.aggregate(`MAX`); }
@@ -164,8 +168,7 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
 		);
 
 		if (value instanceof ColumnWrapper) {
-			// TODO: we should call toTokens probably?
-			query.tokens.push(new StringToken(`${value.table!.getName()}.${value.snakeCaseName}`));
+			query.tokens.push(...value.toReferenceExpressionTokens());
 		}
 		else if (value instanceof PartialQuery) {
 			query.tokens.push(...value.tokens);
@@ -185,9 +188,12 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
 }
 
 export class AliasedColumnWrapper<Name extends string, BaseType, SelectType, InsertType, UpdateType> extends ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
-	constructor(name: Name, table: TableWrapper<any>, column: Column<any>, camelCaseName: string, snakeCaseName: string) {
+	private tokens: Token[];
+
+	constructor(name: Name, tokens: Token[], table: TableWrapper<any>, column: Column<any>, camelCaseName: string, snakeCaseName: string) {
 		super(table, column, camelCaseName, snakeCaseName);
 
+		this.tokens = tokens;
 		this.name = name;
 	}
 
@@ -200,12 +206,14 @@ export class AliasedColumnWrapper<Name extends string, BaseType, SelectType, Ins
 	}
 
 	toTokens() {
-		// TODO: there should be something like toSelectable() which is used in the SELECT instead.
-
 		return [
-			new StringToken(this.toSql()),
+			...this.tokens,
 			new StringToken(`AS "${this.name}"`),
 		];
+	}
+
+	toReferenceExpressionTokens() {
+		return this.tokens;
 	}
 }
 
@@ -218,16 +226,8 @@ export class AggregateColumnWrapper<Name, BaseType, SelectType, InsertType, Upda
 		this.aggregateType = aggregateType;
 	}
 
-	toTokens() {
-		// TODO: there should be something like toSelectable() which should be used in the SELECT instead.
-
-		return [
-			new GroupToken(
-				[new StringToken(this.toSql())],
-				`${this.aggregateType}(`,
-				`)`,
-			),
-		];
+	toSql() {
+		return `${this.aggregateType}(${super.toSql()})`;
 	}
 }
 

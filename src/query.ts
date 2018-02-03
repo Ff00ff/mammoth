@@ -667,6 +667,73 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnG: G,
 		columnH: H,
 	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
+		A extends ColumnWrapper<any, any, any, any, any>,
+		B extends ColumnWrapper<any, any, any, any, any>,
+		C extends ColumnWrapper<any, any, any, any, any>,
+		D extends ColumnWrapper<any, any, any, any, any>,
+		E extends ColumnWrapper<any, any, any, any, any>,
+		F extends ColumnWrapper<any, any, any, any, any>,
+		G extends ColumnWrapper<any, any, any, any, any>,
+		H extends ColumnWrapper<any, any, any, any, any>,
+		I extends ColumnWrapper<any, any, any, any, any>,
+		R = (
+			{ [PA in A['name']]: A['selectType']; } &
+			{ [PA in B['name']]: B['selectType']; } &
+			{ [PA in C['name']]: C['selectType']; } &
+			{ [PA in D['name']]: D['selectType']; } &
+			{ [PA in E['name']]: E['selectType']; } &
+			{ [PA in F['name']]: F['selectType']; } &
+			{ [PA in G['name']]: G['selectType']; } &
+			{ [PA in H['name']]: H['selectType']; } &
+			{ [PA in I['name']]: I['selectType']; }
+		)
+	>(
+		columnA: A,
+		columnB: B,
+		columnC: C,
+		columnD: D,
+		columnE: E,
+		columnF: F,
+		columnG: G,
+		columnH: H,
+		columnI: I,
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
+		A extends ColumnWrapper<any, any, any, any, any>,
+		B extends ColumnWrapper<any, any, any, any, any>,
+		C extends ColumnWrapper<any, any, any, any, any>,
+		D extends ColumnWrapper<any, any, any, any, any>,
+		E extends ColumnWrapper<any, any, any, any, any>,
+		F extends ColumnWrapper<any, any, any, any, any>,
+		G extends ColumnWrapper<any, any, any, any, any>,
+		H extends ColumnWrapper<any, any, any, any, any>,
+		I extends ColumnWrapper<any, any, any, any, any>,
+		J extends ColumnWrapper<any, any, any, any, any>,
+		R = (
+			{ [PA in A['name']]: A['selectType']; } &
+			{ [PA in B['name']]: B['selectType']; } &
+			{ [PA in C['name']]: C['selectType']; } &
+			{ [PA in D['name']]: D['selectType']; } &
+			{ [PA in E['name']]: E['selectType']; } &
+			{ [PA in F['name']]: F['selectType']; } &
+			{ [PA in G['name']]: G['selectType']; } &
+			{ [PA in H['name']]: H['selectType']; } &
+			{ [PA in I['name']]: I['selectType']; } &
+			{ [PA in J['name']]: J['selectType']; }
+		)
+	>(
+		columnA: A,
+		columnB: B,
+		columnC: C,
+		columnD: D,
+		columnE: E,
+		columnF: F,
+		columnG: G,
+		columnH: H,
+		columnI: I,
+		columnJ: J,
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
 	returning(
 		...columns: (ColumnWrapper<any, any, any, any, any> | keyof Row)[]
 	) {
@@ -1120,6 +1187,73 @@ export class UpdateQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnG: G,
 		columnH: H,
 	): UpdateQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
+		A extends ColumnWrapper<any, any, any, any, any>,
+		B extends ColumnWrapper<any, any, any, any, any>,
+		C extends ColumnWrapper<any, any, any, any, any>,
+		D extends ColumnWrapper<any, any, any, any, any>,
+		E extends ColumnWrapper<any, any, any, any, any>,
+		F extends ColumnWrapper<any, any, any, any, any>,
+		G extends ColumnWrapper<any, any, any, any, any>,
+		H extends ColumnWrapper<any, any, any, any, any>,
+		I extends ColumnWrapper<any, any, any, any, any>,
+		R = (
+			{ [PA in A['name']]: A['selectType']; } &
+			{ [PA in B['name']]: B['selectType']; } &
+			{ [PA in C['name']]: C['selectType']; } &
+			{ [PA in D['name']]: D['selectType']; } &
+			{ [PA in E['name']]: E['selectType']; } &
+			{ [PA in F['name']]: F['selectType']; } &
+			{ [PA in G['name']]: G['selectType']; } &
+			{ [PA in H['name']]: H['selectType']; } &
+			{ [PA in I['name']]: I['selectType']; }
+		)
+	>(
+		columnA: A,
+		columnB: B,
+		columnC: C,
+		columnD: D,
+		columnE: E,
+		columnF: F,
+		columnG: G,
+		columnH: H,
+		columnI: I,
+	): UpdateQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
+		A extends ColumnWrapper<any, any, any, any, any>,
+		B extends ColumnWrapper<any, any, any, any, any>,
+		C extends ColumnWrapper<any, any, any, any, any>,
+		D extends ColumnWrapper<any, any, any, any, any>,
+		E extends ColumnWrapper<any, any, any, any, any>,
+		F extends ColumnWrapper<any, any, any, any, any>,
+		G extends ColumnWrapper<any, any, any, any, any>,
+		H extends ColumnWrapper<any, any, any, any, any>,
+		I extends ColumnWrapper<any, any, any, any, any>,
+		J extends ColumnWrapper<any, any, any, any, any>,
+		R = (
+			{ [PA in A['name']]: A['selectType']; } &
+			{ [PA in B['name']]: B['selectType']; } &
+			{ [PA in C['name']]: C['selectType']; } &
+			{ [PA in D['name']]: D['selectType']; } &
+			{ [PA in E['name']]: E['selectType']; } &
+			{ [PA in F['name']]: F['selectType']; } &
+			{ [PA in G['name']]: G['selectType']; } &
+			{ [PA in H['name']]: H['selectType']; } &
+			{ [PA in I['name']]: I['selectType']; } &
+			{ [PA in J['name']]: J['selectType']; }
+		)
+	>(
+		columnA: A,
+		columnB: B,
+		columnC: C,
+		columnD: D,
+		columnE: E,
+		columnF: F,
+		columnG: G,
+		columnH: H,
+		columnI: I,
+		columnJ: J,
+	): UpdateQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
 	returning(
 		...columns: (ColumnWrapper<any, any, any, any, any> | keyof Row)[]
 	) {
@@ -1443,6 +1577,73 @@ export class DeleteQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnF: F,
 		columnG: G,
 		columnH: H,
+	): DeleteQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
+		A extends ColumnWrapper<any, any, any, any, any>,
+		B extends ColumnWrapper<any, any, any, any, any>,
+		C extends ColumnWrapper<any, any, any, any, any>,
+		D extends ColumnWrapper<any, any, any, any, any>,
+		E extends ColumnWrapper<any, any, any, any, any>,
+		F extends ColumnWrapper<any, any, any, any, any>,
+		G extends ColumnWrapper<any, any, any, any, any>,
+		H extends ColumnWrapper<any, any, any, any, any>,
+		I extends ColumnWrapper<any, any, any, any, any>,
+		R = (
+			{ [PA in A['name']]: A['selectType']; } &
+			{ [PA in B['name']]: B['selectType']; } &
+			{ [PA in C['name']]: C['selectType']; } &
+			{ [PA in D['name']]: D['selectType']; } &
+			{ [PA in E['name']]: E['selectType']; } &
+			{ [PA in F['name']]: F['selectType']; } &
+			{ [PA in G['name']]: G['selectType']; } &
+			{ [PA in H['name']]: H['selectType']; } &
+			{ [PA in I['name']]: I['selectType']; }
+		)
+	>(
+		columnA: A,
+		columnB: B,
+		columnC: C,
+		columnD: D,
+		columnE: E,
+		columnF: F,
+		columnG: G,
+		columnH: H,
+		columnI: I,
+	): DeleteQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
+		A extends ColumnWrapper<any, any, any, any, any>,
+		B extends ColumnWrapper<any, any, any, any, any>,
+		C extends ColumnWrapper<any, any, any, any, any>,
+		D extends ColumnWrapper<any, any, any, any, any>,
+		E extends ColumnWrapper<any, any, any, any, any>,
+		F extends ColumnWrapper<any, any, any, any, any>,
+		G extends ColumnWrapper<any, any, any, any, any>,
+		H extends ColumnWrapper<any, any, any, any, any>,
+		I extends ColumnWrapper<any, any, any, any, any>,
+		J extends ColumnWrapper<any, any, any, any, any>,
+		R = (
+			{ [PA in A['name']]: A['selectType']; } &
+			{ [PA in B['name']]: B['selectType']; } &
+			{ [PA in C['name']]: C['selectType']; } &
+			{ [PA in D['name']]: D['selectType']; } &
+			{ [PA in E['name']]: E['selectType']; } &
+			{ [PA in F['name']]: F['selectType']; } &
+			{ [PA in G['name']]: G['selectType']; } &
+			{ [PA in H['name']]: H['selectType']; } &
+			{ [PA in I['name']]: I['selectType']; } &
+			{ [PA in J['name']]: J['selectType']; }
+		)
+	>(
+		columnA: A,
+		columnB: B,
+		columnC: C,
+		columnD: D,
+		columnE: E,
+		columnF: F,
+		columnG: G,
+		columnH: H,
+		columnI: I,
+		columnJ: J,
 	): DeleteQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
 	returning(
 		...columns: (ColumnWrapper<any, any, any, any, any> | keyof Row)[]

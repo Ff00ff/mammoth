@@ -182,15 +182,15 @@ export abstract class Database<Tables extends TableMap> {
       .map(column => new CollectionToken(column!.toTokens()))));
   }
 
-  insertInto<T extends TableWrapper<any, any, any>>(table: T): InsertQuery<this, T, T['$row'], T['$insertRow'], T['$updateRow'], any, any> {
+  insertInto<T extends TableWrapper<any, any, any>>(table: T): InsertQuery<this, T, T['$row'], T['$insertRow'], T['$updateRow'], number, void> {
     return new InsertQuery(this, table, new StringToken(`INSERT INTO`), new StringToken(table.getName()));
   }
 
-  deleteFrom<T extends TableWrapper<any, any, any>>(table: T): DeleteQuery<this, T, T['$row'], T['$insertRow'], T['$updateRow'], any, any> {
+  deleteFrom<T extends TableWrapper<any, any, any>>(table: T): DeleteQuery<this, T, T['$row'], T['$insertRow'], T['$updateRow'], number, void> {
     return new DeleteQuery(this, table, new StringToken(`DELETE FROM`), new StringToken(table.getName()));
   }
 
-  update<T extends TableWrapper<any, any, any>, Ret = UpdateQuery<this, T, T['$row'], T['$insertRow'], T['$updateRow'], any, any>>(table: T): { set(object: { [P in keyof T['$updateRow']]?: T['$updateRow'][P] | PartialQuery }): Ret } {
+  update<T extends TableWrapper<any, any, any>, Ret = UpdateQuery<this, T, T['$row'], T['$insertRow'], T['$updateRow'], number, void>>(table: T): { set(object: { [P in keyof T['$updateRow']]?: T['$updateRow'][P] | PartialQuery }): Ret } {
     const getColumn = (key: string): ColumnWrapper<any, any, any, any, any> | undefined => (table as any)[key];
 
     return {

@@ -2,7 +2,7 @@ import { db } from './db';
 
 const test = async () => {
 
-db.update(db.test)
+const update = await db.update(db.test)
   .set({
     name: `Test 2`,
   })
@@ -25,6 +25,12 @@ const item = await db
   .select(db.test.id)
   .from(db.test)
   .limit(1)
+  .first();
+
+const anotherItem = await db
+  .select(db.test.id)
+  .from(db.test)
+  .innerJoin(db.test).on(db.test.id)
   .first();
 
 const ret = await db.transaction(async db => {

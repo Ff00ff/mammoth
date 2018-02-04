@@ -154,27 +154,27 @@ export class Query<Db extends Database<any>, Ret, SingleRet, Tables = undefined>
 		return this;
 	}
 
-	protected internalJoin<JoinTable extends TableWrapper<any>>(type: 'JOIN' | 'INNER JOIN' | 'CROSS JOIN' | 'FULL JOIN' | 'LEFT JOIN' | 'RIGHT JOIN' | 'LEFT OUTER JOIN' | 'RIGHT OUTER JOIN' | 'FULL OUTER JOIN', table: JoinTable) {
+	protected internalJoin<JoinTable extends TableWrapper<any>, Ret>(type: 'JOIN' | 'INNER JOIN' | 'CROSS JOIN' | 'FULL JOIN' | 'LEFT JOIN' | 'RIGHT JOIN' | 'LEFT OUTER JOIN' | 'RIGHT OUTER JOIN' | 'FULL OUTER JOIN', table: JoinTable) {
 		this.tokens.push(
 			new StringToken(type),
 			new StringToken(table.getName()),
 		);
 
 		return {
-			on: (tokenable: Tokenable) => {
+			on: (tokenable: Tokenable): Ret => {
 				this.tokens.push(
 					new StringToken(`ON`),
 					new GroupToken(tokenable.toTokens()),
 				);
-				return this;
+				return this as any;
 			},
 
-			using: <T1 extends keyof Tables, T2 extends keyof JoinTable['$row'], C extends T1 & T2>(...columnNames: C[]) => {
+			using: <T1 extends keyof Tables, T2 extends keyof JoinTable['$row'], C extends T1 & T2>(...columnNames: C[]): Ret => {
 				this.tokens.push(
 					new StringToken(`USING`),
 					new GroupToken(columnNames.map(columnName => new StringToken(columnName as any))),
 				);
-				return this;
+				return this as any;
 			},
 		}
 	}
@@ -753,39 +753,39 @@ export class SelectQuery<Db extends Database<any>, Row, InsertRow, UpdateRow, Re
 	}
 
 	join<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('JOIN', table);
+		return this.internalJoin<T, SelectQuery<Db, Row, InsertRow, UpdateRow, Ret, SingleRet, Tables>>('JOIN', table);
 	}
 
 	crossJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('CROSS JOIN', table);
+		return this.internalJoin<T, SelectQuery<Db, Row, InsertRow, UpdateRow, Ret, SingleRet, Tables>>('CROSS JOIN', table);
 	}
 
 	innerJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('INNER JOIN', table);
+		return this.internalJoin<T, SelectQuery<Db, Row, InsertRow, UpdateRow, Ret, SingleRet, Tables>>('INNER JOIN', table);
 	}
 
 	leftJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('LEFT JOIN', table);
+		return this.internalJoin<T, SelectQuery<Db, Row, InsertRow, UpdateRow, Ret, SingleRet, Tables>>('LEFT JOIN', table);
 	}
 
 	rightJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('RIGHT JOIN', table);
+		return this.internalJoin<T, SelectQuery<Db, Row, InsertRow, UpdateRow, Ret, SingleRet, Tables>>('RIGHT JOIN', table);
 	}
 
 	leftOuterJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('LEFT OUTER JOIN', table);
+		return this.internalJoin<T, SelectQuery<Db, Row, InsertRow, UpdateRow, Ret, SingleRet, Tables>>('LEFT OUTER JOIN', table);
 	}
 
 	rightOuterJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('RIGHT OUTER JOIN', table);
+		return this.internalJoin<T, SelectQuery<Db, Row, InsertRow, UpdateRow, Ret, SingleRet, Tables>>('RIGHT OUTER JOIN', table);
 	}
 
 	fulllOuterJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('FULL OUTER JOIN', table);
+		return this.internalJoin<T, SelectQuery<Db, Row, InsertRow, UpdateRow, Ret, SingleRet, Tables>>('FULL OUTER JOIN', table);
 	}
 
 	fullJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('FULL JOIN', table);
+		return this.internalJoin<T, SelectQuery<Db, Row, InsertRow, UpdateRow, Ret, SingleRet, Tables>>('FULL JOIN', table);
 	}
 
 	where(tokenable: Tokenable) {
@@ -852,39 +852,39 @@ export class UpdateQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 	}
 
 	join<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('JOIN', table);
+		return this.internalJoin<T, UpdateQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet>>('JOIN', table);
 	}
 
 	crossJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('CROSS JOIN', table);
+		return this.internalJoin<T, UpdateQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet>>('CROSS JOIN', table);
 	}
 
 	innerJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('INNER JOIN', table);
+		return this.internalJoin<T, UpdateQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet>>('INNER JOIN', table);
 	}
 
 	leftJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('LEFT JOIN', table);
+		return this.internalJoin<T, UpdateQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet>>('LEFT JOIN', table);
 	}
 
 	rightJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('RIGHT JOIN', table);
+		return this.internalJoin<T, UpdateQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet>>('RIGHT JOIN', table);
 	}
 
 	leftOuterJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('LEFT OUTER JOIN', table);
+		return this.internalJoin<T, UpdateQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet>>('LEFT OUTER JOIN', table);
 	}
 
 	rightOuterJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('RIGHT OUTER JOIN', table);
+		return this.internalJoin<T, UpdateQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet>>('RIGHT OUTER JOIN', table);
 	}
 
 	fulllOuterJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('FULL OUTER JOIN', table);
+		return this.internalJoin<T, UpdateQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet>>('FULL OUTER JOIN', table);
 	}
 
 	fullJoin<T extends TableWrapper<any>>(table: T) {
-		return this.internalJoin('FULL JOIN', table);
+		return this.internalJoin<T, UpdateQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet>>('FULL JOIN', table);
 	}
 
 	where(tokenable: Tokenable) {

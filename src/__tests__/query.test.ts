@@ -133,6 +133,13 @@ describe('Query', () => {
       expect(row!.test).toEqual('3');
     });
 
+    it(`should select with join`, async () => {
+      await db
+        .select(db.account.id)
+        .from(db.account)
+        .innerJoin(db.account).on(db.account.id.eq(db.account.id));
+    });
+
     it('should insert row with returning', async () => {
       const rows = await db.insertInto(db.account)
         .values({

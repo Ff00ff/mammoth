@@ -520,6 +520,73 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnNameH: H,
 	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
 	returning<
+		A extends keyof Row,
+		B extends keyof Row,
+		C extends keyof Row,
+		D extends keyof Row,
+		E extends keyof Row,
+		F extends keyof Row,
+		G extends keyof Row,
+		H extends keyof Row,
+		I extends keyof Row,
+		R = (
+			{ [PA in A]: Row[PA] } &
+			{ [PB in B]: Row[PB] } &
+			{ [PC in C]: Row[PC] } &
+			{ [PD in D]: Row[PD] } &
+			{ [PE in E]: Row[PE] } &
+			{ [PF in F]: Row[PF] } &
+			{ [PG in G]: Row[PG] } &
+			{ [PH in H]: Row[PH] } &
+			{ [PI in I]: Row[PI] }
+		)
+	>(
+		columnNameA: A,
+		columnNameB: B,
+		columnNameC: C,
+		columnNameD: D,
+		columnNameE: E,
+		columnNameF: F,
+		columnNameG: G,
+		columnNameH: H,
+		columnNameI: I,
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
+		A extends keyof Row,
+		B extends keyof Row,
+		C extends keyof Row,
+		D extends keyof Row,
+		E extends keyof Row,
+		F extends keyof Row,
+		G extends keyof Row,
+		H extends keyof Row,
+		I extends keyof Row,
+		J extends keyof Row,
+		R = (
+			{ [PA in A]: Row[PA] } &
+			{ [PB in B]: Row[PB] } &
+			{ [PC in C]: Row[PC] } &
+			{ [PD in D]: Row[PD] } &
+			{ [PE in E]: Row[PE] } &
+			{ [PF in F]: Row[PF] } &
+			{ [PG in G]: Row[PG] } &
+			{ [PH in H]: Row[PH] } &
+			{ [PI in I]: Row[PI] } &
+			{ [PJ in J]: Row[PJ] }
+		)
+	>(
+		columnNameA: A,
+		columnNameB: B,
+		columnNameC: C,
+		columnNameD: D,
+		columnNameE: E,
+		columnNameF: F,
+		columnNameG: G,
+		columnNameH: H,
+		columnNameI: I,
+		columnNameJ: J,
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		R = (
 			{ [PA in A['name']]: A['selectType']; }
@@ -1040,6 +1107,73 @@ export class UpdateQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnNameH: H,
 	): UpdateQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
 	returning<
+		A extends keyof Row,
+		B extends keyof Row,
+		C extends keyof Row,
+		D extends keyof Row,
+		E extends keyof Row,
+		F extends keyof Row,
+		G extends keyof Row,
+		H extends keyof Row,
+		I extends keyof Row,
+		R = (
+			{ [PA in A]: Row[PA] } &
+			{ [PB in B]: Row[PB] } &
+			{ [PC in C]: Row[PC] } &
+			{ [PD in D]: Row[PD] } &
+			{ [PE in E]: Row[PE] } &
+			{ [PF in F]: Row[PF] } &
+			{ [PG in G]: Row[PG] } &
+			{ [PH in H]: Row[PH] } &
+			{ [PI in I]: Row[PI] }
+		)
+	>(
+		columnNameA: A,
+		columnNameB: B,
+		columnNameC: C,
+		columnNameD: D,
+		columnNameE: E,
+		columnNameF: F,
+		columnNameG: G,
+		columnNameH: H,
+		columnNameI: I,
+	): UpdateQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
+		A extends keyof Row,
+		B extends keyof Row,
+		C extends keyof Row,
+		D extends keyof Row,
+		E extends keyof Row,
+		F extends keyof Row,
+		G extends keyof Row,
+		H extends keyof Row,
+		I extends keyof Row,
+		J extends keyof Row,
+		R = (
+			{ [PA in A]: Row[PA] } &
+			{ [PB in B]: Row[PB] } &
+			{ [PC in C]: Row[PC] } &
+			{ [PD in D]: Row[PD] } &
+			{ [PE in E]: Row[PE] } &
+			{ [PF in F]: Row[PF] } &
+			{ [PG in G]: Row[PG] } &
+			{ [PH in H]: Row[PH] } &
+			{ [PI in I]: Row[PI] } &
+			{ [PJ in J]: Row[PJ] }
+		)
+	>(
+		columnNameA: A,
+		columnNameB: B,
+		columnNameC: C,
+		columnNameD: D,
+		columnNameE: E,
+		columnNameF: F,
+		columnNameG: G,
+		columnNameH: H,
+		columnNameI: I,
+		columnNameJ: J,
+	): UpdateQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		R = (
 			{ [PA in A['name']]: A['selectType']; }
@@ -1429,6 +1563,73 @@ export class DeleteQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnNameF: F,
 		columnNameG: G,
 		columnNameH: H,
+	): DeleteQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
+		A extends keyof Row,
+		B extends keyof Row,
+		C extends keyof Row,
+		D extends keyof Row,
+		E extends keyof Row,
+		F extends keyof Row,
+		G extends keyof Row,
+		H extends keyof Row,
+		I extends keyof Row,
+		R = (
+			{ [PA in A]: Row[PA] } &
+			{ [PB in B]: Row[PB] } &
+			{ [PC in C]: Row[PC] } &
+			{ [PD in D]: Row[PD] } &
+			{ [PE in E]: Row[PE] } &
+			{ [PF in F]: Row[PF] } &
+			{ [PG in G]: Row[PG] } &
+			{ [PH in H]: Row[PH] } &
+			{ [PI in I]: Row[PI] }
+		)
+	>(
+		columnNameA: A,
+		columnNameB: B,
+		columnNameC: C,
+		columnNameD: D,
+		columnNameE: E,
+		columnNameF: F,
+		columnNameG: G,
+		columnNameH: H,
+		columnNameI: I,
+	): DeleteQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	returning<
+		A extends keyof Row,
+		B extends keyof Row,
+		C extends keyof Row,
+		D extends keyof Row,
+		E extends keyof Row,
+		F extends keyof Row,
+		G extends keyof Row,
+		H extends keyof Row,
+		I extends keyof Row,
+		J extends keyof Row,
+		R = (
+			{ [PA in A]: Row[PA] } &
+			{ [PB in B]: Row[PB] } &
+			{ [PC in C]: Row[PC] } &
+			{ [PD in D]: Row[PD] } &
+			{ [PE in E]: Row[PE] } &
+			{ [PF in F]: Row[PF] } &
+			{ [PG in G]: Row[PG] } &
+			{ [PH in H]: Row[PH] } &
+			{ [PI in I]: Row[PI] } &
+			{ [PJ in J]: Row[PJ] }
+		)
+	>(
+		columnNameA: A,
+		columnNameB: B,
+		columnNameC: C,
+		columnNameD: D,
+		columnNameE: E,
+		columnNameF: F,
+		columnNameG: G,
+		columnNameH: H,
+		columnNameI: I,
+		columnNameJ: J,
 	): DeleteQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
 	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,

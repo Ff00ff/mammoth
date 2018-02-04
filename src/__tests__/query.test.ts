@@ -141,7 +141,7 @@ describe('Query', () => {
     });
 
     it(`should select first row`, async () => {
-      const item = await db
+      await db
         .select(db.account.id)
         .from(db.account)
         .first();

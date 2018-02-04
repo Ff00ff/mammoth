@@ -33,17 +33,24 @@ export class TransactionDatabase<Tables extends TableMap> extends Database<Table
 
   async transaction<Ret, State = {
     [TableName in keyof Tables]: TableWrapper<{
+      // @ts-ignore
       [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['selectType'];
     }, {
+      // @ts-ignore
       [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['insertType'];
     }, {
+      // @ts-ignore
       [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['updateType'];
     }> & {
       [ColumnName in keyof Tables[TableName]]: ColumnWrapper<
         ColumnName,
+        // @ts-ignore
         Tables[TableName][ColumnName]['type'],
+        // @ts-ignore
         Tables[TableName][ColumnName]['selectType'],
+        // @ts-ignore
         Tables[TableName][ColumnName]['insertType'],
+        // @ts-ignore
         Tables[TableName][ColumnName]['updateType']
       >
     }

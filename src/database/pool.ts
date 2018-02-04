@@ -49,17 +49,24 @@ export class PoolDatabase<Tables extends TableMap> extends Database<Tables> {
 
   async transaction<Ret, State = {
     [TableName in keyof Tables]: TableWrapper<{
+      // @ts-ignore
       [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['selectType'];
     }, {
+      // @ts-ignore
       [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['insertType'];
     }, {
+      // @ts-ignore
       [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['updateType'];
     }> & {
       [ColumnName in keyof Tables[TableName]]: ColumnWrapper<
         ColumnName,
+        // @ts-ignore
         Tables[TableName][ColumnName]['type'],
+        // @ts-ignore
         Tables[TableName][ColumnName]['selectType'],
+        // @ts-ignore
         Tables[TableName][ColumnName]['insertType'],
+        // @ts-ignore
         Tables[TableName][ColumnName]['updateType']
       >
     }
@@ -157,17 +164,24 @@ export const extendDatabase = <State, Tables extends TableMap, D extends Databas
 
 export const createDatabase = <Tables extends TableMap, State = {
   [TableName in keyof Tables]: TableWrapper<{
+    // @ts-ignore
     [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['selectType'];
   }, {
+    // @ts-ignore
     [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['insertType'];
   }, {
+    // @ts-ignore
     [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['updateType'];
   }> & {
     [ColumnName in keyof Tables[TableName]]: ColumnWrapper<
       ColumnName,
+      // @ts-ignore
       Tables[TableName][ColumnName]['type'],
+      // @ts-ignore
       Tables[TableName][ColumnName]['selectType'],
+      // @ts-ignore
       Tables[TableName][ColumnName]['insertType'],
+      // @ts-ignore
       Tables[TableName][ColumnName]['updateType']
     >
   }

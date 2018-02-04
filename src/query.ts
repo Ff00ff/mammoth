@@ -57,11 +57,11 @@ export class Query<Db extends Database<any>, Ret, SingleRet, Tables = undefined>
 		return this.tokens;
 	}
 
-	async first(): Promise<SingleRet | undefined> {
+	async first(): Promise<SingleRet> {
 		const ret = await this.exec();
 
 		switch (this.type) {
-			case 'COUNT': return undefined;
+			case 'COUNT': return undefined as any;
 			case 'ROWS': return (ret as any)[0];
 		}
 	}
@@ -297,12 +297,12 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		return (this.table as any)[key];
 	}
 
-	defaultValues(): InsertQuery<Db, T, Row, InsertRow, UpdateRow, number, void> {
+	defaultValues(): InsertQuery<Db, T, Row, InsertRow, UpdateRow, number, {}> {
 		this.tokens.push(new StringToken(`DEFAULT VALUES`));
 		return this as any;
 	}
 
-	values(object: InsertRow): InsertQuery<Db, T, Row, InsertRow, UpdateRow, number, void> {
+	values(object: InsertRow): InsertQuery<Db, T, Row, InsertRow, UpdateRow, number, {}> {
 		const value: any = object;
 
 		const keys = Object.keys(object).filter(key => value[key] !== null);
@@ -340,12 +340,12 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		);
 
 		return {
-			doNothing: () => {
+			doNothing: (): InsertQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet> => {
 				this.tokens.push(new StringToken(`DO NOTHING`));
 				return this;
 			},
 
-			doUpdateSet: (object: Partial<UpdateRow>) => {
+			doUpdateSet: (object: Partial<UpdateRow>): InsertQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet> => {
 				const keys = Object.keys(object);
 
 				this.tokens.push(

@@ -140,6 +140,13 @@ describe('Query', () => {
         .innerJoin(db.account).on(db.account.id.eq(db.account.id));
     });
 
+    it(`should select first row`, async () => {
+      const item = await db
+        .select(db.account.id)
+        .from(db.account)
+        .first();
+    })
+
     it('should insert row with returning', async () => {
       const rows = await db.insertInto(db.account)
         .values({

@@ -34,7 +34,7 @@
     "tslint": "^5.9.1",
     "tslint-config-airbnb": "^5.5.0",
     "tslint-config-prettier": "^1.6.0",
-    "typescript": "2.6.2",
+    "typescript": "2.7.1",
     "uuid": "^3.2.1"
   },
   "dependencies": {

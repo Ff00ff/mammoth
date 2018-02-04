@@ -36,7 +36,7 @@ export abstract class Database<Tables extends TableMap> {
       { [P in A['name']]: A['selectType'] }
     )>(
       columnA: A,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): SelectQuery<this, {}, {}, {}, Ret[], Ret | undefined>;
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -46,7 +46,7 @@ export abstract class Database<Tables extends TableMap> {
     )>(
       columnA: A,
       columnB: B,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): SelectQuery<this, {}, {}, {}, Ret[], Ret | undefined>;
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -59,7 +59,7 @@ export abstract class Database<Tables extends TableMap> {
       columnA: A,
       columnB: B,
       columnC: C,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): SelectQuery<this, {}, {}, {}, Ret[], Ret | undefined>;
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -75,7 +75,7 @@ export abstract class Database<Tables extends TableMap> {
       columnB: B,
       columnC: C,
       columnD: D,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): SelectQuery<this, {}, {}, {}, Ret[], Ret | undefined>;
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -94,7 +94,7 @@ export abstract class Database<Tables extends TableMap> {
       columnC: C,
       columnD: D,
       columnE: E,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): SelectQuery<this, {}, {}, {}, Ret[], Ret | undefined>;
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -116,7 +116,7 @@ export abstract class Database<Tables extends TableMap> {
       columnD: D,
       columnE: E,
       columnF: F,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): SelectQuery<this, {}, {}, {}, Ret[], Ret | undefined>;
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -141,7 +141,7 @@ export abstract class Database<Tables extends TableMap> {
       columnE: E,
       columnF: F,
       columnG: G,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): SelectQuery<this, {}, {}, {}, Ret[], Ret | undefined>;
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -169,7 +169,7 @@ export abstract class Database<Tables extends TableMap> {
       columnF: F,
       columnG: G,
       columnH: H,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): SelectQuery<this, {}, {}, {}, Ret[], Ret | undefined>;
   select(...columns: ColumnWrapper<any, any, any, any, any>[]) {
 
     const columnsMap = columns.reduce((map, column) => ({
@@ -231,17 +231,24 @@ export abstract class Database<Tables extends TableMap> {
   abstract async destroy(): Promise<void>;
   abstract async transaction<Ret, State = {
     [TableName in keyof Tables]: TableWrapper<{
+      // @ts-ignore
       [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['selectType'];
     }, {
+      // @ts-ignore
       [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['insertType'];
     }, {
+      // @ts-ignore
       [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['updateType'];
     }> & {
       [ColumnName in keyof Tables[TableName]]: ColumnWrapper<
         ColumnName,
+        // @ts-ignore
         Tables[TableName][ColumnName]['type'],
+        // @ts-ignore
         Tables[TableName][ColumnName]['selectType'],
+        // @ts-ignore
         Tables[TableName][ColumnName]['insertType'],
+        // @ts-ignore
         Tables[TableName][ColumnName]['updateType']
       >
     }

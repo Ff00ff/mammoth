@@ -6,8 +6,7 @@ const update = await db.update(db.test)
   .set({
     name: `Test 2`,
   })
-  .where(db.test.name.eq(`Test`))
-  .first();
+  .where(db.test.name.eq(`Test`));
 
 const rows = await db
   .insertInto(db.test)

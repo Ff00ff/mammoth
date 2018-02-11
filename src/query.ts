@@ -1,4 +1,5 @@
 
+import { QueryResult } from 'pg';
 import { ColumnWrapper } from '.';
 import { Database } from './database';
 import { Keyword } from './keywords';
@@ -66,19 +67,27 @@ export class Query<Db extends Database<any>, Ret, SingleRet, Tables = undefined>
 		}
 	}
 
+	protected getRow = (row: { [key: string]: any } | undefined) =>
+		row
+			? Object.keys(row).reduce((camelCaseRow, key) => ({
+				...camelCaseRow,
+				[this.columnsMap[key]]: row[key],
+			}), {})
+			: undefined;
+
+	protected getRet(result: QueryResult): Ret {
+		switch (this.type) {
+			case 'COUNT': return result.rowCount as any;
+			case 'ROWS': return result.rows.map(this.getRow) as any;
+		}
+	}
+
 	/** @internal */
 	async exec(): Promise<Ret> {
 		const query = this.toQuery();
 		const result = await this.db.exec(query.text, query.parameters);
 
-		switch (this.type) {
-			case 'COUNT': return result.rowCount as any;
-			case 'ROWS': return result.rows.map(row =>
-				Object.keys(row).reduce((camelCaseRow, key) => ({
-					...camelCaseRow,
-					[this.columnsMap[key]]: row[key],
-				}), {})) as any;
-		}
+		return this.getRet(result);
 	}
 
 	async then(onFulfilled?: ((value: Ret) => Ret | PromiseLike<Ret>) | undefined | null, onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null) {
@@ -293,6 +302,14 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		this.table = table;
 	}
 
+	getRet(result: QueryResult): Ret {
+		// TODO: we should support an array in InsertQuery#values. Based on the input we determine the output of the insert into.
+		switch (this.type) {
+			case `COUNT`: return result.rowCount as any;
+			case `ROWS`: return this.getRow(result.rows[0]) as any;
+		}
+	}
+
 	private getColumn(key: string): ColumnWrapper<any, any, any, any, any> | undefined {
 		return (this.table as any)[key];
 	}
@@ -340,7 +357,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		);
 
 		return {
-			doNothing: (): InsertQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet> => {
+			doNothing: (): InsertQuery<Db, T, Row, InsertRow, UpdateRow, Ret | undefined, SingleRet> => {
 				this.tokens.push(new StringToken(`DO NOTHING`));
 				return this;
 			},
@@ -378,7 +395,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		)
 	>(
 		columnNameA: A,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends keyof Row,
 		B extends keyof Row,
@@ -389,7 +406,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 	>(
 		columnNameA: A,
 		columnNameB: B,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends keyof Row,
 		B extends keyof Row,
@@ -403,7 +420,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnNameA: A,
 		columnNameB: B,
 		columnNameC: C,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends keyof Row,
 		B extends keyof Row,
@@ -420,7 +437,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnNameB: B,
 		columnNameC: C,
 		columnNameD: D,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends keyof Row,
 		B extends keyof Row,
@@ -440,7 +457,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnNameC: C,
 		columnNameD: D,
 		columnNameE: E,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends keyof Row,
 		B extends keyof Row,
@@ -463,7 +480,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnNameD: D,
 		columnNameE: E,
 		columnNameF: F,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends keyof Row,
 		B extends keyof Row,
@@ -489,7 +506,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnNameE: E,
 		columnNameF: F,
 		columnNameG: G,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends keyof Row,
 		B extends keyof Row,
@@ -518,7 +535,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnNameF: F,
 		columnNameG: G,
 		columnNameH: H,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends keyof Row,
 		B extends keyof Row,
@@ -550,7 +567,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnNameG: G,
 		columnNameH: H,
 		columnNameI: I,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends keyof Row,
 		B extends keyof Row,
@@ -585,7 +602,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnNameH: H,
 		columnNameI: I,
 		columnNameJ: J,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		R = (
@@ -593,7 +610,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		)
 	>(
 		columnA: A,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>
 	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		B extends ColumnWrapper<any, any, any, any, any>,
@@ -604,7 +621,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 	>(
 		columnA: A,
 		columnB: B,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		B extends ColumnWrapper<any, any, any, any, any>,
@@ -618,7 +635,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnA: A,
 		columnB: B,
 		columnC: C,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		B extends ColumnWrapper<any, any, any, any, any>,
@@ -635,7 +652,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnB: B,
 		columnC: C,
 		columnD: D,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		B extends ColumnWrapper<any, any, any, any, any>,
@@ -655,7 +672,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnC: C,
 		columnD: D,
 		columnE: E,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		B extends ColumnWrapper<any, any, any, any, any>,
@@ -678,7 +695,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnD: D,
 		columnE: E,
 		columnF: F,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		B extends ColumnWrapper<any, any, any, any, any>,
@@ -704,7 +721,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnE: E,
 		columnF: F,
 		columnG: G,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		B extends ColumnWrapper<any, any, any, any, any>,
@@ -733,7 +750,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnF: F,
 		columnG: G,
 		columnH: H,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		B extends ColumnWrapper<any, any, any, any, any>,
@@ -765,7 +782,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnG: G,
 		columnH: H,
 		columnI: I,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning<
 		A extends ColumnWrapper<any, any, any, any, any>,
 		B extends ColumnWrapper<any, any, any, any, any>,
@@ -800,7 +817,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		columnH: H,
 		columnI: I,
 		columnJ: J,
-	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
+	): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
 	returning(
 		...columns: (ColumnWrapper<any, any, any, any, any> | keyof Row)[]
 	) {

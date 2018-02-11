@@ -91,7 +91,7 @@ const numberOfRows = await db
 _You do need to explicitly set all values. The return type is automatically handled._
 
 ```ts
-const rows = await db
+const list = await db
   .insertInto(db.list)
   .values({
     id: null,
@@ -100,7 +100,7 @@ const rows = await db
   })
   .returning(`id`, `createdAt`, `name`);
 ```
-_When using `returning()` the return value is automatically changed from an integer (number of affected rows) to an array of objects with keys matching the columns specified._
+_When using `returning()` the return value is automatically changed from an integer (number of affected rows) to an object or array of objects with keys matching the columns specified._
 
 ### Transactions
 
@@ -111,14 +111,13 @@ Best practice is to shadow your database variable, generally `db`, so you do not
 ```ts
 const list = await db.transaction(db => {
   const list = await db
-    .intoInto(db.list)
+    .insertInto(db.list)
     .values({
       id: null,
       createdAt: null,
       name: `My List`,
     })
-    .returning(`id`)
-    .first();
+    .returning(`id`);
 
   await db
     .insertInto(db.listItem)

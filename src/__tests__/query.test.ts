@@ -80,8 +80,8 @@ describe('Query', () => {
             updatedAt: null,
             value: 654,
           })
-          .returning(`id`)
-          .first();
+          .returning(`id`);
+
         return account;
       });
 
@@ -107,7 +107,7 @@ describe('Query', () => {
         .limit(1);
 
       expect(rows).toEqual([{
-        createdAt: rows[0].createdAt,
+        createdAt: rows[0]!.createdAt,
       }])
     });
 
@@ -133,13 +133,6 @@ describe('Query', () => {
       expect(row!.test).toEqual('3');
     });
 
-    it(`should select with join`, async () => {
-      await db
-        .select(db.account.id)
-        .from(db.account)
-        .innerJoin(db.account).on(db.account.id.eq(db.account.id));
-    });
-
     it(`should select first row`, async () => {
       await db
         .select(db.account.id)
@@ -148,7 +141,7 @@ describe('Query', () => {
     })
 
     it('should insert row with returning', async () => {
-      const rows = await db.insertInto(db.account)
+      const account = await db.insertInto(db.account)
         .values({
           id: null,
           createdAt: null,
@@ -157,9 +150,9 @@ describe('Query', () => {
         })
         .returning(db.account.id);
 
-      expect(rows).toEqual([{
-        id: rows[0].id,
-      }]);
+      expect(account).toEqual({
+        id: account.id,
+      });
     });
 
     it('should insert without returning', async () => {

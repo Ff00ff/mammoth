@@ -1,6 +1,6 @@
 import * as uuid from 'uuid';
 import { not, now, Uuid } from '..';
-import { IntegerColumn, TimestampWithTimeZoneColumn, UuidColumn } from '../columns';
+import { IntegerColumn, TimestampWithTimeZoneColumn, UuidColumn, ByteaColumn } from '../columns';
 import { createDatabase } from '../database/pool';
 import { Default, Now, UuidGenerateV4 } from '../keywords';
 import { Query } from '../query';
@@ -22,16 +22,51 @@ class Foo {
   value = new IntegerColumn();
 }
 
+class BinaryTest {
+  id = new UuidColumn().primary().default(new UuidGenerateV4());
+  value = new ByteaColumn().notNull();
+}
+
 const db = createDatabase({
   account: new Account(),
   test: new Test(),
   foo: new Foo(),
+  binaryTest: new BinaryTest(),
 });
 
 type Db = typeof db;
 
 describe('Query', () => {
   afterAll(() => db.destroy());
+
+  describe('bytea', () => {
+    beforeEach(() => db.exec(`CREATE TABLE binary_test (
+      id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+      value BYTEA NOT NULL
+    )`));
+
+    afterEach(() => db.exec(`DROP TABLE binary_test`));
+
+    it(`should create row`, async () => {
+      await db
+        .insertInto(db.binaryTest)
+        .values({
+          id: null,
+          value: new Buffer(`this is a test :)`),
+        });
+    });
+
+    it(`should read from row`, async () => {
+      await db.insertInto(db.binaryTest).values({ id: null, value: new Buffer(`Hello, world!`)});
+
+      const rows = await db.select(db.binaryTest.id, db.binaryTest.value).from(db.binaryTest);
+
+      expect(rows).toEqual([{
+        id: rows[0].id,
+        value: new Buffer(`Hello, world!`),
+      }]);
+    })
+  })
 
   describe('rows', () => {
     const ids = [uuid.v4(), uuid.v4(), uuid.v4()];

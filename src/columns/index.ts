@@ -404,3 +404,9 @@ export class UuidColumn extends Column<Uuid> {
 
 export class StringColumn extends TextColumn {}
 export class NumberColumn extends IntegerColumn {}
+
+export class ByteaColumn extends Column<Buffer> {
+	dataType = 'BYTEA';
+}
+export class BlobColumn extends ByteaColumn {}
+export class BinaryColumn extends ByteaColumn {}

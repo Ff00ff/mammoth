@@ -1,6 +1,6 @@
 {
   "name": "@ff00ff/mammoth",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "license": "MIT",
@@ -8,7 +8,8 @@
     "mammoth": "./bin/mammoth.js"
   },
   "files": [
-    "lib"
+    "lib",
+    "bin"
   ],
   "scripts": {
     "test": "NODE_ENV=test jest",

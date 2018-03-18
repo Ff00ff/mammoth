@@ -7,6 +7,16 @@
   "bin": {
     "mammoth": "./bin/mammoth.js"
   },
+  "keywords": [
+    "typescript",
+    "postgres",
+    "query",
+    "builder",
+    "sql",
+    "typed",
+    "database",
+    "orm"
+  ],
   "files": [
     "lib",
     "bin"

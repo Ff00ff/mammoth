@@ -302,7 +302,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		this.table = table;
 	}
 
-	getRet(result: QueryResult): Ret {
+	protected getRet(result: QueryResult): Ret {
 		// TODO: we should support an array in InsertQuery#values. Based on the input we determine the output of the insert into.
 		switch (this.type) {
 			case `COUNT`: return result.rowCount as any;

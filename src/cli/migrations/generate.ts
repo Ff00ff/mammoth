@@ -3,9 +3,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Database } from "../../database";
 import createSql from "../../sql-creator";
-import { generateCreateTableSql } from '../../sql-generator/table';
+import { generateCreateTableSql, generateSql } from '../../sql-generator/table';
 import Simulator from "../../sql-simulator";
 import { Table, TableWrapper } from '../../table';
+import { EnumColumn } from '../..';
 
 const writeFileSync = (path: string, data: string) => {
   fs.writeFileSync(path, data);
@@ -61,9 +62,11 @@ const createToSimulator = (db: Database<any>) => {
   const tableNames = db.getTableNames();
   tableNames.forEach(tableName => {
     const table = (db as any)[tableName] as TableWrapper<any, any> & Table;
-    const query = generateCreateTableSql(table);
+    const queries = generateSql(table);
 
-    to.simulateQuery(query);
+    queries.forEach(query => {
+      to.simulateQuery(query);
+    });
   });
 
   return to;

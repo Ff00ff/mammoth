@@ -1,5 +1,5 @@
 import * as uuid from 'uuid';
-import { not, now, Uuid } from '..';
+import { not, now, Uuid, EnumColumn } from '..';
 import { IntegerColumn, TimestampWithTimeZoneColumn, UuidColumn, ByteaColumn } from '../columns';
 import { createDatabase } from '../database/pool';
 import { Default, Now, UuidGenerateV4 } from '../keywords';
@@ -27,17 +27,47 @@ class BinaryTest {
   value = new ByteaColumn().notNull();
 }
 
+class EnumTest {
+  id = new UuidColumn().primaryKey().default(new UuidGenerateV4());
+  value = new EnumColumn(['a', 'b']).notNull();
+}
+
 const db = createDatabase({
   account: new Account(),
   test: new Test(),
   foo: new Foo(),
   binaryTest: new BinaryTest(),
+  enumTest: new EnumTest(),
 });
 
 type Db = typeof db;
 
 describe('Query', () => {
   afterAll(() => db.destroy());
+
+  describe('enum', () => {
+    beforeEach(async () => {
+      await db.exec(`CREATE TYPE VALUE_ENUM AS ENUM ('a', 'b')`);
+
+      await db.exec(`CREATE TABLE enum_test (
+        id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+        value VALUE_ENUM NOT NULL
+      )`);
+    });
+
+    afterEach(async () => {
+      await db.exec(`DROP TABLE enum_test`);
+      await db.exec(`DROP TYPE VALUE_ENUM`);
+    });
+
+    it('should create row', async () => {
+      await db.insertInto(db.enumTest)
+        .values({
+          id: null,
+          value: 'a',
+        });
+    })
+  })
 
   describe('bytea', () => {
     beforeEach(() => db.exec(`CREATE TABLE binary_test (

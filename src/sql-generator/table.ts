@@ -1,6 +1,29 @@
 import { TableWrapper } from '../table';
+import { EnumColumn } from '..';
 
 // TODO: We could also immediately generate the AST from here?
+
+export const generateSql = <T extends TableWrapper<any>>(table: T) => {
+  return [
+    ...generateTypeSql(table),
+    generateCreateTableSql(table),
+  ];
+}
+
+export const generateTypeSql = <T extends TableWrapper<any>>(table: T) => {
+  return table.getColumns()
+    .filter(column => column.column instanceof EnumColumn)
+    .map(column => {
+      const enumColumn = column.column as EnumColumn<any, any, any, any, any, any>;
+
+      if (!enumColumn.dataType) {
+        enumColumn.dataType = `${table.getName()}_${column.snakeCaseName}_ENUM`.toUpperCase();
+      }
+
+      return `CREATE TYPE ${enumColumn.dataType} AS ENUM (${enumColumn.values.map((value: string) => `"${value}"`).join(`, `)})`;
+    })
+}
+
 export const generateCreateTableSql = <T extends TableWrapper<any>>(table: T) => {
   const columns = table.getColumns().map(column => {
     const config = column.getConfig();

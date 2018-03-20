@@ -234,7 +234,7 @@ export class AggregateColumnWrapper<Name, BaseType, SelectType, InsertType, Upda
 export const toSnakeCase = (string: string) => string.replace(/([^A-Z]|[A-Z]{1,})([A-Z])/g, '$1_$2').toLowerCase();
 
 export class Column<T, IT = T | null, ST = T | null, UT = T> {
-	dataType: string;
+	dataType?: string;
 
 	// These types are required
 	type: T;
@@ -410,3 +410,30 @@ export class ByteaColumn extends Column<Buffer> {
 }
 export class BlobColumn extends ByteaColumn {}
 export class BinaryColumn extends ByteaColumn {}
+
+export class EnumColumn<
+	A extends string,
+	B extends string,
+	C extends string | undefined,
+	D extends string | undefined,
+	E extends string | undefined,
+	F extends string | undefined,
+	G extends string | undefined,
+	H extends string | undefined
+> extends Column<A | B | C | D | E | F | G | H> {
+	values: string[];
+
+	constructor(values: [A, B] |
+											[A, B, C] |
+											[A, B, C, D] |
+											[A, B, C, D, E] |
+											[A, B, C, D, E, F] |
+											[A, B, C, D, E, F, G] |
+											[A, B, C, D, E, F, G, H],
+							name?: string) {
+		super();
+
+		this.dataType = name;
+		this.values = values as any;
+	}
+}

@@ -176,9 +176,36 @@ SELECT account.id FROM account MAGIC NEW ORDER BY
 You can also write raw sql completely. This is not advised, obviously, because it defeats the whole purpose of this library.
 ```ts
 const result = await db.sql `SELECT * FROM account WHERE account.name = ${name}`;
-
-
 ```
+
+### Column data type
+
+Class | Data type
+-|-
+TextColumn | TEXT |
+CitextColumn | CITEXT
+CaseInsensitiveTextColumn | CITEXT
+IntegerColumn | INTEGER
+DecimalColumn | DECIMAL
+SerialColumn | SERIAL
+JSONColumn<T> | JSON
+JSONBColumn<T> | JSONB
+TimestampWithTimeZoneColumn | TIMESTAMP WITH TIME ZONE
+TimestampWithoutTimeZoneColumn | TIMESTAMP WITHOUT TIME ZONE
+TimestampColumn | TIMESTAMP
+DateColumn | DATE
+TimeColumn | TIME
+TimeWithoutTimeZoneColumn | TIME WITHOUT TIME ZONE
+TimeWithTimeZoneColumn | TIME WITH TIME ZONE
+IntervalColumn | INTERVAL
+MoneyColumn | MONEY
+UuidColumn | UUID
+StringColumn | TextColumn
+NumberColumn | IntegerColumn
+ByteaColumn | BYTEA
+BlobColumn | BYTEA
+BinaryColumn | BYTEA
+EnumColumn | *Creates an enum type*
 
 ### Up next
 

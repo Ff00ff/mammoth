@@ -3,10 +3,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Database } from "../../database";
 import createSql from "../../sql-creator";
-import { generateCreateTableSql, generateSql } from '../../sql-generator/table';
+import { generateSql } from '../../sql-generator/table';
 import Simulator from "../../sql-simulator";
 import { Table, TableWrapper } from '../../table';
-import { EnumColumn } from '../..';
 
 const writeFileSync = (path: string, data: string) => {
   fs.writeFileSync(path, data);

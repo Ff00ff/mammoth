@@ -14,7 +14,7 @@ export const generateTypeSql = <T extends TableWrapper<any>>(table: T) => {
   return table.getColumns()
     .filter(column => column.column instanceof EnumColumn)
     .map(column => {
-      const enumColumn = column.column as EnumColumn<any, any, any, any, any, any>;
+      const enumColumn = column.column as EnumColumn<any, any, any, any, any, any, any, any>;
 
       if (!enumColumn.dataType) {
         enumColumn.dataType = `${table.getName()}_${column.snakeCaseName}_ENUM`.toUpperCase();

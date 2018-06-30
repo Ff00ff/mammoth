@@ -388,6 +388,9 @@ export class IntervalColumn extends Column<number> {
 export class MoneyColumn extends Column<number> {
 	dataType = 'MONEY';
 }
+export class BooleanColumn extends Column<boolean> {
+	dataType = 'BOOLEAN';
+}
 
 export class Uuid extends String {
 	constructor(string: string) {

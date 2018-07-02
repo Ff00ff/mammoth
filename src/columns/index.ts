@@ -1,442 +1,517 @@
 import { Default, Keyword } from '../keywords';
-import { PartialQuery } from '../query';
+import { PartialQuery, SelectQuery } from '../query';
 import { TableWrapper } from '../table';
 import { CollectionToken, GroupToken, ParameterToken, StringToken, Token } from '../tokens';
 import { Unsafe } from '../unsafe';
 
 export interface ColumnConfig<T> {
-	primary?: boolean;
-	default?: T | string; // TODO: Instead of string this should be new Raw() or something.
-	check?: string;
-	notNull?: boolean;
-	unique?: boolean;
-	references?: {
-		tableName: string;
-		columnName: string;
-	};
-	columnFunction?: ColumnFunction<T, any>;
+  primary?: boolean;
+  default?: T | string; // TODO: Instead of string this should be new Raw() or something.
+  check?: string;
+  notNull?: boolean;
+  unique?: boolean;
+  references?: {
+    tableName: string;
+    columnName: string;
+  };
+  columnFunction?: ColumnFunction<T, any>;
 }
 export type ColumnFunction<T, Db> = (db: Db) => ColumnWrapper<any, T, any, any, any>;
 
 export type AggregateType = 'COUNT' | 'MIN' | 'MAX' | 'AVG' | 'SUM';
 
 export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
-	table: TableWrapper<any>;
-	column: Column<any>;
+  table: TableWrapper<any>;
+  column: Column<any>;
 
-	name: Name;
-	baseType: BaseType;
-	selectType: SelectType;
-	insertType: InsertType;
-	updateType: UpdateType;
+  name: Name;
+  baseType: BaseType;
+  selectType: SelectType;
+  insertType: InsertType;
+  updateType: UpdateType;
 
-	snakeCaseName: string;
-	camelCaseName: string;
+  snakeCaseName: string;
+  camelCaseName: string;
 
-	constructor(table: TableWrapper<any>, column: Column<any>, camelCaseName: string, snakeCaseName: string) {
-		this.table = table;
-		this.column = column;
-		this.camelCaseName = camelCaseName;
-		this.snakeCaseName = snakeCaseName;
+  constructor(
+    table: TableWrapper<any>,
+    column: Column<any>,
+    camelCaseName: string,
+    snakeCaseName: string,
+  ) {
+    this.table = table;
+    this.column = column;
+    this.camelCaseName = camelCaseName;
+    this.snakeCaseName = snakeCaseName;
 
-		this.name = undefined as any;
-		this.baseType = undefined as any;
-		this.selectType = undefined as any;
-		this.insertType = undefined as any;
-		this.updateType = undefined as any;
-	}
+    this.name = undefined as any;
+    this.baseType = undefined as any;
+    this.selectType = undefined as any;
+    this.insertType = undefined as any;
+    this.updateType = undefined as any;
+  }
 
-	getSnakeCaseName() {
-		return this.snakeCaseName;
-	}
+  getSnakeCaseName() {
+    return this.snakeCaseName;
+  }
 
-	getCamelCaseName() {
-		return this.camelCaseName;
-	}
+  getCamelCaseName() {
+    return this.camelCaseName;
+  }
 
-	getConfig() {
-		return this.column.config;
-	}
+  getConfig() {
+    return this.column.config;
+  }
 
-	as<A extends string>(aliasName: A): ColumnWrapper<A, BaseType, SelectType, InsertType, UpdateType> {
-		return new AliasedColumnWrapper(aliasName, this.toTokens(), this.table, this.column, this.camelCaseName, this.snakeCaseName);
-	}
+  as<A extends string>(
+    aliasName: A,
+  ): ColumnWrapper<A, BaseType, SelectType, InsertType, UpdateType> {
+    return new AliasedColumnWrapper(
+      aliasName,
+      this.toTokens(),
+      this.table,
+      this.column,
+      this.camelCaseName,
+      this.snakeCaseName,
+    );
+  }
 
-	isNull() {
-		const query = new PartialQuery();
-		query.tokens.push(
-			new StringToken(this.toSql()),
-			new StringToken(`IS NULL`),
-		);
-		return query;
-	}
+  isNull() {
+    const query = new PartialQuery();
+    query.tokens.push(new StringToken(this.toSql()), new StringToken(`IS NULL`));
+    return query;
+  }
 
-	isNotNull() {
-		const query = new PartialQuery();
-		query.tokens.push(
-			new StringToken(this.toSql()),
-			new StringToken(`IS NOT NULL`),
-		);
-		return query;
-	}
+  isNotNull() {
+    const query = new PartialQuery();
+    query.tokens.push(new StringToken(this.toSql()), new StringToken(`IS NOT NULL`));
+    return query;
+  }
 
-	asc() {
-		return new PartialQuery(new StringToken(this.toSql()), new StringToken(`ASC`));
-	}
+  asc() {
+    return new PartialQuery(new StringToken(this.toSql()), new StringToken(`ASC`));
+  }
 
-	desc() {
-		return new PartialQuery(new StringToken(this.toSql()), new StringToken(`DESC`));
-	}
+  desc() {
+    return new PartialQuery(new StringToken(this.toSql()), new StringToken(`DESC`));
+  }
 
-	in(array: BaseType[]) {
-		return new PartialQuery(
-			// TODO: should we change this to a toTokens() call instead?
-			new StringToken(`${this.table.getName()}.${this.name}`),
-			new StringToken(`IN`),
-			new GroupToken([new ParameterToken(array)]),
-		)
-	}
+  // TODO: we should make the return value of the SelectQuery type safe here.
+  in(array: BaseType[] | SelectQuery<any, any, any, any, any, any>) {
+    if (array instanceof SelectQuery) {
+      return new PartialQuery(
+        ...this.toTokens(),
+        new StringToken(`IN`),
+        new GroupToken(array.toTokens()),
+      );
+    }
 
-	private aggregate<Type = BaseType>(aggregateType: AggregateType) {
-		// TODO: the type probably needs to change in case of count?
-		const defaultName = aggregateType.toLowerCase();
+    return new PartialQuery(
+      ...this.toTokens(),
+      new StringToken(`IN`),
+      new GroupToken([new ParameterToken(array)]),
+    );
+  }
 
-		return new AggregateColumnWrapper<typeof defaultName, Type, Type, Type, Type>(aggregateType, this.table, this.column, this.camelCaseName, this.snakeCaseName);
-	}
+  private aggregate<Type = BaseType>(aggregateType: AggregateType) {
+    // TODO: the type probably needs to change in case of count?
+    const defaultName = aggregateType.toLowerCase();
 
-	toSql() {
-		return `${this.table!.getName()}.${this.snakeCaseName}`;
-	}
+    return new AggregateColumnWrapper<typeof defaultName, Type, Type, Type, Type>(
+      aggregateType,
+      this.table,
+      this.column,
+      this.camelCaseName,
+      this.snakeCaseName,
+    );
+  }
 
-	toTokens(): Token[] {
-		return [
-			new StringToken(this.toSql()),
-		];
-	}
+  toSql() {
+    return `${this.table!.getName()}.${this.snakeCaseName}`;
+  }
 
-	toReferenceExpressionTokens(): Token[] {
-		return this.toTokens();
-	}
+  toTokens(): Token[] {
+    return [new StringToken(this.toSql())];
+  }
 
-	count() { return this.aggregate<string>(`COUNT`); }
-	sum() { return this.aggregate(`SUM`); }
-	min() { return this.aggregate(`MIN`); }
-	max() { return this.aggregate(`MAX`); }
-	avg() { return this.aggregate(`AVG`); }
+  toReferenceExpressionTokens(): Token[] {
+    return this.toTokens();
+  }
 
-	private operate(operator: '+' | '-' | '*' | '/' | '%', value: BaseType) {
-		return new PartialQuery(
-			new StringToken(this.toSql()),
-			new StringToken(operator),
-			new ParameterToken(value),
-		);
-	}
+  count() {
+    return this.aggregate<string>(`COUNT`);
+  }
+  sum() {
+    return this.aggregate(`SUM`);
+  }
+  min() {
+    return this.aggregate(`MIN`);
+  }
+  max() {
+    return this.aggregate(`MAX`);
+  }
+  avg() {
+    return this.aggregate(`AVG`);
+  }
 
-	// TODO: should we add these on specific column types only? E.g. NumberColumn.
-	plus(value: BaseType) { return this.operate(`+`, value); }
-	minus(value: BaseType) { return this.operate(`+`, value); }
-	multiply(value: BaseType) { return this.operate(`+`, value); }
-	divide(value: BaseType) { return this.operate(`/`, value); }
-	modulo(value: BaseType) { return this.operate(`%`, value); }
+  private operate(operator: '+' | '-' | '*' | '/' | '%', value: BaseType) {
+    return new PartialQuery(
+      new StringToken(this.toSql()),
+      new StringToken(operator),
+      new ParameterToken(value),
+    );
+  }
 
-	// TODO: should this only be on TextColumn exclusively?
-	concat(value: BaseType | ColumnWrapper<any, any, any, any, any>) {
-		return new PartialQuery(
-			new StringToken(this.toSql()),
-			new StringToken(`||`),
-			value instanceof ColumnWrapper
-				? new CollectionToken(value.toTokens())
-				: new ParameterToken(value),
-		);
-	}
+  // TODO: should we add these on specific column types only? E.g. NumberColumn.
+  plus(value: BaseType) {
+    return this.operate(`+`, value);
+  }
+  minus(value: BaseType) {
+    return this.operate(`+`, value);
+  }
+  multiply(value: BaseType) {
+    return this.operate(`+`, value);
+  }
+  divide(value: BaseType) {
+    return this.operate(`/`, value);
+  }
+  modulo(value: BaseType) {
+    return this.operate(`%`, value);
+  }
 
-	between(a: BaseType, b: BaseType) {
-		return new PartialQuery(
-			new StringToken(this.toSql()),
-			new StringToken(`BETWEEN`),
-			new ParameterToken(a),
-			new StringToken(`AND`),
-			new ParameterToken(b),
-		);
-	}
+  // TODO: should this only be on TextColumn exclusively?
+  concat(value: BaseType | ColumnWrapper<any, any, any, any, any>) {
+    return new PartialQuery(
+      new StringToken(this.toSql()),
+      new StringToken(`||`),
+      value instanceof ColumnWrapper
+        ? new CollectionToken(value.toTokens())
+        : new ParameterToken(value),
+    );
+  }
 
-	private compare<C extends BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery>(value: C, comparator: string) {
-		const query = new PartialQuery();
-		query.tokens.push(
-			new StringToken(this.toSql()),
-			new StringToken(comparator),
-		);
+  between(a: BaseType, b: BaseType) {
+    return new PartialQuery(
+      new StringToken(this.toSql()),
+      new StringToken(`BETWEEN`),
+      new ParameterToken(a),
+      new StringToken(`AND`),
+      new ParameterToken(b),
+    );
+  }
 
-		if (value instanceof ColumnWrapper) {
-			query.tokens.push(...value.toReferenceExpressionTokens());
-		}
-		else if (value instanceof PartialQuery) {
-			query.tokens.push(...value.tokens);
-		}
-		else {
-			query.tokens.push(new ParameterToken(value));
-		}
-		return query;
-	}
+  private compare<C extends BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery>(
+    value: C,
+    comparator: string,
+  ) {
+    const query = new PartialQuery();
+    query.tokens.push(new StringToken(this.toSql()), new StringToken(comparator));
 
-	eq(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) { return this.compare(value, `=`); }
-	ne(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) { return this.compare(value, `!=`); }
-	gt(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) { return this.compare(value, `>`); }
-	gte(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) { return this.compare(value, `>=`); }
-	lt(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) { return this.compare(value, `>=`); }
-	lte(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) { return this.compare(value, `<=`); }
+    if (value instanceof ColumnWrapper) {
+      query.tokens.push(...value.toReferenceExpressionTokens());
+    } else if (value instanceof PartialQuery) {
+      query.tokens.push(...value.tokens);
+    } else {
+      query.tokens.push(new ParameterToken(value));
+    }
+    return query;
+  }
+
+  eq(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
+    return this.compare(value, `=`);
+  }
+  ne(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
+    return this.compare(value, `!=`);
+  }
+  gt(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
+    return this.compare(value, `>`);
+  }
+  gte(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
+    return this.compare(value, `>=`);
+  }
+  lt(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
+    return this.compare(value, `>=`);
+  }
+  lte(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
+    return this.compare(value, `<=`);
+  }
 }
 
-export class AliasedColumnWrapper<Name extends string, BaseType, SelectType, InsertType, UpdateType> extends ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
-	private tokens: Token[];
+export class AliasedColumnWrapper<
+  Name extends string,
+  BaseType,
+  SelectType,
+  InsertType,
+  UpdateType
+> extends ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
+  private tokens: Token[];
 
-	constructor(name: Name, tokens: Token[], table: TableWrapper<any>, column: Column<any>, camelCaseName: string, snakeCaseName: string) {
-		super(table, column, camelCaseName, snakeCaseName);
+  constructor(
+    name: Name,
+    tokens: Token[],
+    table: TableWrapper<any>,
+    column: Column<any>,
+    camelCaseName: string,
+    snakeCaseName: string,
+  ) {
+    super(table, column, camelCaseName, snakeCaseName);
 
-		this.tokens = tokens;
-		this.name = name;
-	}
+    this.tokens = tokens;
+    this.name = name;
+  }
 
-	getSnakeCaseName() {
-		return this.name;
-	}
+  getSnakeCaseName() {
+    return this.name;
+  }
 
-	getCamelCaseName() {
-		return this.name;
-	}
+  getCamelCaseName() {
+    return this.name;
+  }
 
-	toTokens() {
-		return [
-			...this.tokens,
-			new StringToken(`AS "${this.name}"`),
-		];
-	}
+  toTokens() {
+    return [...this.tokens, new StringToken(`AS "${this.name}"`)];
+  }
 
-	toReferenceExpressionTokens() {
-		return this.tokens;
-	}
+  toReferenceExpressionTokens() {
+    return this.tokens;
+  }
 }
 
-export class AggregateColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> extends ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
-	aggregateType: AggregateType;
+export class AggregateColumnWrapper<
+  Name,
+  BaseType,
+  SelectType,
+  InsertType,
+  UpdateType
+> extends ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
+  aggregateType: AggregateType;
 
-	constructor(aggregateType: AggregateType, table: TableWrapper<any>, column: Column<any>, camelCaseName: string, snakeCaseName: string) {
-		super(table, column, camelCaseName, snakeCaseName);
+  constructor(
+    aggregateType: AggregateType,
+    table: TableWrapper<any>,
+    column: Column<any>,
+    camelCaseName: string,
+    snakeCaseName: string,
+  ) {
+    super(table, column, camelCaseName, snakeCaseName);
 
-		this.aggregateType = aggregateType;
-	}
+    this.aggregateType = aggregateType;
+  }
 
-	toSql() {
-		return `${this.aggregateType}(${super.toSql()})`;
-	}
+  toSql() {
+    return `${this.aggregateType}(${super.toSql()})`;
+  }
 }
 
-export const toSnakeCase = (string: string) => string.replace(/([^A-Z]|[A-Z]{1,})([A-Z])/g, '$1_$2').toLowerCase();
+export const toSnakeCase = (string: string) =>
+  string.replace(/([^A-Z]|[A-Z]{1,})([A-Z])/g, '$1_$2').toLowerCase();
 
 export class Column<T, IT = T | null, ST = T | null, UT = T> {
-	dataType?: string;
+  dataType?: string;
 
-	// These types are required
-	type: T;
-	insertType: IT;
-	selectType: ST;
-	updateType: UT;
+  // These types are required
+  type: T;
+  insertType: IT;
+  selectType: ST;
+  updateType: UT;
 
-	/** @internal */
-	name?: string;
-	/** @internal */
-	key?: string;
-	/** @internal */
-	table?: TableWrapper<any>;
+  /** @internal */
+  name?: string;
+  /** @internal */
+  key?: string;
+  /** @internal */
+  table?: TableWrapper<any>;
 
-	config: ColumnConfig<T>;
+  config: ColumnConfig<T>;
 
   constructor(name?: string, config = {}) {
-		this.name = name;
+    this.name = name;
 
-		this.dataType = undefined as any;
-		this.type = undefined as any;
-		this.insertType = undefined as any;
-		this.selectType = undefined as any;
-		this.updateType = undefined as any;
+    this.dataType = undefined as any;
+    this.type = undefined as any;
+    this.insertType = undefined as any;
+    this.selectType = undefined as any;
+    this.updateType = undefined as any;
 
-		this.config = config;
-	}
+    this.config = config;
+  }
 
-	/** @internal */
-	getSnakeCaseName(camelCaseName: string) {
-		// TODO: this should be a string, not string | undefined.
-		return this.name || toSnakeCase(camelCaseName);
-	}
+  /** @internal */
+  getSnakeCaseName(camelCaseName: string) {
+    // TODO: this should be a string, not string | undefined.
+    return this.name || toSnakeCase(camelCaseName);
+  }
 
-	/** @internal */
-	setSnakeCaseName(name: string) {
-		// TODO: is this even used?
-		this.name = name;
-	}
+  /** @internal */
+  setSnakeCaseName(name: string) {
+    // TODO: is this even used?
+    this.name = name;
+  }
 
-	/** @internal */
-	setKey(key: string) {
-		// TODO: should this be camelCaseName instead?
-		this.key = key;
-	}
+  /** @internal */
+  setKey(key: string) {
+    // TODO: should this be camelCaseName instead?
+    this.key = key;
+  }
 
-	/** @internal */
+  /** @internal */
   setTable<TW extends TableWrapper<any>>(table: TW) {
-		// TODO: why do we need the complete table here? If it's just for the table's name, can we just set the name instead?
+    // TODO: why do we need the complete table here? If it's just for the table's name, can we just set the name instead?
     this.table = table;
-	}
+  }
 
-	primary(): Column<T, T | null, T> {
-		this.config.primary = true;
+  primary(): Column<T, T | null, T> {
+    this.config.primary = true;
 
-		return this as any as Column<T, T | null, T>;
-	}
+    return (this as any) as Column<T, T | null, T>;
+  }
 
-	primaryKey() {
-		return this.primary();
-	}
+  primaryKey() {
+    return this.primary();
+  }
 
-	unique() {
-		this.config.unique = true;
-		return this;
-	}
+  unique() {
+    this.config.unique = true;
+    return this;
+  }
 
-	notNull(): Column<T, T, T> {
-		this.config.notNull = true;
+  notNull(): Column<T, T, T> {
+    this.config.notNull = true;
 
-		return this as any as Column<T, T, T>;
-	}
+    return (this as any) as Column<T, T, T>;
+  }
 
-	check(sql: string) {
-		this.config.check = sql;
-		return this;
-	}
+  check(sql: string) {
+    this.config.check = sql;
+    return this;
+  }
 
-	default(sql: T | Unsafe | Keyword): Column<T, T | null, ST, UT | Default> {
-		this.config.default = (sql && (sql instanceof Unsafe || sql instanceof Keyword))
-			? sql.toSql()
-			: sql;
-		return this as any as Column<T, T | null, ST, UT | Default>;
-	}
+  default(sql: T | Unsafe | Keyword): Column<T, T | null, ST, UT | Default> {
+    this.config.default =
+      sql && (sql instanceof Unsafe || sql instanceof Keyword) ? sql.toSql() : sql;
+    return (this as any) as Column<T, T | null, ST, UT | Default>;
+  }
 
-	/** @internal */
-	createReference<Db>(db: Db) {
-		if (this.config.columnFunction) {
-			const column = this.config.columnFunction(db);
+  /** @internal */
+  createReference<Db>(db: Db) {
+    if (this.config.columnFunction) {
+      const column = this.config.columnFunction(db);
 
-			this.config.references = {
-				tableName: column.table!.getName(),
-				columnName: column.name!,
-			};
-			this.config.columnFunction = undefined;
-		}
-	}
+      this.config.references = {
+        tableName: column.table!.getName(),
+        columnName: column.name!,
+      };
+      this.config.columnFunction = undefined;
+    }
+  }
 
-	references<Db>(columnFunction: ColumnFunction<T, Db>) {
-		this.config.columnFunction = columnFunction;
-		return this;
-	}
+  references<Db>(columnFunction: ColumnFunction<T, Db>) {
+    this.config.columnFunction = columnFunction;
+    return this;
+  }
 }
 
 export class TextColumn extends Column<string> {
-	dataType = 'TEXT';
+  dataType = 'TEXT';
 }
 export class CitextColumn extends Column<string> {
-	dataType = 'CITEXT';
+  dataType = 'CITEXT';
 }
 export class CaseInsensitiveTextColumn extends CitextColumn {}
 export class IntegerColumn extends Column<number> {
-	dataType = 'INTEGER';
+  dataType = 'INTEGER';
 }
 export class DecimalColumn extends Column<number> {
-	dataType = 'DECIMAL';
+  dataType = 'DECIMAL';
 }
 export class SerialColumn extends Column<number, number | null> {
-	dataType = 'SERIAL';
+  dataType = 'SERIAL';
 }
 export class JSONColumn<T> extends Column<T> {
-	dataType = 'JSON';
+  dataType = 'JSON';
 }
 export class JSONBColumn<T> extends Column<T> {
-	dataType = 'JSONB';
+  dataType = 'JSONB';
 }
 export class TimestampWithTimeZoneColumn extends Column<Date> {
-	dataType = 'TIMESTAMP WITH TIME ZONE';
+  dataType = 'TIMESTAMP WITH TIME ZONE';
 }
 export class TimestampWithoutTimeZoneColumn extends Column<Date> {
-	dataType = 'TIMESTAMP WITHOUT TIME ZONE';
+  dataType = 'TIMESTAMP WITHOUT TIME ZONE';
 }
 export class TimestampColumn extends Column<Date> {
-	dataType = 'TIMESTAMP';
+  dataType = 'TIMESTAMP';
 }
 export class DateColumn extends Column<Date> {
-	dataType = 'DATE';
+  dataType = 'DATE';
 }
 export class TimeColumn extends Column<Date> {
-	dataType = 'TIME';
+  dataType = 'TIME';
 }
 export class TimeWithoutTimeZoneColumn extends Column<Date> {
-	dataType = 'TIME WITHOUT TIME ZONE';
+  dataType = 'TIME WITHOUT TIME ZONE';
 }
 export class TimeWithTimeZoneColumn extends Column<Date> {
-	dataType = 'TIME WITH TIME ZONE';
+  dataType = 'TIME WITH TIME ZONE';
 }
 export class IntervalColumn extends Column<number> {
-	dataType = 'INTERVAL'
+  dataType = 'INTERVAL';
 }
 export class MoneyColumn extends Column<number> {
-	dataType = 'MONEY';
+  dataType = 'MONEY';
 }
 export class BooleanColumn extends Column<boolean> {
-	dataType = 'BOOLEAN';
+  dataType = 'BOOLEAN';
 }
 
 export class Uuid extends String {
-	constructor(string: string) {
-		super(string);
-	}
+  constructor(string: string) {
+    super(string);
+  }
 
-	// FIXME: we want this type to be treated different than string for extra safety.
-	_unused() {} // tslint:disable-line
+  // FIXME: we want this type to be treated different than string for extra safety.
+  _unused() {} // tslint:disable-line
 }
 
 export class UuidColumn extends Column<Uuid> {
-	dataType = 'UUID';
+  dataType = 'UUID';
 }
 
 export class StringColumn extends TextColumn {}
 export class NumberColumn extends IntegerColumn {}
 
 export class ByteaColumn extends Column<Buffer> {
-	dataType = 'BYTEA';
+  dataType = 'BYTEA';
 }
 export class BlobColumn extends ByteaColumn {}
 export class BinaryColumn extends ByteaColumn {}
 
 export class EnumColumn<
-	A extends string,
-	B extends string,
-	C extends string | undefined,
-	D extends string | undefined,
-	E extends string | undefined,
-	F extends string | undefined,
-	G extends string | undefined,
-	H extends string | undefined
+  A extends string,
+  B extends string,
+  C extends string | undefined,
+  D extends string | undefined,
+  E extends string | undefined,
+  F extends string | undefined,
+  G extends string | undefined,
+  H extends string | undefined
 > extends Column<A | B | C | D | E | F | G | H> {
-	values: string[];
+  values: string[];
 
-	constructor(values: [A, B] |
-											[A, B, C] |
-											[A, B, C, D] |
-											[A, B, C, D, E] |
-											[A, B, C, D, E, F] |
-											[A, B, C, D, E, F, G] |
-											[A, B, C, D, E, F, G, H],
-							name?: string) {
-		super();
+  constructor(
+    values:
+      | [A, B]
+      | [A, B, C]
+      | [A, B, C, D]
+      | [A, B, C, D, E]
+      | [A, B, C, D, E, F]
+      | [A, B, C, D, E, F, G]
+      | [A, B, C, D, E, F, G, H],
+    name?: string,
+  ) {
+    super();
 
-		this.dataType = name;
-		this.values = values as any;
-	}
+    this.dataType = name;
+    this.values = values as any;
+  }
 }

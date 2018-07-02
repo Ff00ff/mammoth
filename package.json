@@ -1,32 +1,21 @@
 {
   "name": "@ff00ff/mammoth",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "license": "MIT",
   "bin": {
     "mammoth": "./bin/mammoth.js"
   },
-  "keywords": [
-    "typescript",
-    "postgres",
-    "query",
-    "builder",
-    "sql",
-    "typed",
-    "database",
-    "orm"
-  ],
-  "files": [
-    "lib",
-    "bin"
-  ],
+  "keywords": ["typescript", "postgres", "query", "builder", "sql", "typed", "database", "orm"],
+  "files": ["lib", "bin"],
   "scripts": {
     "test": "NODE_ENV=test jest",
     "build": "rimraf ./lib && tsc",
     "prepublishOnly": "yarn build",
     "reportCoverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "docs": "rimraf ./docs && typedoc --out docs src --ignoreCompilerErrors --excludeNotExported --excludePrivate --theme default"
+    "docs":
+      "rimraf ./docs && typedoc --out docs src --ignoreCompilerErrors --excludeNotExported --excludePrivate --theme default"
   },
   "devDependencies": {
     "@types/jest": "^22.1.1",
@@ -55,11 +44,7 @@
     "pg": "^7.4.1"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
+    "moduleFileExtensions": ["ts", "tsx", "js"],
     "testRegex": "/__tests__/.*\\.test\\.tsx?$",
     "transform": {
       "\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"

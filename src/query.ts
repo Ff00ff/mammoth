@@ -310,7 +310,7 @@ export class InsertQuery<Db extends Database<any>, T extends TableWrapper<Row, I
 		}
 	}
 
-	private getColumn(key: string): ColumnWrapper<any, any, any, any, any> | undefined {
+	private getColumn(key: string | number | symbol): ColumnWrapper<any, any, any, any, any> | undefined {
 		return (this.table as any)[key];
 	}
 

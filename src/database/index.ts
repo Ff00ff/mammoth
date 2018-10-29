@@ -191,7 +191,7 @@ export abstract class Database<Tables extends TableMap> {
   }
 
   update<T extends TableWrapper<any, any, any>, Ret = UpdateQuery<this, T, T['$row'], T['$insertRow'], T['$updateRow'], number, void>>(table: T): { set(object: { [P in keyof T['$updateRow']]?: T['$updateRow'][P] | PartialQuery }): Ret } {
-    const getColumn = (key: string): ColumnWrapper<any, any, any, any, any> | undefined => (table as any)[key];
+    const getColumn = (key: string | number | symbol): ColumnWrapper<any, any, any, any, any> | undefined => (table as any)[key];
 
     return {
       set: (object: { [P in keyof T['$updateRow']]?: T['$updateRow'][P] | PartialQuery }): Ret => {

@@ -1,9 +1,9 @@
 import * as pg from 'pg';
 
 export class Transaction {
-  private client: pg.Client;
+  private client: pg.PoolClient;
 
-  constructor(client: pg.Client) {
+  constructor(client: pg.PoolClient) {
     this.client = client;
   }
 

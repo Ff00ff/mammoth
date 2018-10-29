@@ -7,47 +7,62 @@
   "bin": {
     "mammoth": "./bin/mammoth.js"
   },
-  "keywords": ["typescript", "postgres", "query", "builder", "sql", "typed", "database", "orm"],
-  "files": ["lib", "bin"],
+  "keywords": [
+    "typescript",
+    "postgres",
+    "query",
+    "builder",
+    "sql",
+    "typed",
+    "database",
+    "orm"
+  ],
+  "files": [
+    "lib",
+    "bin"
+  ],
   "scripts": {
     "test": "NODE_ENV=test jest",
     "build": "rimraf ./lib && tsc",
     "prepublishOnly": "yarn build",
     "reportCoverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "docs":
-      "rimraf ./docs && typedoc --out docs src --ignoreCompilerErrors --excludeNotExported --excludePrivate --theme default"
+    "docs": "rimraf ./docs && typedoc --out docs src --ignoreCompilerErrors --excludeNotExported --excludePrivate --theme default"
   },
   "devDependencies": {
-    "@types/jest": "^22.1.1",
-    "@types/lodash": "^4.14.98",
+    "@types/jest": "^23.3.8",
+    "@types/lodash": "^4.14.117",
     "@types/minimist": "^1.2.0",
-    "@types/node": "^9.4.0",
-    "@types/pg": "^7.4.1",
-    "@types/uuid": "^3.4.3",
-    "coveralls": "^3.0.0",
-    "jest": "^22.1.4",
-    "prettier": "^1.10.2",
+    "@types/node": "^10.12.1",
+    "@types/pg": "^7.4.11",
+    "@types/uuid": "^3.4.4",
+    "coveralls": "^3.0.2",
+    "jest": "^23.6.0",
+    "prettier": "^1.14.3",
     "rimraf": "^2.6.2",
-    "standard-version": "^4.2.0",
-    "ts-jest": "^22.0.2",
-    "ts-node": "^4.1.0",
-    "tslint": "^5.9.1",
-    "tslint-config-airbnb": "^5.5.0",
-    "tslint-config-prettier": "^1.6.0",
-    "typescript": "2.7.1",
-    "uuid": "^3.2.1"
+    "standard-version": "^4.4.0",
+    "ts-jest": "^23.10.4",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "tslint-config-airbnb": "^5.11.0",
+    "tslint-config-prettier": "^1.15.0",
+    "typescript": "3.1.3",
+    "uuid": "^3.3.2"
   },
   "dependencies": {
-    "chalk": "^2.3.0",
-    "lodash": "^4.17.4",
+    "chalk": "^2.4.1",
+    "lodash": "^4.17.11",
     "minimist": "^1.2.0",
-    "pg": "^7.4.1"
+    "pg": "^7.6.0"
   },
   "jest": {
-    "moduleFileExtensions": ["ts", "tsx", "js"],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
     "testRegex": "/__tests__/.*\\.test\\.tsx?$",
     "transform": {
-      "\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+      "\\.tsx?$": "ts-jest"
     }
   }
 }

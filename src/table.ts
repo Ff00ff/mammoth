@@ -6,7 +6,7 @@ export class Table {
 }
 
 export class TableWrapper<Row, InsertRow = Row, UpdateRow = Row> {
-	private readonly $name: string;
+  private readonly $name: string;
   private readonly $columnNames: ReadonlyArray<keyof Row>;
   private readonly $table: Table;
 
@@ -16,19 +16,21 @@ export class TableWrapper<Row, InsertRow = Row, UpdateRow = Row> {
 
   constructor(table: Table, name: string) {
     this.$table = table;
-		this.$name = toSnakeCase(name);
+    this.$name = toSnakeCase(name);
     this.$columnNames = Object.keys(table) as (keyof Row)[];
 
     const self = this as any;
     this.$columnNames.forEach(camelCaseName => {
-			const column = table[camelCaseName];
-			const snakeCaseName = column.getSnakeCaseName(camelCaseName);
+      const column = table[camelCaseName as string];
+      const snakeCaseName = column.getSnakeCaseName(camelCaseName as string);
 
-			if (self[camelCaseName]) {
-				throw new Error(`Column \`${camelCaseName}\` in table \`${name}\` collides with property of the same name in TableWrapper class.`);
-			}
+      if (self[camelCaseName]) {
+        throw new Error(
+          `Column \`${camelCaseName}\` in table \`${name}\` collides with property of the same name in TableWrapper class.`,
+        );
+      }
 
-			self[camelCaseName] = new ColumnWrapper(this, column, camelCaseName, snakeCaseName);
+      self[camelCaseName] = new ColumnWrapper(this, column, camelCaseName as string, snakeCaseName);
     });
 
     this.$row = undefined as any;
@@ -38,26 +40,24 @@ export class TableWrapper<Row, InsertRow = Row, UpdateRow = Row> {
 
   init(db: any) {
     this.$columnNames.forEach(columnName => {
-      const column = this.$table[columnName];
+      const column = this.$table[columnName as string];
 
       column.createReference(db);
     });
-	}
+  }
 
-	/** @internal */
-	getColumns() {
-		return this.$columnNames.map(columnName => this.getColumn(columnName)!);
-	}
+  /** @internal */
+  getColumns() {
+    return this.$columnNames.map(columnName => this.getColumn(columnName)!);
+  }
 
-	/** @internal */
-  getColumn(columnName: string): ColumnWrapper<any, any, any, any, any> {
+  /** @internal */
+  getColumn(columnName: string | symbol | number): ColumnWrapper<any, any, any, any, any> {
     return (this as any)[columnName];
   }
 
   /** @internal */
   getName() {
     return this.$name;
-	}
-};
-
-
+  }
+}

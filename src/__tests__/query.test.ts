@@ -76,8 +76,7 @@ describe('Query', () => {
       db.exec(`CREATE TABLE binary_test (
       id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
       value BYTEA NOT NULL
-    )`),
-    );
+    )`));
 
     afterEach(() => db.exec(`DROP TABLE binary_test`));
 
@@ -110,17 +109,14 @@ describe('Query', () => {
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE,
         value INTEGER NOT NULL
-      )`),
-    );
+      )`));
     beforeEach(() =>
       db.exec(`CREATE TABLE account_item (
         id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
         account_id UUID NOT NULL REFERENCES account (id)
-      )`),
-    );
+      )`));
     beforeEach(() =>
-      db.exec(`INSERT INTO account (id, value) VALUES ($1, 123), ($2, 100), ($3, 42)`, ids),
-    );
+      db.exec(`INSERT INTO account (id, value) VALUES ($1, 123), ($2, 100), ($3, 42)`, ids));
 
     afterEach(() => db.exec(`DROP TABLE account_item, account`));
 

@@ -8,9 +8,9 @@ export interface Index {
   columns: string[];
   name?: string;
   tableName?: string;
-  referenceColumns?: string[]
+  referenceColumns?: string[];
   expression?: string;
-  parameters?: { key: string, value?: string }[];
+  parameters?: { key: string; value?: string }[];
 }
 
 export interface Column {
@@ -32,7 +32,7 @@ export interface Type {
 
 export interface Table {
   name: string;
-  columns: { [columnName: string]: Column | undefined },
+  columns: { [columnName: string]: Column | undefined };
   indexes: Index[];
 }
 
@@ -81,17 +81,20 @@ export default class Simulator {
   }
 
   getToken(expectedTokens: string[]) {
-      const result = this.findToken(expectedTokens);
+    const result = this.findToken(expectedTokens);
 
-      if (!result) {
-        throw new Error(`Could not find one of token ${expectedTokens.join(`, `)}.`);
-      }
+    if (!result) {
+      throw new Error(`Could not find one of token ${expectedTokens.join(`, `)}.`);
+    }
 
-      return result;
+    return result;
   }
 
   findToken(expectedTokens: string[]) {
-    const regexp = new RegExp(`^(${expectedTokens.map(token => escapeRegExp(token)).join(`|`)})(\\b|\\s|$|,|')`, `i`);
+    const regexp = new RegExp(
+      `^(${expectedTokens.map(token => escapeRegExp(token)).join(`|`)})(\\b|\\s|$|,|')`,
+      `i`,
+    );
     return this.findByRegExp(regexp);
   }
 
@@ -101,15 +104,18 @@ export default class Simulator {
     return Boolean(token);
   }
 
-  ifToken(expectedTokens: string[], ifCallback: (token: string) => void, elseCallback?: () => void) {
+  ifToken(
+    expectedTokens: string[],
+    ifCallback: (token: string) => void,
+    elseCallback?: () => void,
+  ) {
     const token = this.findToken(expectedTokens);
 
     if (token) {
       ifCallback(token);
 
       return true;
-    }
-    else if (elseCallback) {
+    } else if (elseCallback) {
       elseCallback();
     }
 
@@ -117,8 +123,11 @@ export default class Simulator {
   }
 
   getUntil(excludeTokens: string[]) {
-    const regexp = new RegExp(`^(.*?)\\s*(:?!${excludeTokens.map(token => escapeRegExp(token)).join(`|`)}|$)`, `i`);
-    const result =  this.findByRegExp(regexp);
+    const regexp = new RegExp(
+      `^(.*?)\\s*(:?!${excludeTokens.map(token => escapeRegExp(token)).join(`|`)}|$)`,
+      `i`,
+    );
+    const result = this.findByRegExp(regexp);
 
     if (!result) {
       throw new Error(`Could not find one of ${excludeTokens}. Current input is ${this.input}`);
@@ -159,8 +168,7 @@ export default class Simulator {
 
           if (character === `\\`) {
             escaped = !escaped;
-          }
-          else {
+          } else {
             break;
           }
 
@@ -168,7 +176,7 @@ export default class Simulator {
         }
 
         return escaped;
-      }
+      };
 
       const character = input[i];
 
@@ -229,8 +237,7 @@ export default class Simulator {
 
           if (character === `\\`) {
             escaped = !escaped;
-          }
-          else {
+          } else {
             break;
           }
 
@@ -238,7 +245,7 @@ export default class Simulator {
         }
 
         return escaped;
-      }
+      };
 
       const character = input[i];
 
@@ -246,25 +253,36 @@ export default class Simulator {
         if (character === state.string && !isEscaped()) {
           state.string = null;
         }
-      }
-      else if (character === `)` && state[`{`] === 0 && state[`[`] === 0 && state[`(`] === 0 && !isEscaped()) {
+      } else if (
+        character === `)` &&
+        state[`{`] === 0 &&
+        state[`[`] === 0 &&
+        state[`(`] === 0 &&
+        !isEscaped()
+      ) {
         const found = input.slice(0, i);
 
         this.input = input.slice(found.length).replace(/^\s*/g, ``);
         return found;
-      }
-
-      else if (character === `"` || character === `'` || character === `\``) {
+      } else if (character === `"` || character === `'` || character === `\``) {
         state.string = character;
-      }
-      else if ((character === '}' || character === ')' || character === ']') && closingBraces[character] && !isEscaped()) {
+      } else if (
+        (character === '}' || character === ')' || character === ']') &&
+        closingBraces[character] &&
+        !isEscaped()
+      ) {
         state[closingBraces[character]] -= 1;
 
         if (state[closingBraces[character]] < 0) {
-          throw new Error(`A ${character} too many. There was no matching ${closingBraces[character]}.`);
+          throw new Error(
+            `A ${character} too many. There was no matching ${closingBraces[character]}.`,
+          );
         }
-      }
-      else if ((character === '{' || character === '(' || character === '[') && openingBraces[character] && !isEscaped()) {
+      } else if (
+        (character === '{' || character === '(' || character === '[') &&
+        openingBraces[character] &&
+        !isEscaped()
+      ) {
         state[character] += 1;
       }
     }
@@ -297,7 +315,7 @@ export default class Simulator {
     return undefined;
   }
 
-  repeat(callback: () => void) {
+  repeat(callback: () => void | undefined | string | boolean) {
     while (true) {
       const result = callback();
 
@@ -363,8 +381,7 @@ export default class Simulator {
 
       if (token.toUpperCase() === `BEFORE`) {
         type.labels.splice(index, 0, newValue);
-      }
-      else {
+      } else {
         type.labels.splice(index + 1, 0, newValue);
       }
     });
@@ -457,8 +474,10 @@ export default class Simulator {
                 column.name = newColumnName;
                 table.columns[newColumnName] = column;
                 delete table.columns[columnName];
-              });
-          });
+              },
+            );
+          },
+        );
       },
 
       [`SET SCHEMA`]: () => {
@@ -474,7 +493,9 @@ export default class Simulator {
           'DROP CONSTRAINT': () => {
             const constraintName = this.getIdentifier();
             // TODO: why do we only search for tyoe check here?
-            const i = table.indexes.findIndex(index => index.type === `check` && index.name === constraintName);
+            const i = table.indexes.findIndex(
+              index => index.type === `check` && index.name === constraintName,
+            );
             table.indexes.splice(i, 1);
           },
 
@@ -482,16 +503,13 @@ export default class Simulator {
             this.optionalToken([`COLUMN`]);
 
             this.ifToken([`IF NOT EXISTS`], () => {
-                //
+              //
             });
 
-            const {
-                column,
-                indexes,
-            } = this.getColumn(table);
+            const { column, indexes } = this.getColumn(table);
 
             if (column) {
-                table.columns[column.name] = column;
+              table.columns[column.name] = column;
             }
 
             indexes.forEach(index => this.addIndex(table, index));
@@ -529,7 +547,7 @@ export default class Simulator {
                 column.dataType = dataType;
               },
 
-              'TYPE': () => {
+              TYPE: () => {
                 const dataType = this.getIdentifier();
                 column.dataType = dataType;
               },
@@ -562,8 +580,7 @@ export default class Simulator {
   addIndex(table: Table, index: Index) {
     if (index.type === `primaryKey`) {
       table.indexes.splice(0, 0, index);
-    }
-    else {
+    } else {
       table.indexes.push(index);
     }
   }
@@ -578,112 +595,118 @@ export default class Simulator {
       constraintName = this.getIdentifier();
     });
 
-    this.ifToken([`PRIMARY KEY`, `FOREIGN KEY`, `UNIQUE`, `CHECK`], token => {
-      const type = ((token): IndexType => {
-        if (token === `primary key`) {
-          return `primaryKey`;
-        }
-        else if (token === `foreign key`) {
-          return `foreignKey`;
-        }
-        else if (token === `check`) {
-          return `check`;
-        }
+    this.ifToken(
+      [`PRIMARY KEY`, `FOREIGN KEY`, `UNIQUE`, `CHECK`],
+      token => {
+        const type = ((token): IndexType => {
+          if (token === `primary key`) {
+            return `primaryKey`;
+          } else if (token === `foreign key`) {
+            return `foreignKey`;
+          } else if (token === `check`) {
+            return `check`;
+          }
 
-        return `unique`;
-      })(token.toLowerCase());
+          return `unique`;
+        })(token.toLowerCase());
 
-      const index: Index = {
-        type,
-        columns: [],
-      };
-
-      this.scope(() => {
-        if (type === `check`) {
-          index.expression = this.getInScope();
-        }
-        else {
-          this.repeat(() => {
-            const columnName = this.getIdentifier();
-
-            index.columns.push(columnName);
-
-            return this.findToken([`,`]);
-          });
-        }
-
-        return undefined;
-      });
-
-      if (type === `foreignKey`) {
-        index.name = constraintName || `${table.name}_${index.columns.join(`_`)}_fkey`;
-
-        this.getToken([`REFERENCES`]);
-
-        const tableName = this.getIdentifier();
-        const referenceColumns: string[] = [];
+        const index: Index = {
+          type,
+          columns: [],
+        };
 
         this.scope(() => {
-          this.repeat(() => {
-            const columnName = this.getIdentifier();
+          if (type === `check`) {
+            index.expression = this.getInScope();
+          } else {
+            this.repeat(() => {
+              const columnName = this.getIdentifier();
 
-            referenceColumns.push(columnName);
+              index.columns.push(columnName);
 
-            return this.findToken([`,`]);
-          });
+              return this.findToken([`,`]);
+            });
+          }
+
           return undefined;
         });
 
-        index.tableName = tableName;
-        index.referenceColumns = referenceColumns;
-      }
-      else if (type === `primaryKey`) {
-        index.name = constraintName || `${table.name}_${index.columns.join(`_`)}_pkey`;
-      }
-      else if (type === `unique`) {
-        index.name = constraintName || `${table.name}_${index.columns.join(`_`)}_key`;
-      }
-      else if (type === `check`) {
-        // FIXME: the CHECK is actually named based on the expression. If it references one
-        // column it's added to the name. We can't just check if one of the columns is in
-        // the expression, because it checks if it's really a reference.
-        //
-        // Some examples:
-        //  "test_check" CHECK (1 > 0) -- no column
-        //  "test_check1" CHECK (123 > 0) -- no column, second check
-        //  "test_check2" CHECK (foo_id > val) -- multiple columns, third check
-        //  "test_val_check" CHECK (length('foo_id'::text) > val) -- column as string and real reference
-        //  "test_val_check1" CHECK (1 > val AND val < 0) -- one column multiple references
+        if (type === `foreignKey`) {
+          index.name = constraintName || `${table.name}_${index.columns.join(`_`)}_fkey`;
 
-        if (constraintName) {
-          index.name = constraintName;
+          this.getToken([`REFERENCES`]);
+
+          const tableName = this.getIdentifier();
+          const referenceColumns: string[] = [];
+
+          this.scope(() => {
+            this.repeat(() => {
+              const columnName = this.getIdentifier();
+
+              referenceColumns.push(columnName);
+
+              return this.findToken([`,`]);
+            });
+            return undefined;
+          });
+
+          index.tableName = tableName;
+          index.referenceColumns = referenceColumns;
+        } else if (type === `primaryKey`) {
+          index.name = constraintName || `${table.name}_${index.columns.join(`_`)}_pkey`;
+        } else if (type === `unique`) {
+          index.name = constraintName || `${table.name}_${index.columns.join(`_`)}_key`;
+        } else if (type === `check`) {
+          // FIXME: the CHECK is actually named based on the expression. If it references one
+          // column it's added to the name. We can't just check if one of the columns is in
+          // the expression, because it checks if it's really a reference.
+          //
+          // Some examples:
+          //  "test_check" CHECK (1 > 0) -- no column
+          //  "test_check1" CHECK (123 > 0) -- no column, second check
+          //  "test_check2" CHECK (foo_id > val) -- multiple columns, third check
+          //  "test_val_check" CHECK (length('foo_id'::text) > val) -- column as string and real reference
+          //  "test_val_check1" CHECK (1 > val AND val < 0) -- one column multiple references
+
+          if (constraintName) {
+            index.name = constraintName;
+          } else {
+            const findIndexName = (indexName: string, count: number = 0): string => {
+              const postfix = count === 0 ? `` : String(count);
+              const name = indexName + postfix;
+
+              const exists = table.indexes.find(index => index.name === name);
+
+              if (exists) {
+                return findIndexName(indexName, count + 1);
+              }
+
+              return name;
+            };
+
+            index.name = findIndexName(`${table.name}_check`);
+          }
         }
-        else {
-          const findIndexName = (indexName: string, count: number = 0): string => {
-            const postfix = count === 0
-              ? ``
-              : String(count);
-            const name = indexName + postfix;
 
-            const exists = table.indexes.find(index => index.name === name);
-
-            if (exists) {
-              return findIndexName(indexName, count + 1);
-            }
-
-            return name;
-          };
-
-          index.name = findIndexName(`${table.name}_check`);
-        }
-      }
-
-      indexes.push(index);
-    }, () => {
+        indexes.push(index);
+      },
+      () => {
         column = {
           // TODO: The name may include the schema e.g. my.table (where "my" is the schema name)?
           name: this.getIdentifier(),
-          dataType: this.getUntil([`COLLATE`, `CONSTRAINT`, `NULL`, `NOT NULL`, `CHECK`, `DEFAULT`, `UNIQUE`, `PRIMARY KEY`, `REFERENCES`, `,`, `)`]),
+          dataType: this.getUntil([
+            `COLLATE`,
+            `CONSTRAINT`,
+            `NULL`,
+            `NOT NULL`,
+            `CHECK`,
+            `DEFAULT`,
+            `UNIQUE`,
+            `PRIMARY KEY`,
+            `REFERENCES`,
+            `,`,
+            `)`,
+          ]),
           modifiers: {},
         };
 
@@ -713,9 +736,7 @@ export default class Simulator {
               const index: Index = {
                 type: `check`,
                 name: constraintName || `${table.name}_${column!.name}_check`,
-                columns: [
-                  column!.name,
-                ],
+                columns: [column!.name],
                 expression,
               };
 
@@ -734,9 +755,7 @@ export default class Simulator {
               const index: Index = {
                 type: `unique`,
                 name: `${table.name}_${column!.name}_key`,
-                columns: [
-                  column!.name,
-                ],
+                columns: [column!.name],
               };
 
               this.ifToken([`WITH`], () => {
@@ -746,14 +765,16 @@ export default class Simulator {
                   this.repeat(() => {
                     const storageParameter = this.getIdentifier();
 
-                    if (!this.ifToken([`=`], () => {
-                      const storageValue = this.getIdentifier();
+                    if (
+                      !this.ifToken([`=`], () => {
+                        const storageValue = this.getIdentifier();
 
-                      index.parameters!.push({
-                        key: storageParameter,
-                        value: storageValue,
-                      });
-                    })) {
+                        index.parameters!.push({
+                          key: storageParameter,
+                          value: storageValue,
+                        });
+                      })
+                    ) {
                       index.parameters!.push({
                         key: storageParameter,
                       });
@@ -777,9 +798,7 @@ export default class Simulator {
               const index: Index = {
                 type: `primaryKey`,
                 name: `${table.name}_pkey`,
-                columns: [
-                  column!.name,
-                ],
+                columns: [column!.name],
               };
 
               this.ifToken([`WITH`], () => {
@@ -789,14 +808,16 @@ export default class Simulator {
                   this.repeat(() => {
                     const storageParameter = this.getIdentifier();
 
-                    if (!this.ifToken([`=`], () => {
-                      const storageValue = this.getIdentifier();
+                    if (
+                      !this.ifToken([`=`], () => {
+                        const storageValue = this.getIdentifier();
 
-                      index.parameters!.push({
-                        key: storageParameter,
-                        value: storageValue,
-                      });
-                    })) {
+                        index.parameters!.push({
+                          key: storageParameter,
+                          value: storageValue,
+                        });
+                      })
+                    ) {
                       index.parameters!.push({
                         key: storageParameter,
                       });
@@ -821,9 +842,7 @@ export default class Simulator {
                 type: `foreignKey`,
                 name: `${table.name}_${column!.name}_fkey`,
                 tableName: this.getIdentifier(),
-                columns: [
-                  column!.name,
-                ],
+                columns: [column!.name],
                 referenceColumns: [],
               };
 
@@ -868,8 +887,9 @@ export default class Simulator {
           }
 
           return found;
-      });
-    });
+        });
+      },
+    );
 
     return {
       column,
@@ -878,30 +898,30 @@ export default class Simulator {
   }
 
   simulateCreateType() {
-      const type: Type = {
-        type: `enum`,
-        name: this.getIdentifier(),
-        labels: [],
-      };
+    const type: Type = {
+      type: `enum`,
+      name: this.getIdentifier(),
+      labels: [],
+    };
 
-      this.getToken([`AS`]);
-      this.getToken([`ENUM`]);
+    this.getToken([`AS`]);
+    this.getToken([`ENUM`]);
 
-      this.scope(() => {
-        this.repeat(() => {
-          const label = this.getString();
-          type.labels.push(label);
+    this.scope(() => {
+      this.repeat(() => {
+        const label = this.getString();
+        type.labels.push(label);
 
-          return this.findToken([`,`]);
-        });
-
-        return undefined;
+        return this.findToken([`,`]);
       });
 
-      // FIXME: type names and table names may not collide. Because we store them separately, we
-      // have no checks for this. Perhaps we should store the tables and types together in a
-      // relations map instead?
-      this.types[type.name] = type;
+      return undefined;
+    });
+
+    // FIXME: type names and table names may not collide. Because we store them separately, we
+    // have no checks for this. Perhaps we should store the tables and types together in a
+    // relations map instead?
+    this.types[type.name] = type;
   }
 
   simulateCreateTable() {
@@ -917,10 +937,7 @@ export default class Simulator {
 
     this.scope(() => {
       this.repeat(() => {
-        const {
-          column,
-          indexes,
-        } = this.getColumn(table);
+        const { column, indexes } = this.getColumn(table);
 
         if (column) {
           table.columns[column.name] = column;
@@ -943,13 +960,20 @@ export default class Simulator {
   simulateQuery(sql: string) {
     this.input = sql.replace(/^\s+/, ``);
 
-    const token = this.getToken([`CREATE`, `ALTER`, `DROP`, `SELECT`, `WITH`, `UPDATE`, `DELETE`]).toUpperCase();
+    const token = this.getToken([
+      `CREATE`,
+      `ALTER`,
+      `DROP`,
+      `SELECT`,
+      `WITH`,
+      `UPDATE`,
+      `DELETE`,
+    ]).toUpperCase();
 
     if (token === `SELECT` || token === `WITH` || token === `UPDATE` || token === `DELETE`) {
       // These queries do not alter the data structure, so we can ignore them.
       this.input = undefined;
-    }
-    else if (token === `CREATE`) {
+    } else if (token === `CREATE`) {
       this.ifToken([`GLOBAL`, `LOCAL`, `TEMPORARY`, `TEMP`, `UNLOGGED`], () => {
         // TODO: It's GLOBAL or LOCAL, TEMPORARY or TEMP, or UNLOGGED. Pass this to the table.
       });
@@ -965,8 +989,7 @@ export default class Simulator {
 
         // TODO: TRIGGER, FUNCTION?
       });
-    }
-    else if (token === `ALTER`) {
+    } else if (token === `ALTER`) {
       this.switchToken({
         TABLE: () => {
           this.simulateAlterTable();
@@ -976,8 +999,7 @@ export default class Simulator {
           this.simulateAlterType();
         },
       });
-    }
-    else if (token === `DROP`) {
+    } else if (token === `DROP`) {
       this.switchToken({
         TYPE: () => {
           this.simulateDropType();

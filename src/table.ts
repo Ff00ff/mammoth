@@ -22,6 +22,10 @@ export class TableWrapper<Row, InsertRow = Row, UpdateRow = Row> {
     const self = this as any;
     this.$columnNames.forEach(camelCaseName => {
       const column = table[camelCaseName as string];
+      if (!(column instanceof Column)) {
+        throw new Error(`Invalid column at ${name}#${camelCaseName}`);
+      }
+
       const snakeCaseName = column.getSnakeCaseName(camelCaseName as string);
 
       if (self[camelCaseName]) {

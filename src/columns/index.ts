@@ -1,8 +1,17 @@
 import { Default, Keyword } from '../keywords';
-import { PartialQuery, SelectQuery } from '../query';
+import { PartialQuery, SelectQuery, Query } from '../query';
 import { TableWrapper } from '../table';
-import { CollectionToken, GroupToken, ParameterToken, StringToken, Token } from '../tokens';
+import {
+  CollectionToken,
+  GroupToken,
+  ParameterToken,
+  StringToken,
+  Token,
+  SeparatorToken,
+} from '../tokens';
 import { Unsafe } from '../unsafe';
+
+export type RowActionType = 'restrict' | 'cascade' | 'no action';
 
 export interface ColumnConfig<T> {
   primary?: boolean;
@@ -15,6 +24,8 @@ export interface ColumnConfig<T> {
     columnName: string;
   };
   columnFunction?: ColumnFunction<T, any>;
+  onDelete?: RowActionType;
+  onUpdate?: RowActionType;
 }
 export type ColumnFunction<T, Db> = (db: Db) => ColumnWrapper<any, T, any, any, any>;
 
@@ -109,15 +120,14 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
     return new PartialQuery(
       ...this.toTokens(),
       new StringToken(`IN`),
-      new GroupToken([new ParameterToken(array)]),
+      // FIXME: it should be possible to just pass a single parameter token into the group with an
+      // array as parameter. Unfortunately this fails in practice.
+      new GroupToken([new SeparatorToken(',', array.map(param => new ParameterToken(param)))]),
     );
   }
 
   private aggregate<Type = BaseType>(aggregateType: AggregateType) {
-    // TODO: the type probably needs to change in case of count?
-    const defaultName = aggregateType.toLowerCase();
-
-    return new AggregateColumnWrapper<typeof defaultName, Type, Type, Type, Type>(
+    return new AggregateColumnWrapper<string, Type, Type, Type, Type>(
       aggregateType,
       this.table,
       this.column,
@@ -144,8 +154,8 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
   sum() {
     return this.aggregate(`SUM`);
   }
-  min() {
-    return this.aggregate(`MIN`);
+  min(): AggregateColumnWrapper<'min', BaseType, BaseType, BaseType, BaseType> {
+    return this.aggregate(`MIN`) as any;
   }
   max() {
     return this.aggregate(`MAX`);
@@ -190,20 +200,65 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
     );
   }
 
-  between(a: BaseType, b: BaseType) {
+  between(a: BaseType) {
+    return {
+      and: (b: BaseType) => {
+        return new PartialQuery(
+          new StringToken(this.toSql()),
+          new StringToken(`BETWEEN`),
+          new ParameterToken(a),
+          new StringToken(`AND`),
+          new ParameterToken(b),
+        );
+      },
+    };
+  }
+
+  betweenSymmetric(a: BaseType) {
+    return {
+      and: (b: BaseType) => {
+        return new PartialQuery(
+          new StringToken(this.toSql()),
+          new StringToken(`BETWEEN SYMMETRIC`),
+          new ParameterToken(a),
+          new StringToken(`AND`),
+          new ParameterToken(b),
+        );
+      },
+    };
+  }
+
+  isDistinctFrom(a: BaseType) {
     return new PartialQuery(
       new StringToken(this.toSql()),
-      new StringToken(`BETWEEN`),
+      new StringToken(`IS DISTINCT FROM`),
       new ParameterToken(a),
-      new StringToken(`AND`),
-      new ParameterToken(b),
     );
   }
 
-  private compare<C extends BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery>(
-    value: C,
-    comparator: string,
-  ) {
+  isNotDistinctFrom(a: BaseType) {
+    return new PartialQuery(
+      new StringToken(this.toSql()),
+      new StringToken(`IS NOT DISTINCT FROM`),
+      new ParameterToken(a),
+    );
+  }
+
+  notIn(value: BaseType[]) {
+    return new PartialQuery(
+      new StringToken(this.toSql()),
+      new StringToken(`NOT IN`),
+      new GroupToken([new SeparatorToken(',', value.map(val => new ParameterToken(val)))]),
+    );
+  }
+
+  private compare<
+    C extends
+      | BaseType
+      | ColumnWrapper<any, BaseType, any, any, any>
+      | PartialQuery
+      | Query<any, any, { [id: string]: BaseType }>
+  >(value: C, comparator: string) {
     const query = new PartialQuery();
     query.tokens.push(new StringToken(this.toSql()), new StringToken(comparator));
 
@@ -211,13 +266,29 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
       query.tokens.push(...value.toReferenceExpressionTokens());
     } else if (value instanceof PartialQuery) {
       query.tokens.push(...value.tokens);
+    } else if (value instanceof Query) {
+      query.tokens.push(...value.toTokens());
     } else {
       query.tokens.push(new ParameterToken(value));
     }
     return query;
   }
 
-  eq(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
+  like(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
+    return this.compare(value, `LIKE`);
+  }
+
+  ilike(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
+    return this.compare(value, `ILIKE`);
+  }
+
+  eq(
+    value:
+      | BaseType
+      | ColumnWrapper<any, BaseType, any, any, any>
+      | PartialQuery
+      | Query<any, any, { [id: string]: BaseType }>,
+  ) {
     return this.compare(value, `=`);
   }
   ne(value: BaseType | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
@@ -360,10 +431,10 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
     this.table = table;
   }
 
-  primary(): Column<T, T | null, T> {
+  primary(): Column<T, T, T> {
     this.config.primary = true;
 
-    return (this as any) as Column<T, T | null, T>;
+    return this as any;
   }
 
   primaryKey() {
@@ -387,8 +458,17 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
   }
 
   default(sql: T | Unsafe | Keyword): Column<T, T | null, ST, UT | Default> {
+    const escape = (val: T) => {
+      if (typeof val === 'number' || typeof val === 'boolean') {
+        return val;
+      }
+
+      // FIXME: this escaping is too simple.
+      return `'${val}'`;
+    };
+
     this.config.default =
-      sql && (sql instanceof Unsafe || sql instanceof Keyword) ? sql.toSql() : sql;
+      sql && (sql instanceof Unsafe || sql instanceof Keyword) ? sql.toSql() : escape(sql);
     return (this as any) as Column<T, T | null, ST, UT | Default>;
   }
 
@@ -399,7 +479,7 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
 
       this.config.references = {
         tableName: column.table!.getName(),
-        columnName: column.name!,
+        columnName: column.snakeCaseName,
       };
       this.config.columnFunction = undefined;
     }
@@ -409,9 +489,49 @@ export class Column<T, IT = T | null, ST = T | null, UT = T> {
     this.config.columnFunction = columnFunction;
     return this;
   }
+
+  onDelete() {
+    return {
+      cascade: (): Column<T, IT, ST, UT> => {
+        this.config.onDelete = 'cascade';
+        return this;
+      },
+
+      restrict: (): Column<T, IT, ST, UT> => {
+        this.config.onDelete = 'restrict';
+        return this;
+      },
+
+      noAction: (): Column<T, IT, ST, UT> => {
+        this.config.onDelete = 'no action';
+        return this;
+      },
+    };
+  }
+
+  onUpdate() {
+    // TODO: add SET NULL, SET DEFAULT as well.
+
+    return {
+      cascade: (): Column<T, IT, ST, UT> => {
+        this.config.onUpdate = 'cascade';
+        return this;
+      },
+
+      restrict: (): Column<T, IT, ST, UT> => {
+        this.config.onUpdate = 'restrict';
+        return this;
+      },
+
+      noAction: (): Column<T, IT, ST, UT> => {
+        this.config.onUpdate = 'no action';
+        return this;
+      },
+    };
+  }
 }
 
-export class TextColumn extends Column<string> {
+export class TextColumn<T = string> extends Column<T> {
   dataType = 'TEXT';
 }
 export class CitextColumn extends Column<string> {
@@ -424,7 +544,7 @@ export class IntegerColumn extends Column<number> {
 export class DecimalColumn extends Column<number> {
   dataType = 'DECIMAL';
 }
-export class SerialColumn extends Column<number, number | null> {
+export class SerialColumn extends Column<number, number | null, number, number | Default> {
   dataType = 'SERIAL';
 }
 export class JSONColumn<T> extends Column<T> {
@@ -464,16 +584,19 @@ export class BooleanColumn extends Column<boolean> {
   dataType = 'BOOLEAN';
 }
 
-export class Uuid extends String {
-  constructor(string: string) {
-    super(string);
+export class Uuid {
+  private value: string;
+
+  constructor(value: string) {
+    this.value = value;
   }
 
-  // FIXME: we want this type to be treated different than string for extra safety.
-  _unused() {} // tslint:disable-line
+  toString() {
+    return this.value;
+  }
 }
 
-export class UuidColumn extends Column<Uuid> {
+export class UuidColumn extends Column<string> {
   dataType = 'UUID';
 }
 
@@ -486,29 +609,10 @@ export class ByteaColumn extends Column<Buffer> {
 export class BlobColumn extends ByteaColumn {}
 export class BinaryColumn extends ByteaColumn {}
 
-export class EnumColumn<
-  A extends string,
-  B extends string,
-  C extends string | undefined,
-  D extends string | undefined,
-  E extends string | undefined,
-  F extends string | undefined,
-  G extends string | undefined,
-  H extends string | undefined
-> extends Column<A | B | C | D | E | F | G | H> {
+export class EnumColumn<A extends string> extends Column<A> {
   values: string[];
 
-  constructor(
-    values:
-      | [A, B]
-      | [A, B, C]
-      | [A, B, C, D]
-      | [A, B, C, D, E]
-      | [A, B, C, D, E, F]
-      | [A, B, C, D, E, F, G]
-      | [A, B, C, D, E, F, G, H],
-    name?: string,
-  ) {
+  constructor(values: A[], name?: string) {
     super();
 
     this.dataType = name;

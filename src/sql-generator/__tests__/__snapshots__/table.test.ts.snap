@@ -9,7 +9,7 @@ exports[`generate sql should generate a simple table 1`] = `
 
 exports[`generate sql should generate a table with enum with name 1`] = `
 Array [
-  "CREATE TYPE MY_ENUM AS ENUM (\\"A\\", \\"B\\")",
+  "CREATE TYPE MY_ENUM AS ENUM ('A', 'B')",
   "CREATE TABLE enum_test (
   id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   value MY_ENUM NOT NULL
@@ -19,7 +19,7 @@ Array [
 
 exports[`generate sql should generate a table with enum without name 1`] = `
 Array [
-  "CREATE TYPE ENUM_TEST_VALUE_ENUM AS ENUM (\\"A\\", \\"B\\")",
+  "CREATE TYPE ENUM_TEST_VALUE_ENUM AS ENUM ('A', 'B')",
   "CREATE TABLE enum_test (
   id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   value ENUM_TEST_VALUE_ENUM NOT NULL

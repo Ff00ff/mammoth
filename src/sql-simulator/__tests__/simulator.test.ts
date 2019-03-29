@@ -14,7 +14,7 @@ describe(`Simulator`, () => {
       simulator.simulateQuery(query);
 
       expect(simulator.types).toEqual(types);
-    }
+    };
 
     it(`should create enumerated type`, () => {
       const query = `CREATE TYPE test AS ENUM ('a', 'b,', 'c')`;
@@ -22,11 +22,7 @@ describe(`Simulator`, () => {
         test: {
           name: `test`,
           type: `enum`,
-          labels: [
-            `a`,
-            `b,`,
-            `c`,
-          ],
+          labels: [`a`, `b,`, `c`],
         },
       };
 
@@ -39,11 +35,7 @@ describe(`Simulator`, () => {
         test: {
           name: `test`,
           type: `enum`,
-          labels: [
-            `a`,
-            `b\\'`,
-            `c`,
-          ],
+          labels: [`a`, `b\\'`, `c`],
         },
       };
 
@@ -56,11 +48,7 @@ describe(`Simulator`, () => {
         test: {
           name: `test`,
           type: `enum`,
-          labels: [
-            `a`,
-            `b`,
-            `c`,
-          ],
+          labels: [`a`, `b`, `c`],
         },
       };
 
@@ -74,17 +62,13 @@ describe(`Simulator`, () => {
         test: {
           name: `test`,
           type: `enum`,
-          labels: [
-            `a`,
-            `b`,
-            `c`,
-          ],
+          labels: [`a`, `b`, `c`],
         },
       };
       simulator.simulateQuery(query);
 
       expect(simulator.types).toEqual(types);
-    }
+    };
 
     it(`should add value at the back`, () => {
       const query = `ALTER TYPE test ADD VALUE 'd' AFTER 'c'`;
@@ -92,14 +76,9 @@ describe(`Simulator`, () => {
         test: {
           name: `test`,
           type: `enum`,
-          labels: [
-            `a`,
-            `b`,
-            `c`,
-            `d`,
-          ],
-        }
-      }
+          labels: [`a`, `b`, `c`, `d`],
+        },
+      };
       simulate(query, types);
     });
 
@@ -109,14 +88,9 @@ describe(`Simulator`, () => {
         test: {
           name: `test`,
           type: `enum`,
-          labels: [
-            `d`,
-            `a`,
-            `b`,
-            `c`,
-          ]
-        }
-      }
+          labels: [`d`, `a`, `b`, `c`],
+        },
+      };
       simulate(query, types);
     });
 
@@ -126,14 +100,9 @@ describe(`Simulator`, () => {
         test: {
           name: `test`,
           type: `enum`,
-          labels: [
-            `a`,
-            `b`,
-            `d`,
-            `c`,
-          ],
-        }
-      }
+          labels: [`a`, `b`, `d`, `c`],
+        },
+      };
       simulate(query, types);
     });
   });
@@ -144,7 +113,7 @@ describe(`Simulator`, () => {
       simulator.simulateQuery(query);
 
       expect(simulator.tables).toEqual(tables);
-    }
+    };
 
     it(`should create basic table with different data types`, () => {
       const query = `CREATE TABLE account (
@@ -157,19 +126,19 @@ describe(`Simulator`, () => {
           name: `account`,
           columns: {
             id: {
-                dataType: `INTEGER`,
-                name: `id`,
-                modifiers: {},
+              dataType: `INTEGER`,
+              name: `id`,
+              modifiers: {},
             },
             first_name: {
-                dataType: `TEXT`,
-                name: `first_name`,
-                modifiers: {},
+              dataType: `TEXT`,
+              name: `first_name`,
+              modifiers: {},
             },
             last_name: {
-                dataType: `MySpecialType`,
-                name: `last_name`,
-                modifiers: {},
+              dataType: `MySpecialType`,
+              name: `last_name`,
+              modifiers: {},
             },
           },
           indexes: [],
@@ -193,13 +162,13 @@ describe(`Simulator`, () => {
               modifiers: {},
             },
           },
-          indexes: [{
-            type: `primaryKey`,
-            name: `account_pkey`,
-            columns: [
-              `id`,
-            ],
-          }]
+          indexes: [
+            {
+              type: `primaryKey`,
+              name: `account_pkey`,
+              columns: [`id`],
+            },
+          ],
         },
       };
 
@@ -240,7 +209,7 @@ describe(`Simulator`, () => {
             return undefined;
           });
         });
-      }
+      };
 
       testScope(`value > 0`);
       testScope(`value + (123 / 2) < 0`);
@@ -265,14 +234,14 @@ describe(`Simulator`, () => {
               modifiers: {},
             },
           },
-          indexes: [{
-            type: `check`,
-            name: `account_id_check`,
-            expression: `id > 0`,
-            columns: [
-              `id`,
-            ],
-          }],
+          indexes: [
+            {
+              type: `check`,
+              name: `account_id_check`,
+              expression: `id > 0`,
+              columns: [`id`],
+            },
+          ],
         },
       };
 
@@ -318,13 +287,13 @@ describe(`Simulator`, () => {
               },
             },
           },
-          indexes: [{
-            type: `primaryKey`,
-            name: `account_pkey`,
-            columns: [
-              `id`,
-            ],
-          }],
+          indexes: [
+            {
+              type: `primaryKey`,
+              name: `account_pkey`,
+              columns: [`id`],
+            },
+          ],
         },
       };
 
@@ -415,17 +384,47 @@ describe(`Simulator`, () => {
               modifiers: {},
             },
           },
-          indexes: [{
-            type: `foreignKey`,
-            name: `account_test_id_fkey`,
-            tableName: `test`,
-            columns: [
-              `test_id`,
-            ],
-            referenceColumns: [
-              `id`,
-            ],
-          }],
+          indexes: [
+            {
+              type: `foreignKey`,
+              name: `account_test_id_fkey`,
+              tableName: `test`,
+              columns: [`test_id`],
+              referenceColumns: [`id`],
+            },
+          ],
+        },
+      };
+
+      simulate(query, tables);
+    });
+
+    it(`should create table with column with foreign key constraint plus on update and delete clause`, () => {
+      const query = `CREATE TABLE account (
+        test_id INTEGER REFERENCES test (id) ON DELETE CASCADE ON UPDATE RESTRICT
+      )`;
+
+      const tables: TableMap = {
+        account: {
+          name: `account`,
+          columns: {
+            test_id: {
+              dataType: `INTEGER`,
+              name: `test_id`,
+              modifiers: {},
+            },
+          },
+          indexes: [
+            {
+              type: `foreignKey`,
+              name: `account_test_id_fkey`,
+              tableName: `test`,
+              columns: [`test_id`],
+              referenceColumns: [`id`],
+              onDelete: 'cascade',
+              onUpdate: 'restrict',
+            },
+          ],
         },
       };
 
@@ -457,17 +456,15 @@ describe(`Simulator`, () => {
               },
             },
           },
-          indexes: [{
-            type: `foreignKey`,
-            name: `account_token_account_id_fkey`,
-            columns: [
-              `account_id`,
-            ],
-            referenceColumns: [
-              `id`,
-            ],
-            tableName: `account`,
-          }],
+          indexes: [
+            {
+              type: `foreignKey`,
+              name: `account_token_account_id_fkey`,
+              columns: [`account_id`],
+              referenceColumns: [`id`],
+              tableName: `account`,
+            },
+          ],
         },
       };
 
@@ -494,20 +491,19 @@ describe(`Simulator`, () => {
               modifiers: {},
             },
           },
-          indexes: [{
-            type: `primaryKey`,
-            name: `test_pkey`,
-            columns: [
-              `id`,
-            ],
-          }, {
-            type: `unique`,
-            name: `test_name_key`,
-            columns: [
-              `name`,
-            ],
-          }],
-        }
+          indexes: [
+            {
+              type: `primaryKey`,
+              name: `test_pkey`,
+              columns: [`id`],
+            },
+            {
+              type: `unique`,
+              name: `test_name_key`,
+              columns: [`name`],
+            },
+          ],
+        },
       };
 
       simulate(query, tables);
@@ -533,20 +529,19 @@ describe(`Simulator`, () => {
               modifiers: {},
             },
           },
-          indexes: [{
-            type: `primaryKey`,
-            name: `test_pkey`,
-            columns: [
-              `id`,
-            ],
-          }, {
-            type: `unique`,
-            name: `test_name_key`,
-            columns: [
-              `name`,
-            ],
-          }],
-        }
+          indexes: [
+            {
+              type: `primaryKey`,
+              name: `test_pkey`,
+              columns: [`id`],
+            },
+            {
+              type: `unique`,
+              name: `test_name_key`,
+              columns: [`name`],
+            },
+          ],
+        },
       };
 
       simulate(query, tables);
@@ -573,15 +568,14 @@ describe(`Simulator`, () => {
               modifiers: {},
             },
           },
-          indexes: [{
-            type: `primaryKey`,
-            name: `test_id_name_pkey`,
-            columns: [
-              `id`,
-              `name`,
-            ],
-          }],
-        }
+          indexes: [
+            {
+              type: `primaryKey`,
+              name: `test_id_name_pkey`,
+              columns: [`id`, `name`],
+            },
+          ],
+        },
       };
 
       simulate(query, tables);
@@ -608,15 +602,14 @@ describe(`Simulator`, () => {
               dataType: `TEXT`,
             },
           },
-          indexes: [{
-            type: `unique`,
-            name: `test_id_name_key`,
-            columns: [
-              `id`,
-              `name`,
-            ],
-          }],
-        }
+          indexes: [
+            {
+              type: `unique`,
+              name: `test_id_name_key`,
+              columns: [`id`, `name`],
+            },
+          ],
+        },
       };
 
       simulate(query, tables);
@@ -643,19 +636,15 @@ describe(`Simulator`, () => {
               dataType: `INTEGER`,
             },
           },
-          indexes: [{
-            type: `foreignKey`,
-            name: `test_foo_id_bar_id_fkey`,
-            columns: [
-              `foo_id`,
-              `bar_id`,
-            ],
-            referenceColumns: [
-              `id`,
-              `bar_id`,
-            ],
-            tableName: `foo`,
-          }],
+          indexes: [
+            {
+              type: `foreignKey`,
+              name: `test_foo_id_bar_id_fkey`,
+              columns: [`foo_id`, `bar_id`],
+              referenceColumns: [`id`, `bar_id`],
+              tableName: `foo`,
+            },
+          ],
         },
         foo: {
           name: `foo`,
@@ -712,13 +701,13 @@ describe(`Simulator`, () => {
               dataType: `INTEGER`,
             },
           },
-          indexes: [{
-            type: `primaryKey`,
-            name: `foo_pkey`,
-            columns: [
-              `id`,
-            ],
-          }],
+          indexes: [
+            {
+              type: `primaryKey`,
+              name: `foo_pkey`,
+              columns: [`id`],
+            },
+          ],
         },
       };
       const tables: TableMap = {
@@ -731,15 +720,15 @@ describe(`Simulator`, () => {
               dataType: `INTEGER`,
             },
           },
-          indexes: [{
-            type: `foreignKey`,
-            name: `test_foo_id_fkey`,
-            tableName: `foo`,
-            columns: [
-              `foo_id`,
-            ],
-            referenceColumns: [],
-          }],
+          indexes: [
+            {
+              type: `foreignKey`,
+              name: `test_foo_id_fkey`,
+              tableName: `foo`,
+              columns: [`foo_id`],
+              referenceColumns: [],
+            },
+          ],
         },
         ...initialTables,
       };
@@ -756,7 +745,7 @@ describe(`Simulator`, () => {
       simulator.simulateQuery(query);
 
       expect(simulator.tables).toEqual(result);
-    }
+    };
 
     it(`should drop table`, () => {
       const before: TableMap = {

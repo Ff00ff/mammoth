@@ -1,5 +1,5 @@
 import { Database } from "../../database";
-import { createMigrationTable, getLatestAppliedMigration } from "./migration";
+import { createMigrationTable, getLatestAppliedMigration, getAllAppliedMigrations } from "./migration";
 
 export const rollback = async (db: Database<any>, migrationsDir: string) => {
   await createMigrationTable(db);
@@ -16,4 +16,22 @@ export const rollback = async (db: Database<any>, migrationsDir: string) => {
   else {
     //
   }
+};
+
+export const rollbackAll = async (db: Database<any>, migrationsDir: string) => {
+  await createMigrationTable(db);
+
+  const appliedMigrations = await getAllAppliedMigrations(db, migrationsDir);
+
+  await db.transaction(async transaction => {
+    let result = Promise.resolve(true);
+
+    appliedMigrations.forEach(appliedMigration => {
+      result = result.then(() => Promise.resolve(appliedMigration.down(transaction)));
+    });
+
+    await transaction.sql `DELETE FROM db.migration`;
+
+    await result;
+  });
 };

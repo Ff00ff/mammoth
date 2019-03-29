@@ -1,12 +1,19 @@
 import { Database } from "../../database";
 import { createMigrationTable, getAppliedMigrations, getMigrations } from "./migration";
+import chalk from 'chalk';
 
 export const apply = async (db: Database<any>, migrationsDir: string) => {
   await createMigrationTable(db);
 
   const appliedMigrations = await getAppliedMigrations(db);
+
   const migrations = getMigrations(migrationsDir);
   const unappliedMigrations = migrations.filter(migration => !appliedMigrations.has(migration.name))
+
+  if (unappliedMigrations.length === 0) {
+    console.log(chalk.green(`All migrations already applied.`));
+    return;
+  }
 
   let result = Promise.resolve();
 
@@ -21,9 +28,10 @@ export const apply = async (db: Database<any>, migrationsDir: string) => {
   try {
     await result;
 
-    // Success!
-  }
-  catch (e) {
+    if (process.env.NODE_ENV !== `test`) {
+      console.log(chalk.green(`Successfully applied ${unappliedMigrations.length} migrations.`));
+    }
+  } catch (e) {
     console.log(e);
 
     throw e;

@@ -9,12 +9,17 @@ import { TransactionDatabase } from './transaction';
 export interface DatabaseConfig {
   min?: number;
   max?: number;
+  databaseName?: string;
 }
-export class PoolDatabase<Tables extends TableMap> extends Database<Tables> {
-  protected pool: pg.Pool;
 
-  private createPool(databaseUrl: string, options: DatabaseConfig): pg.Pool {
-    const { auth, hostname, port, pathname } = url.parse(databaseUrl);
+type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
+
+export class PoolDatabase<Tables extends TableMap> extends Database<Tables> {
+  protected pool?: pg.Pool;
+  protected databaseUrl: string;
+
+  private createPool(options: DatabaseConfig): pg.Pool {
+    const { auth, hostname, port, pathname } = url.parse(this.databaseUrl);
     const [user, password] = (auth || '').split(':');
 
     const config = {
@@ -23,11 +28,19 @@ export class PoolDatabase<Tables extends TableMap> extends Database<Tables> {
       password,
       host: hostname,
       port: parseInt(port || '5432', 10),
-      database: (pathname || '').slice(1),
-      ssl: process.env.MAMMOTH_DISABLE_SSL !== 'true',
+      database: options.databaseName || (pathname || '').slice(1),
+      ssl:
+        process.env.NODE_ENV !== `test` &&
+        !process.env.MAMMOTH_DISABLE_SSL &&
+        process.env.PGSSLROOTCERT
+          ? {
+              sslmode: 'verify-full',
+              sslrootcert: process.env.PGSSLROOTCERT,
+            }
+          : false,
     };
 
-    return new pg.Pool(config);
+    return new pg.Pool(config as any);
   }
 
   constructor(tables: Tables) {
@@ -37,10 +50,33 @@ export class PoolDatabase<Tables extends TableMap> extends Database<Tables> {
       throw new Error(`DATABASE_URL is not set.`);
     }
 
-    this.pool = this.createPool(String(process.env.DATABASE_URL), {
+    this.databaseUrl = String(process.env.DATABASE_URL);
+    this.pool = this.createPool({
       min: process.env.DB_MIN_POOL_SIZE ? parseInt(process.env.DB_MIN_POOL_SIZE!, 10) : undefined,
       max: process.env.DB_MAX_POOL_SIZE ? parseInt(process.env.DB_MAX_POOL_SIZE!, 10) : undefined,
     });
+  }
+
+  async disconnect(): Promise<void> {
+    if (this.pool) {
+      const pool = this.pool;
+      this.pool = undefined;
+      await pool.end();
+    }
+  }
+
+  async reconnect(databaseName: string): Promise<void> {
+    let previousPool = this.pool;
+
+    this.pool = this.createPool({
+      min: process.env.DB_MIN_POOL_SIZE ? parseInt(process.env.DB_MIN_POOL_SIZE!, 10) : undefined,
+      max: process.env.DB_MAX_POOL_SIZE ? parseInt(process.env.DB_MAX_POOL_SIZE!, 10) : undefined,
+      databaseName,
+    });
+
+    if (previousPool) {
+      await previousPool.end();
+    }
   }
 
   async transaction<
@@ -51,11 +87,18 @@ export class PoolDatabase<Tables extends TableMap> extends Database<Tables> {
   // @ts-ignore
   // @ts-ignore
   // @ts-ignore
+
+  // TODO: we now assume id is always present and is always a not null default construct. We
+  // probably should omit all default types. We're doing this to make sure you can insert
+  // rows without specifying a id prop in the Query#values() method.
     Ret,
     State = {
       [TableName in keyof Tables]: TableWrapper<
         { [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['selectType'] },
-        { [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['insertType'] },
+        Omit<
+          { [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['insertType'] },
+          'id'
+        > & { id?: Tables[TableName]['id']['insertType'] },
         { [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['updateType'] }
       > &
         {
@@ -68,7 +111,13 @@ export class PoolDatabase<Tables extends TableMap> extends Database<Tables> {
           >
         }
     }
-  >(callback: (db: TransactionDatabase<Tables> & State) => Promise<Ret>): Promise<Ret | undefined> {
+  >(callback: (db: TransactionDatabase<Tables> & State) => Promise<Ret>): Promise<Ret> {
+    if (!this.pool) {
+      throw new Error(
+        `The database is not connected. Did you call disconnect() but not reconnect()?`,
+      );
+    }
+
     const client = await this.pool.connect();
 
     // TODO: with the new syntax/style, we're not using the table as
@@ -101,11 +150,17 @@ export class PoolDatabase<Tables extends TableMap> extends Database<Tables> {
         client.release(e);
       }
 
-      return undefined;
+      throw e;
     }
   }
 
   async exec(text: string, parameters: any[] = []) {
+    if (!this.pool) {
+      throw new Error(
+        `The database is not connected. Did you call disconnect() but not reconnect()?`,
+      );
+    }
+
     let client: pg.PoolClient | undefined;
 
     try {
@@ -117,6 +172,10 @@ export class PoolDatabase<Tables extends TableMap> extends Database<Tables> {
     } catch (e) {
       e.query = text;
 
+      // if (!e.message || e.message.indexOf('schema "db" already exists')) {
+      //   console.log(e);
+      // }
+
       throw e;
     } finally {
       if (client) {
@@ -126,7 +185,10 @@ export class PoolDatabase<Tables extends TableMap> extends Database<Tables> {
   }
 
   async destroy() {
-    await this.pool.end();
+    if (this.pool) {
+      await this.pool.end();
+      this.pool = undefined;
+    }
   }
 }
 
@@ -163,18 +225,12 @@ export const createDatabase = <
   Tables extends TableMap,
   State = {
     [TableName in keyof Tables]: TableWrapper<
-      {
-        // @ts-ignore
-        [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['selectType']
-      },
-      {
-        // @ts-ignore
-        [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['insertType']
-      },
-      {
-        // @ts-ignore
-        [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['updateType']
-      }
+      { [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['selectType'] },
+      Omit<
+        { [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['insertType'] },
+        'id'
+      > & { id?: Tables[TableName]['id']['insertType'] },
+      { [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['updateType'] }
     > &
       {
         [ColumnName in keyof Tables[TableName]]: ColumnWrapper<

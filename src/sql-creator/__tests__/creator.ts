@@ -28,7 +28,7 @@ describe(`creator`, () => {
         },
       };
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `CREATE TYPE test AS ENUM ('a', 'b', 'c')`,
       ]);
@@ -48,7 +48,7 @@ describe(`creator`, () => {
       };
       const to: TypeMap = {};
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `DROP TYPE test`,
       ]);
@@ -69,7 +69,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.labels.push(`d`);
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TYPE test ADD VALUE 'd' AFTER 'c'`,
       ]);
@@ -90,7 +90,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.labels.splice(0, 0, `d`);
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TYPE test ADD VALUE 'd' BEFORE 'a'`,
       ]);
@@ -111,7 +111,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.labels.splice(2, 0, `d`);
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TYPE test ADD VALUE 'd' AFTER 'b'`,
       ]);
@@ -134,7 +134,7 @@ describe(`creator`, () => {
       to.test!.labels.splice(2, 0, `e`);
       to.test!.labels.splice(5, 0, `f`);
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TYPE test ADD VALUE 'd' BEFORE 'a'`,
         `ALTER TYPE test ADD VALUE 'e' AFTER 'a'`,
@@ -179,7 +179,7 @@ describe(`creator`, () => {
         modifiers: {},
       };
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
         `ALTER TABLE test ADD COLUMN value TEXT`,
@@ -208,7 +208,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       delete to.test!.columns.value;
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
         `ALTER TABLE test DROP COLUMN value`,
@@ -241,7 +241,7 @@ describe(`creator`, () => {
       to.test!.columns.test!.name = `test`;
       delete to.test!.columns.value;
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
         `ALTER TABLE test RENAME COLUMN value TO test`,
@@ -283,10 +283,10 @@ describe(`creator`, () => {
         }],
       };
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
-        `CREATE TABLE account (\n\tid UUID DEFAULT uuid_generate_v4() PRIMARY KEY\n)`,
+        `CREATE TABLE account (\n  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY\n)`,
       ]);
     });
 
@@ -306,7 +306,7 @@ describe(`creator`, () => {
       };
       const to = {};
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
         `DROP TABLE test`,
@@ -332,7 +332,7 @@ describe(`creator`, () => {
       to.test2 = to.test;
       delete to.test;
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
         `ALTER TABLE test RENAME TO test2`,
@@ -356,7 +356,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.columns.id!.modifiers.default = `1`;
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
         `ALTER TABLE test ALTER COLUMN id SET DEFAULT 1`,
@@ -382,7 +382,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       delete to.test!.columns.id!.modifiers.default;
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
         `ALTER TABLE test ALTER COLUMN id DROP DEFAULT`,
@@ -406,7 +406,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.columns.id!.modifiers.notNull = true;
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
         `ALTER TABLE test ALTER COLUMN id SET NOT NULL`,
@@ -432,7 +432,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       delete to.test!.columns.id!.modifiers.notNull;
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
         `ALTER TABLE test ALTER COLUMN id DROP NOT NULL`,
@@ -456,7 +456,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.columns.id!.dataType = `TEXT`
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
         `ALTER TABLE test ALTER COLUMN id SET DATA TYPE TEXT`,
@@ -485,7 +485,7 @@ describe(`creator`, () => {
         expression: `id > 0`,
       }]
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
 
       expect(queries).toEqual([
         `ALTER TABLE test ADD CONSTRAINT test_id_check CHECK (id > 0)`,
@@ -516,7 +516,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.indexes = [];
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test DROP CONSTRAINT test_id_check`,
       ]);
@@ -544,7 +544,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.indexes = [];
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test DROP CONSTRAINT some_constraint_checker`,
       ]);
@@ -572,7 +572,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.indexes[0].expression = `id > 1`;
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test DROP CONSTRAINT some_constraint_checker`,
         `ALTER TABLE test ADD CONSTRAINT some_constraint_checker CHECK (id > 1)`,
@@ -617,7 +617,7 @@ describe(`creator`, () => {
         ],
       }];
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test ADD CONSTRAINT test_foo_id_fkey FOREIGN KEY (foo_id) REFERENCES foo (id)`,
       ]);
@@ -659,7 +659,7 @@ describe(`creator`, () => {
         referenceColumns: [],
       }];
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test ADD CONSTRAINT test_foo_id_fkey FOREIGN KEY (foo_id) REFERENCES foo`,
       ]);
@@ -703,7 +703,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.indexes = [];
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test DROP CONSTRAINT test_foo_id_fkey`,
       ]);
@@ -732,7 +732,7 @@ describe(`creator`, () => {
         ],
       }];
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test ADD CONSTRAINT test_id_key UNIQUE (id)`,
       ]);
@@ -767,7 +767,7 @@ describe(`creator`, () => {
         ],
       }];
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test ADD CONSTRAINT test_id_name_key UNIQUE (id, name)`,
       ]);
@@ -796,7 +796,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.indexes = [];
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test DROP CONSTRAINT test_id_key`,
       ]);
@@ -825,7 +825,7 @@ describe(`creator`, () => {
         ],
       }];
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test ADD CONSTRAINT test_pkey PRIMARY KEY (id)`,
       ]);
@@ -860,7 +860,7 @@ describe(`creator`, () => {
         ],
       }];
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test ADD CONSTRAINT test_pkey PRIMARY KEY (id, name)`,
       ]);
@@ -889,7 +889,7 @@ describe(`creator`, () => {
       const to = cloneDeep(from);
       to.test!.indexes = [];
 
-      const queries = create(from, to);
+      const { queries } = create(from, to);
       expect(queries).toEqual([
         `ALTER TABLE test DROP CONSTRAINT test_pkey`,
       ]);

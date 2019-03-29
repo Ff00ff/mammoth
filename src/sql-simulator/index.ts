@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import { cloneDeep, escapeRegExp } from 'lodash';
 
+export type ActionType = 'restrict' | 'no action' | 'cascade';
 export type IndexType = 'primaryKey' | 'foreignKey' | 'unique' | 'check';
 
 export interface Index {
@@ -11,6 +12,8 @@ export interface Index {
   referenceColumns?: string[];
   expression?: string;
   parameters?: { key: string; value?: string }[];
+  onDelete?: ActionType;
+  onUpdate?: ActionType;
 }
 
 export interface Column {
@@ -141,8 +144,6 @@ export default class Simulator {
     const result = this.findByRegExp(regexp);
 
     if (!result) {
-      console.log(this.input);
-
       throw new Error(`Unknown identifier.`);
     }
 
@@ -288,6 +289,17 @@ export default class Simulator {
     }
 
     throw new Error(`Could not find closing ).`);
+  }
+
+  getStringOrExpression() {
+    const regexp = new RegExp(`^([\\w\\._"\\(\\)]+)`, `i`);
+    const result = this.findByRegExp(regexp);
+
+    if (!result) {
+      return `'${this.getString()}'`;
+    }
+
+    return result;
   }
 
   getExpression() {
@@ -652,6 +664,35 @@ export default class Simulator {
 
           index.tableName = tableName;
           index.referenceColumns = referenceColumns;
+
+          this.repeat(() => {
+            const found = this.switchToken({
+              'ON UPDATE': () => {
+                const actionType = this.getToken(['CASCADE', 'RESTRICT', 'NO ACTION']);
+
+                if (actionType === 'CASCADE') {
+                  index.onUpdate = 'cascade';
+                } else if (actionType === 'RESTRICT') {
+                  index.onUpdate = 'restrict';
+                } else if (actionType === 'NO ACTION') {
+                  index.onUpdate = 'no action';
+                }
+              },
+
+              'ON DELETE': () => {
+                const actionType = this.getToken(['CASCADE', 'RESTRICT', 'NO ACTION']);
+
+                if (actionType === 'CASCADE') {
+                  index.onDelete = 'cascade';
+                } else if (actionType === 'RESTRICT') {
+                  index.onDelete = 'restrict';
+                } else if (actionType === 'NO ACTION') {
+                  index.onDelete = 'no action';
+                }
+              },
+            });
+            return found;
+          });
         } else if (type === `primaryKey`) {
           index.name = constraintName || `${table.name}_${index.columns.join(`_`)}_pkey`;
         } else if (type === `unique`) {
@@ -748,7 +789,7 @@ export default class Simulator {
             },
 
             DEFAULT: () => {
-              column!.modifiers.default = this.getExpression();
+              column!.modifiers.default = this.getStringOrExpression();
             },
 
             UNIQUE: () => {
@@ -858,16 +899,53 @@ export default class Simulator {
                 // TODO: Set index.matchType = this.getToken([`FULL`, `PARTIAL`, `SIMPLE`]);.
               });
 
-              this.ifToken([`ON DELETE`], () => {
-                this.getToken([`NO ACTION`, `RESTRICT`, `CASCADE`, `SET NULL`, `SET DEFAULT`]);
+              this.repeat(() => {
+                const found = this.switchToken({
+                  'ON DELETE': () => {
+                    const actionType = this.getToken([
+                      `NO ACTION`,
+                      `RESTRICT`,
+                      `CASCADE`,
+                      `SET NULL`,
+                      `SET DEFAULT`,
+                    ]);
 
-                // TODO: Set index.onDelete = actionType;.
-              });
+                    if (actionType === 'NO ACTION') {
+                      index.onDelete = 'no action';
+                    } else if (actionType === 'RESTRICT') {
+                      index.onDelete = 'restrict';
+                    } else if (actionType == 'CASCADE') {
+                      index.onDelete = 'cascade';
+                    } else if (actionType === 'SET NULL') {
+                      // index.onDelete = 'set null';
+                    } else if (actionType === 'SET DEFAULT') {
+                      // index.onDelete = 'set default';
+                    }
+                  },
 
-              this.ifToken([`ON UPDATE`], () => {
-                this.getToken([`NO ACTION`, `RESTRICT`, `CASCADE`, `SET NULL`, `SET DEFAULT`]);
+                  'ON UPDATE': () => {
+                    const actionType = this.getToken([
+                      `NO ACTION`,
+                      `RESTRICT`,
+                      `CASCADE`,
+                      `SET NULL`,
+                      `SET DEFAULT`,
+                    ]);
 
-                // TODO: Set index.onUpdate = actionType;.
+                    if (actionType === 'NO ACTION') {
+                      index.onUpdate = 'no action';
+                    } else if (actionType === 'RESTRICT') {
+                      index.onUpdate = 'restrict';
+                    } else if (actionType == 'CASCADE') {
+                      index.onUpdate = 'cascade';
+                    } else if (actionType === 'SET NULL') {
+                      // index.onDelete = 'set null';
+                    } else if (actionType === 'SET DEFAULT') {
+                      // index.onDelete = 'set default';
+                    }
+                  },
+                });
+                return found;
               });
 
               indexes.push(index);

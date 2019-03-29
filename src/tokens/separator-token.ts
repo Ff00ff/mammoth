@@ -7,18 +7,18 @@ export class SeparatorToken extends Token {
   separator: Separator;
   tokens: Token[];
 
-	constructor(separator: Separator, tokens: Token[]) {
-		super();
+  constructor(separator: Separator, tokens: Token[]) {
+    super();
 
     this.separator = separator;
     this.tokens = tokens;
-	}
+  }
 
-	reduce(state: State) {
+  reduce(state: State, numberOfParameters: number) {
     const length = this.tokens.length;
     this.tokens.forEach((token, index) => {
       const last = index === length - 1;
-      const tokenState = createState([token], state.parameters.length);
+      const tokenState = createState([token], numberOfParameters + state.parameters.length);
 
       if (tokenState.text.length > 0) {
         if (!last) {
@@ -30,5 +30,5 @@ export class SeparatorToken extends Token {
       state.parameters.push(...tokenState.parameters);
     });
     return state;
-	}
+  }
 }

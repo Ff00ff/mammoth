@@ -1,5 +1,5 @@
 import * as uuid from 'uuid';
-import { not, now, Uuid, EnumColumn } from '..';
+import { not, now, EnumColumn } from '..';
 import { IntegerColumn, TimestampWithTimeZoneColumn, UuidColumn, ByteaColumn } from '../columns';
 import { createDatabase } from '../database/pool';
 import { Default, Now, UuidGenerateV4 } from '../keywords';
@@ -32,7 +32,7 @@ class BinaryTest {
 
 class EnumTest {
   id = new UuidColumn().primaryKey().default(new UuidGenerateV4());
-  value = new EnumColumn(['a', 'b']).notNull();
+  letter = new EnumColumn(['a', 'b']).notNull();
 }
 
 const db = createDatabase({
@@ -50,23 +50,23 @@ describe('Query', () => {
 
   describe('enum', () => {
     beforeEach(async () => {
-      await db.exec(`CREATE TYPE VALUE_ENUM AS ENUM ('a', 'b')`);
+      await db.exec(`CREATE TYPE LETTER_ENUM AS ENUM ('a', 'b')`);
 
       await db.exec(`CREATE TABLE enum_test (
         id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-        value VALUE_ENUM NOT NULL
+        letter LETTER_ENUM NOT NULL
       )`);
     });
 
     afterEach(async () => {
       await db.exec(`DROP TABLE enum_test`);
-      await db.exec(`DROP TYPE VALUE_ENUM`);
+      await db.exec(`DROP TYPE LETTER_ENUM`);
     });
 
     it('should create row', async () => {
       await db.insertInto(db.enumTest).values({
         id: null,
-        value: 'a',
+        letter: 'a',
       });
     });
   });
@@ -121,7 +121,7 @@ describe('Query', () => {
     afterEach(() => db.exec(`DROP TABLE account_item, account`));
 
     it(`transaction should rollback`, async () => {
-      await db.transaction(async db => {
+      const result = db.transaction(async db => {
         await db
           .insertInto(db.account)
           .values({
@@ -135,6 +135,8 @@ describe('Query', () => {
 
         await Promise.reject(`Simulating a failure somewhere in the transaction.`);
       });
+
+      expect(result).rejects.toBe(`Simulating a failure somewhere in the transaction.`);
 
       const account = await db
         .select(db.account.id)
@@ -310,20 +312,12 @@ describe('Query', () => {
         .on(db.test.accountId.eq(db.account.id)),
     },
     {
-      text: `SELECT account.id FROM account INNER JOIN test USING test.id = account.id`,
-      query: db
-        .select(db.account.id)
-        .from(db.account)
-        .innerJoin(db.test)
-        .using('id'),
-    },
-    {
       text: `SELECT account.id FROM account WHERE account.id = $1`,
       parameters: [`test`],
       query: db
         .select(db.account.id)
         .from(db.account)
-        .where(db.account.id.eq(new Uuid(`test`))),
+        .where(db.account.id.eq(`test`)),
     },
     {
       text: `SELECT account.id FROM account WHERE account.id = $1 AND account.id = $2`,
@@ -331,7 +325,7 @@ describe('Query', () => {
       query: db
         .select(db.account.id)
         .from(db.account)
-        .where(db.account.id.eq(new Uuid(`test`)).and(db.account.id.eq(new Uuid(`test2`)))),
+        .where(db.account.id.eq(`test`).and(db.account.id.eq(`test2`))),
     },
     {
       text: `SELECT account.id, account.created_at FROM account WHERE account.created_at > NOW() - $1 LIMIT 10`,
@@ -432,7 +426,7 @@ describe('Query', () => {
       query: db
         .select(db.account.id)
         .from(db.account)
-        .where(db.account.value.between(0, 100)),
+        .where(db.account.value.between(0).and(100)),
       text: `SELECT account.id FROM account WHERE account.value BETWEEN $1 AND $2`,
       parameters: [0, 100],
     },
@@ -502,7 +496,7 @@ describe('Query', () => {
         .set({
           value: 1,
         })
-        .where(db.account.id.eq(new Uuid(`123`))),
+        .where(db.account.id.eq(`123`)),
       text: `UPDATE account SET value = $1 WHERE account.id = $2`,
       parameters: [1, `123`],
     },

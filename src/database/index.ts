@@ -16,6 +16,9 @@ export abstract class Database<Tables extends TableMap> {
     this.tables = tables;
   }
 
+  abstract async reconnect(databaseName: string): Promise<void>;
+  abstract async disconnect(): Promise<void>;
+
   getTableNames() {
     return Object.keys(this.tables);
   }
@@ -36,7 +39,7 @@ export abstract class Database<Tables extends TableMap> {
       { [P in A['name']]: A['selectType'] }
     )>(
       columnA: A,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -46,7 +49,7 @@ export abstract class Database<Tables extends TableMap> {
     )>(
       columnA: A,
       columnB: B,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -59,7 +62,7 @@ export abstract class Database<Tables extends TableMap> {
       columnA: A,
       columnB: B,
       columnC: C,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -75,7 +78,7 @@ export abstract class Database<Tables extends TableMap> {
       columnB: B,
       columnC: C,
       columnD: D,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -94,7 +97,7 @@ export abstract class Database<Tables extends TableMap> {
       columnC: C,
       columnD: D,
       columnE: E,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -116,7 +119,7 @@ export abstract class Database<Tables extends TableMap> {
       columnD: D,
       columnE: E,
       columnF: F,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -141,7 +144,7 @@ export abstract class Database<Tables extends TableMap> {
       columnE: E,
       columnF: F,
       columnG: G,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
@@ -169,17 +172,209 @@ export abstract class Database<Tables extends TableMap> {
       columnF: F,
       columnG: G,
       columnH: H,
-    ): SelectQuery<this, {}, {}, {}, Ret[], Ret>;
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
+  select<
+    A extends ColumnWrapper<any, any, any, any, any>,
+    B extends ColumnWrapper<any, any, any, any, any>,
+    C extends ColumnWrapper<any, any, any, any, any>,
+    D extends ColumnWrapper<any, any, any, any, any>,
+    E extends ColumnWrapper<any, any, any, any, any>,
+    F extends ColumnWrapper<any, any, any, any, any>,
+    G extends ColumnWrapper<any, any, any, any, any>,
+    H extends ColumnWrapper<any, any, any, any, any>,
+    I extends ColumnWrapper<any, any, any, any, any>,
+    Ret = (
+      { [P in A['name']]: A['selectType'] } &
+      { [P in B['name']]: B['selectType'] } &
+      { [P in C['name']]: C['selectType'] } &
+      { [P in D['name']]: D['selectType'] } &
+      { [P in E['name']]: E['selectType'] } &
+      { [P in F['name']]: F['selectType'] } &
+      { [P in G['name']]: G['selectType'] } &
+      { [P in H['name']]: H['selectType'] } &
+      { [P in I['name']]: I['selectType'] }
+    )>(
+      columnA: A,
+      columnB: B,
+      columnC: C,
+      columnD: D,
+      columnE: E,
+      columnF: F,
+      columnG: G,
+      columnH: H,
+      columnI: I,
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
+  select<
+    A extends ColumnWrapper<any, any, any, any, any>,
+    B extends ColumnWrapper<any, any, any, any, any>,
+    C extends ColumnWrapper<any, any, any, any, any>,
+    D extends ColumnWrapper<any, any, any, any, any>,
+    E extends ColumnWrapper<any, any, any, any, any>,
+    F extends ColumnWrapper<any, any, any, any, any>,
+    G extends ColumnWrapper<any, any, any, any, any>,
+    H extends ColumnWrapper<any, any, any, any, any>,
+    I extends ColumnWrapper<any, any, any, any, any>,
+    J extends ColumnWrapper<any, any, any, any, any>,
+    Ret = (
+      { [P in A['name']]: A['selectType'] } &
+      { [P in B['name']]: B['selectType'] } &
+      { [P in C['name']]: C['selectType'] } &
+      { [P in D['name']]: D['selectType'] } &
+      { [P in E['name']]: E['selectType'] } &
+      { [P in F['name']]: F['selectType'] } &
+      { [P in G['name']]: G['selectType'] } &
+      { [P in H['name']]: H['selectType'] } &
+      { [P in I['name']]: I['selectType'] } &
+      { [P in J['name']]: J['selectType'] }
+    )>(
+      columnA: A,
+      columnB: B,
+      columnC: C,
+      columnD: D,
+      columnE: E,
+      columnF: F,
+      columnG: G,
+      columnH: H,
+      columnI: I,
+      columnJ: J,
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
+  select<
+    A extends ColumnWrapper<any, any, any, any, any>,
+    B extends ColumnWrapper<any, any, any, any, any>,
+    C extends ColumnWrapper<any, any, any, any, any>,
+    D extends ColumnWrapper<any, any, any, any, any>,
+    E extends ColumnWrapper<any, any, any, any, any>,
+    F extends ColumnWrapper<any, any, any, any, any>,
+    G extends ColumnWrapper<any, any, any, any, any>,
+    H extends ColumnWrapper<any, any, any, any, any>,
+    I extends ColumnWrapper<any, any, any, any, any>,
+    J extends ColumnWrapper<any, any, any, any, any>,
+    K extends ColumnWrapper<any, any, any, any, any>,
+    Ret = (
+      { [P in A['name']]: A['selectType'] } &
+      { [P in B['name']]: B['selectType'] } &
+      { [P in C['name']]: C['selectType'] } &
+      { [P in D['name']]: D['selectType'] } &
+      { [P in E['name']]: E['selectType'] } &
+      { [P in F['name']]: F['selectType'] } &
+      { [P in G['name']]: G['selectType'] } &
+      { [P in H['name']]: H['selectType'] } &
+      { [P in I['name']]: I['selectType'] } &
+      { [P in J['name']]: J['selectType'] } &
+      { [P in K['name']]: K['selectType'] }
+    )>(
+      columnA: A,
+      columnB: B,
+      columnC: C,
+      columnD: D,
+      columnE: E,
+      columnF: F,
+      columnG: G,
+      columnH: H,
+      columnI: I,
+      columnJ: J,
+      columnK: K,
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
+  select<
+    A extends ColumnWrapper<any, any, any, any, any>,
+    B extends ColumnWrapper<any, any, any, any, any>,
+    C extends ColumnWrapper<any, any, any, any, any>,
+    D extends ColumnWrapper<any, any, any, any, any>,
+    E extends ColumnWrapper<any, any, any, any, any>,
+    F extends ColumnWrapper<any, any, any, any, any>,
+    G extends ColumnWrapper<any, any, any, any, any>,
+    H extends ColumnWrapper<any, any, any, any, any>,
+    I extends ColumnWrapper<any, any, any, any, any>,
+    J extends ColumnWrapper<any, any, any, any, any>,
+    K extends ColumnWrapper<any, any, any, any, any>,
+    L extends ColumnWrapper<any, any, any, any, any>,
+    Ret = (
+      { [P in A['name']]: A['selectType'] } &
+      { [P in B['name']]: B['selectType'] } &
+      { [P in C['name']]: C['selectType'] } &
+      { [P in D['name']]: D['selectType'] } &
+      { [P in E['name']]: E['selectType'] } &
+      { [P in F['name']]: F['selectType'] } &
+      { [P in G['name']]: G['selectType'] } &
+      { [P in H['name']]: H['selectType'] } &
+      { [P in I['name']]: I['selectType'] } &
+      { [P in J['name']]: J['selectType'] } &
+      { [P in K['name']]: K['selectType'] } &
+      { [P in L['name']]: K['selectType'] }
+    )>(
+      columnA: A,
+      columnB: B,
+      columnC: C,
+      columnD: D,
+      columnE: E,
+      columnF: F,
+      columnG: G,
+      columnH: H,
+      columnI: I,
+      columnJ: J,
+      columnK: K,
+      columnL: L,
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
+  select<
+    A extends ColumnWrapper<any, any, any, any, any>,
+    B extends ColumnWrapper<any, any, any, any, any>,
+    C extends ColumnWrapper<any, any, any, any, any>,
+    D extends ColumnWrapper<any, any, any, any, any>,
+    E extends ColumnWrapper<any, any, any, any, any>,
+    F extends ColumnWrapper<any, any, any, any, any>,
+    G extends ColumnWrapper<any, any, any, any, any>,
+    H extends ColumnWrapper<any, any, any, any, any>,
+    I extends ColumnWrapper<any, any, any, any, any>,
+    J extends ColumnWrapper<any, any, any, any, any>,
+    K extends ColumnWrapper<any, any, any, any, any>,
+    L extends ColumnWrapper<any, any, any, any, any>,
+    M extends ColumnWrapper<any, any, any, any, any>,
+    Ret = (
+      { [P in A['name']]: A['selectType'] } &
+      { [P in B['name']]: B['selectType'] } &
+      { [P in C['name']]: C['selectType'] } &
+      { [P in D['name']]: D['selectType'] } &
+      { [P in E['name']]: E['selectType'] } &
+      { [P in F['name']]: F['selectType'] } &
+      { [P in G['name']]: G['selectType'] } &
+      { [P in H['name']]: H['selectType'] } &
+      { [P in I['name']]: I['selectType'] } &
+      { [P in J['name']]: J['selectType'] } &
+      { [P in K['name']]: K['selectType'] } &
+      { [P in L['name']]: K['selectType'] } &
+      { [P in M['name']]: K['selectType'] }
+    )>(
+      columnA: A,
+      columnB: B,
+      columnC: C,
+      columnD: D,
+      columnE: E,
+      columnF: F,
+      columnG: G,
+      columnH: H,
+      columnI: I,
+      columnJ: J,
+      columnK: K,
+      columnL: L,
+      columnM: M,
+    ): { from(table: TableWrapper<any, any, any>): SelectQuery<any, {}, {}, {}, Ret[], Ret> };
   select(...columns: ColumnWrapper<any, any, any, any, any>[]) {
-
     const columnsMap = columns.reduce((map, column) => ({
       ...map,
       [column.getSnakeCaseName()]: column.getCamelCaseName(),
     }), {});
 
-    return new SelectQuery(this, columnsMap, new StringToken(`SELECT`), new SeparatorToken(`,`, columns
-      .filter(column => Boolean(column))
-      .map(column => new CollectionToken(column!.toTokens()))));
+    // TODO: we should return a FromQuery which only supports the from. That
+    // way we can never forget to start with a from.
+
+    return {
+      from: <TW extends TableWrapper<any, any, any>>(table: TW) => {
+        return new SelectQuery(this, columnsMap, new StringToken(`SELECT`), new SeparatorToken(`,`, columns
+          .filter(column => Boolean(column))
+          .map(column => new CollectionToken(column!.toTokens()))))
+        .from(table);
+      },
+    };
   }
 
   insertInto<T extends TableWrapper<any, any, any>>(table: T): InsertQuery<this, T, T['$row'], T['$insertRow'], T['$updateRow'], number, void> {

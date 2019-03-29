@@ -10,8 +10,8 @@ export class CollectionToken extends Token {
     this.tokens = tokens;
 	}
 
-	reduce(state: State) {
-    const tokensState = createState(this.tokens, state.parameters.length);
+	reduce(state: State, numberOfParameters: number) {
+    const tokensState = createState(this.tokens, numberOfParameters);
     state.parameters.push(...tokensState.parameters);
     state.text.push(...tokensState.text);
 		return state;

@@ -8,9 +8,9 @@ import { apply, generate, rollback } from './migrations';
 const addSpaces = (count: number) => new Array(count + 1).join(' ');
 
 const loadDatabase = (databasePath: string): Database<any> | undefined => {
-  require(`ts-node`).register();
+  // require(`ts-node`).register();
 
-  const object = require(databasePath);
+  const object = require(path.join(process.cwd(), databasePath));
 
   return object.default || object.db;
 }
@@ -53,13 +53,18 @@ const main = async () => {
       }
       else {
         // TODO: show help re. topic migrations.
+        console.log(`Unknown migrations action`);
       }
     }
     else {
       // TODO: show help.
+      console.log(`Unknown topic and action`);
     }
   }
   catch (e) {
+    console.log(`error`);
+    console.log(e);
+
     if (e.query && (e.code === '42601' || e.sqlState === '42601')) {
       console.log('');
       console.log('Error: ' + e.message);

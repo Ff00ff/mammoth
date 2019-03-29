@@ -4,29 +4,30 @@ import { EnumColumn } from '..';
 // TODO: We could also immediately generate the AST from here?
 
 export const generateSql = <T extends TableWrapper<any>>(table: T) => {
-  return [
-    ...generateTypeSql(table),
-    generateCreateTableSql(table),
-  ];
-}
+  return [...generateTypeSql(table), generateCreateTableSql(table)];
+};
 
 export const generateTypeSql = <T extends TableWrapper<any>>(table: T) => {
-  return table.getColumns()
+  return table
+    .getColumns()
     .filter(column => column.column instanceof EnumColumn)
     .map(column => {
-      const enumColumn = column.column as EnumColumn<any, any, any, any, any, any, any, any>;
+      const enumColumn = column.column as EnumColumn<any>;
 
       if (!enumColumn.dataType) {
         enumColumn.dataType = `${table.getName()}_${column.snakeCaseName}_ENUM`.toUpperCase();
       }
 
-      return `CREATE TYPE ${enumColumn.dataType} AS ENUM (${enumColumn.values.map((value: string) => `"${value}"`).join(`, `)})`;
-    })
-}
+      return `CREATE TYPE ${enumColumn.dataType} AS ENUM (${enumColumn.values
+        .map((value: string) => `'${value}'`)
+        .join(`, `)})`;
+    });
+};
 
 export const generateCreateTableSql = <T extends TableWrapper<any>>(table: T) => {
   const columns = table.getColumns().map(column => {
     const config = column.getConfig();
+
     const parts = [
       `  ${column.snakeCaseName}`,
 
@@ -43,13 +44,13 @@ export const generateCreateTableSql = <T extends TableWrapper<any>>(table: T) =>
       parts.push(`NOT NULL`);
     }
 
-    if (config.default) {
-      // TODO: Can we escape this?
+    if (config.default !== undefined) {
+      // TODO: should we escape this?
       parts.push(`DEFAULT ${config.default}`);
     }
 
     if (config.check) {
-      // TODO: Can we escape this?
+      // TODO: should we escape this?
       parts.push(`CHECK (${config.check})`);
     }
 
@@ -59,10 +60,30 @@ export const generateCreateTableSql = <T extends TableWrapper<any>>(table: T) =>
 
     if (config.references) {
       parts.push(`REFERENCES ${config.references.tableName} (${config.references.columnName})`);
+
+      if (config.onUpdate) {
+        if (config.onUpdate === 'cascade') {
+          parts.push(`ON UPDATE CASCADE`);
+        } else if (config.onUpdate === 'restrict') {
+          parts.push(`ON UPDATE RESTRICT`);
+        } else {
+          //
+        }
+      }
+
+      if (config.onDelete) {
+        if (config.onDelete === 'cascade') {
+          parts.push(`ON DELETE CASCADE`);
+        } else if (config.onDelete === 'restrict') {
+          parts.push(`ON DELETE RESTRICT`);
+        } else {
+          //
+        }
+      }
     }
 
     return parts.join(' ');
   });
 
   return `CREATE TABLE ${table.getName()} (\n${columns.join(`,\n`)}\n)`;
-}
+};

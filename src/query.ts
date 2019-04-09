@@ -16,10 +16,6 @@ export interface Tokenable {
   toTokens(): Token[];
 }
 
-export class QueryBuilder {
-  tokens: Token[] = [];
-}
-
 export interface State {
   text: string[];
   parameters: any[];

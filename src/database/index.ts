@@ -361,7 +361,7 @@ export abstract class Database<Tables extends TableMap> {
   select(...columns: ColumnWrapper<any, any, any, any, any>[]) {
     const columnsMap = columns.reduce((map, column) => ({
       ...map,
-      [column.getSnakeCaseName()]: column.getCamelCaseName(),
+      [column.getNameInResultSet()]: column.getCamelCaseName(),
     }), {});
 
     // TODO: we should return a FromQuery which only supports the from. That

@@ -218,6 +218,18 @@ describe('Query', () => {
       expect(row!.test).toEqual('3');
     });
 
+    it(`should select with count aggregate without alias`, async () => {
+      const row = await db
+        .select(db.account.id.count())
+        .from(db.account)
+        .limit(1)
+        .first();
+
+      expect(row).toEqual({
+        id: '3',
+      });
+    });
+
     it(`should select first row`, async () => {
       await db
         .select(db.account.id)

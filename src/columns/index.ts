@@ -62,6 +62,10 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
     this.updateType = undefined as any;
   }
 
+  getNameInResultSet() {
+    return this.snakeCaseName;
+  }
+
   getSnakeCaseName() {
     return this.snakeCaseName;
   }
@@ -127,7 +131,7 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
   }
 
   private aggregate<Type = BaseType>(aggregateType: AggregateType) {
-    return new AggregateColumnWrapper<string, Type, Type, Type, Type>(
+    return new AggregateColumnWrapper<Name, Type, Type, Type, Type>(
       aggregateType,
       this.table,
       this.column,
@@ -331,6 +335,10 @@ export class AliasedColumnWrapper<
     this.name = name;
   }
 
+  getNameInResultSet() {
+    return this.name;
+  }
+
   getSnakeCaseName() {
     return this.name;
   }
@@ -371,6 +379,10 @@ export class AggregateColumnWrapper<
 
   toSql() {
     return `${this.aggregateType}(${super.toSql()})`;
+  }
+
+  getNameInResultSet() {
+    return this.aggregateType.toLowerCase();
   }
 }
 

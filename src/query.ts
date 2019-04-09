@@ -57,6 +57,8 @@ export class Query<Db extends Database<any>, Ret, SingleRet, Tables = undefined>
 
   constructor(db: Db, columnsMap: ColumnMap = {}, ...tokens: Token[]) {
     this.db = db;
+    // TODO: this is actually a result set description as it's only used to match the field from
+    // the result set to the expected column in the select or returning call.
     this.columnsMap = columnsMap;
     this.type = 'COUNT';
     this.tokens = tokens || [];

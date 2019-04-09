@@ -48,6 +48,85 @@ type Db = typeof db;
 describe('Query', () => {
   afterAll(() => db.destroy());
 
+  beforeAll(async () => {
+    await db.exec(`CREATE TABLE IF NOT EXISTS account (
+      id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE,
+      value INTEGER NOT NULL
+    )`);
+
+    await db.exec(`CREATE TABLE IF NOT EXISTS foo (
+      id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+      value INTEGER
+    )`);
+  });
+
+  afterAll(async () => {
+    await db.exec(`DROP TABLE IF EXISTS account, foo`);
+  });
+
+  describe('Array', () => {
+    beforeEach(async () => {
+      await db.insertInto(db.foo).values([
+        {
+          value: 1,
+        },
+        {
+          value: 2,
+        },
+        {
+          value: 3,
+        },
+      ]);
+    });
+
+    afterEach(() => db.deleteFrom(db.foo));
+
+    it('should map all rows', async () => {
+      const values = await db
+        .select(db.foo.value)
+        .from(db.foo)
+        .orderBy(db.foo.value)
+        .map(row => row.value! * 2);
+
+      expect(values).toEqual([2, 4, 6]);
+    });
+
+    it('should filter all rows', async () => {
+      const values = await db
+        .select(db.foo.value)
+        .from(db.foo)
+        .orderBy(db.foo.value)
+        .filter(row => row.value! < 2);
+
+      expect(values).toEqual([{ value: 1 }]);
+    });
+  });
+
+  describe('first', () => {
+    it('should return undefined when calling first on countable', async () => {
+      const result = await db
+        .insertInto(db.foo)
+        .values({
+          value: 123,
+        })
+        .first();
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw error on invalid query', async () => {
+      await expect(
+        db
+          .select(db.foo.value)
+          .from(db.account)
+          .limit(1),
+      ).rejects.toThrow();
+    });
+  });
+
   describe('enum', () => {
     beforeEach(async () => {
       await db.exec(`CREATE TYPE LETTER_ENUM AS ENUM ('a', 'b')`);
@@ -104,14 +183,14 @@ describe('Query', () => {
   describe('rows', () => {
     const ids = [uuid.v4(), uuid.v4(), uuid.v4()];
     beforeEach(() =>
-      db.exec(`CREATE TABLE account (
+      db.exec(`CREATE TABLE IF NOT EXISTS account (
         id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE,
         value INTEGER NOT NULL
       )`));
     beforeEach(() =>
-      db.exec(`CREATE TABLE account_item (
+      db.exec(`CREATE TABLE IF NOT EXISTS account_item (
         id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
         account_id UUID NOT NULL REFERENCES account (id)
       )`));
@@ -207,7 +286,7 @@ describe('Query', () => {
       expect(row!.test).toEqual(123);
     });
 
-    it(`should select with count aggregate`, async () => {
+    it(`should select with count aggregate and alias`, async () => {
       const row = await db
         .select(db.account.id.count().as(`test`))
         .from(db.account)

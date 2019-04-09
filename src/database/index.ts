@@ -364,9 +364,6 @@ export abstract class Database<Tables extends TableMap> {
       [column.getNameInResultSet()]: column.getCamelCaseName(),
     }), {});
 
-    // TODO: we should return a FromQuery which only supports the from. That
-    // way we can never forget to start with a from.
-
     return {
       from: <TW extends TableWrapper<any, any, any>>(table: TW) => {
         return new SelectQuery(this, columnsMap, new StringToken(`SELECT`), new SeparatorToken(`,`, columns

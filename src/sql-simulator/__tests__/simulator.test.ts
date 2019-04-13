@@ -747,6 +747,32 @@ describe(`Simulator`, () => {
       expect(simulator.tables).toEqual(result);
     };
 
+
+    it(`should rename constraint`, () => {
+      const before: TableMap = {
+        foo: {
+          name: `foo`,
+          columns: {
+            id: {
+              dataType: `INTEGER`,
+              name: `id`,
+              modifiers: {},
+            },
+          },
+          indexes: [
+            {
+              type: `primaryKey`,
+              name: `foo_pkey`,
+              columns: [`id`],
+            },
+          ],
+        },
+      };
+      const after = cloneDeep(before);
+      after.foo!.indexes[0].name = `new_name`;
+
+      simulate(before, `ALTER TABLE foo RENAME CONSTRAINT foo_pkey TO new_name`, after);
+    });
     it(`should drop table`, () => {
       const before: TableMap = {
         account: {

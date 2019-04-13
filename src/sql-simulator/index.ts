@@ -443,15 +443,20 @@ export default class Simulator {
         this.ifToken(
           [`CONSTRAINT`],
           () => {
-            // constraintName
-            this.getIdentifier();
+            const constraintName = this.getIdentifier();
 
             this.getToken([`TO`]);
 
-            // newConstraintName
-            this.getIdentifier();
+            const newConstraintName = this.getIdentifier();
 
-            // TODO: rename constraint.
+            const index = table.indexes.findIndex(index => index.name === constraintName);
+
+            if (index === -1) {
+              throw new Error(`Could not find constraint ${constraintName} on ${tableName} when
+              trying to rename to ${newConstraintName}.`);
+            }
+
+            table.indexes[index].name = newConstraintName;
           },
           () => {
             this.ifToken(

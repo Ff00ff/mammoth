@@ -400,7 +400,7 @@ export default class Simulator {
   }
 
   simulateAlterTable() {
-    this.ifToken([`ALL IN TABLESPACE`], () => {
+    const tablespace = this.ifToken([`ALL IN TABLESPACE`], () => {
       // tableName
       this.getIdentifier();
 
@@ -421,10 +421,17 @@ export default class Simulator {
       });
 
       // TODO: we should set the new table space...
+      // TODO: action is not allowed here
     });
 
+    if (tablespace) {
+      return;
+    }
+
+    let ifExists = false;
+
     this.ifToken([`IF EXISTS`], () => {
-      //
+      ifExists = true;
     });
 
     this.ifToken([`ONLY`], () => {
@@ -435,6 +442,13 @@ export default class Simulator {
     const table = this.tables[tableName];
 
     if (!table) {
+      if (ifExists) {
+        // We couldn't find the table and in this case it's fine since we specified IF EXISTS. We
+        // also reset the current input the avoid any errors down the line.
+        this.input = undefined;
+        return;
+      }
+
       throw new Error(`Table ${tableName} does not exist.`);
     }
 
@@ -508,11 +522,24 @@ export default class Simulator {
       this.repeat(() => {
         this.switchToken({
           'DROP CONSTRAINT': () => {
+            let ifExists = false;
+
+            this.ifToken([`IF EXISTS`], () => {
+              ifExists = true;
+            });
+
             const constraintName = this.getIdentifier();
-            // TODO: why do we only search for tyoe check here?
-            const i = table.indexes.findIndex(
-              index => index.type === `check` && index.name === constraintName,
-            );
+            const i = table.indexes.findIndex(index => index.name === constraintName);
+
+            if (i === -1) {
+              if (ifExists) {
+                this.input = undefined;
+                return;
+              }
+
+              throw new Error(`Could not find constraint ${constraintName} on table ${tableName}.`);
+            }
+
             table.indexes.splice(i, 1);
           },
 

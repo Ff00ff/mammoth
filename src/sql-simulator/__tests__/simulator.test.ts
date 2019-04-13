@@ -175,6 +175,33 @@ describe(`Simulator`, () => {
       simulate(query, tables);
     });
 
+    it(`should create table if not exists with PRIMARY KEY`, () => {
+      const query = `CREATE TABLE IF NOT EXISTS account (
+        id INTEGER PRIMARY KEY
+      )`;
+      const tables: TableMap = {
+        account: {
+          name: `account`,
+          columns: {
+            id: {
+              dataType: `INTEGER`,
+              name: `id`,
+              modifiers: {},
+            },
+          },
+          indexes: [
+            {
+              type: `primaryKey`,
+              name: `account_pkey`,
+              columns: [`id`],
+            },
+          ],
+        },
+      };
+
+      simulate(query, tables);
+    });
+
     it(`should create table with NOT NULL`, () => {
       const query = `CREATE TABLE account (
         id INTEGER NOT NULL
@@ -773,6 +800,97 @@ describe(`Simulator`, () => {
 
       simulate(before, `ALTER TABLE foo RENAME CONSTRAINT foo_pkey TO new_name`, after);
     });
+
+    it(`should error if table does not exist`, () => {
+      expect(() => {
+        simulate({}, `ALTER TABLE foo RENAME TO bar`, {});
+      }).toThrow();
+    });
+
+    it(`should not error if table does not exist and using if exists clause`, () => {
+      simulate({}, `ALTER TABLE IF EXISTS foo RENAME TO bar`, {});
+    });
+
+    it(`should not error when constraint does not exist and drop constraint if exists`, () => {
+      const before: TableMap = {
+        foo: {
+          name: `foo`,
+          columns: {
+            id: {
+              dataType: `INTEGER`,
+              name: `id`,
+              modifiers: {},
+            },
+          },
+          indexes: [],
+        },
+      };
+      const after = cloneDeep(before);
+
+      simulate(before, `ALTER TABLE foo DROP CONSTRAINT IF EXISTS foo_pkey`, after);
+    });
+
+    it(`should error when drop constraint and constraint does not exist`, () => {
+      expect(() => {
+        const before: TableMap = {
+          foo: {
+            name: `foo`,
+            columns: {
+              id: {
+                dataType: `INTEGER`,
+                name: `id`,
+                modifiers: {},
+              },
+            },
+            indexes: [],
+          },
+        };
+        const after = cloneDeep(before);
+
+        simulate(before, `ALTER TABLE foo DROP CONSTRAINT foo_pkey`, after);
+      }).toThrow();
+    });
+
+    it(`should not error when drop column if exists when column does not exist`, () => {
+      const before: TableMap = {
+        foo: {
+          name: `foo`,
+          columns: {
+            id: {
+              dataType: `INTEGER`,
+              name: `id`,
+              modifiers: {},
+            },
+          },
+          indexes: [],
+        },
+      };
+      const after = cloneDeep(before);
+
+      simulate(before, `ALTER TABLE foo DROP COLUMN IF EXISTS bar`, after);
+    });
+
+    it(`alter column but could not find it`, () => {
+      expect(() => {
+        const before: TableMap = {
+          foo: {
+            name: `foo`,
+            columns: {
+              id: {
+                dataType: `INTEGER`,
+                name: `id`,
+                modifiers: {},
+              },
+            },
+            indexes: [],
+          },
+        };
+        const after = cloneDeep(before);
+
+        simulate(before, `ALTER TABLE foo ALTER COLUMN bar SET DATA TYPE INTEGER`, after);
+      }).toThrow();
+    });
+
     it(`should drop table`, () => {
       const before: TableMap = {
         account: {

@@ -8,6 +8,17 @@ describe(`Simulator`, () => {
     simulator = new Simulator();
   });
 
+  describe('Non-alter queries', () => {
+    it('select should not alter types', () => {
+      simulator.types = {};
+      simulator.tables = {};
+      simulator.simulateQuery('SELECT * FROM foo');
+
+      expect(simulator.types).toEqual({});
+      expect(simulator.tables).toEqual({});
+    });
+  });
+
   describe(`CREATE TYPE`, () => {
     const simulate = (query: string, types: TypeMap, initialTypes: TypeMap = {}) => {
       simulator.types = initialTypes;
@@ -774,6 +785,50 @@ describe(`Simulator`, () => {
       expect(simulator.tables).toEqual(result);
     };
 
+    it(`should namespace`, () => {
+      const before: TableMap = {
+        foo: {
+          name: `foo`,
+          columns: {
+            id: {
+              dataType: `INTEGER`,
+              name: `id`,
+              modifiers: {},
+            },
+          },
+          indexes: [],
+        },
+      };
+      const after = cloneDeep(before);
+
+      simulate(
+        before,
+        `ALTER TABLE ALL IN TABLESPACE foo OWNED BY role SET TABLESPACE new_tablespace NOWAIT`,
+        after,
+      );
+    });
+
+    it(`should rename table`, () => {
+      const before: TableMap = {
+        foo: {
+          name: `foo`,
+          columns: {
+            id: {
+              dataType: `INTEGER`,
+              name: `id`,
+              modifiers: {},
+            },
+          },
+          indexes: [],
+        },
+      };
+      const after = cloneDeep(before);
+      after.bar = after.foo;
+      after.bar!.name = `bar`;
+      delete after.foo;
+
+      simulate(before, `ALTER TABLE foo RENAME TO bar`, after);
+    });
 
     it(`should rename constraint`, () => {
       const before: TableMap = {
@@ -809,6 +864,32 @@ describe(`Simulator`, () => {
 
     it(`should not error if table does not exist and using if exists clause`, () => {
       simulate({}, `ALTER TABLE IF EXISTS foo RENAME TO bar`, {});
+    });
+
+    it(`should drop constraint`, () => {
+      const before: TableMap = {
+        foo: {
+          name: `foo`,
+          columns: {
+            id: {
+              dataType: `INTEGER`,
+              name: `id`,
+              modifiers: {},
+            },
+          },
+          indexes: [
+            {
+              type: `primaryKey`,
+              name: `foo_pkey`,
+              columns: [`id`],
+            },
+          ],
+        },
+      };
+      const after = cloneDeep(before);
+      after.foo!.indexes = [];
+
+      simulate(before, `ALTER TABLE foo DROP CONSTRAINT foo_pkey`, after);
     });
 
     it(`should not error when constraint does not exist and drop constraint if exists`, () => {
@@ -849,6 +930,39 @@ describe(`Simulator`, () => {
 
         simulate(before, `ALTER TABLE foo DROP CONSTRAINT foo_pkey`, after);
       }).toThrow();
+    });
+
+    it(`should add column with constraints`, () => {
+      const before: TableMap = {
+        foo: {
+          name: `foo`,
+          columns: {
+            id: {
+              dataType: `INTEGER`,
+              name: `id`,
+              modifiers: {},
+            },
+          },
+          indexes: [],
+        },
+      };
+
+      const query = `ALTER TABLE foo ADD COLUMN bar INTEGER PRIMARY KEY`;
+      const after = cloneDeep(before);
+      after.foo!.columns.bar = {
+        dataType: `INTEGER`,
+        name: `bar`,
+        modifiers: {},
+      };
+      after.foo!.indexes = [
+        {
+          type: `primaryKey`,
+          name: `foo_pkey`,
+          columns: [`bar`],
+        },
+      ];
+
+      simulate(before, query, after);
     });
 
     it(`should not error when drop column if exists when column does not exist`, () => {

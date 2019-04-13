@@ -596,18 +596,6 @@ export class BooleanColumn extends Column<boolean> {
   dataType = 'BOOLEAN';
 }
 
-export class Uuid {
-  private value: string;
-
-  constructor(value: string) {
-    this.value = value;
-  }
-
-  toString() {
-    return this.value;
-  }
-}
-
 export class UuidColumn extends Column<string> {
   dataType = 'UUID';
 }

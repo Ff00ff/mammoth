@@ -181,7 +181,7 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
     return this.operate(`+`, value);
   }
   minus(value: BaseType) {
-    return this.operate(`+`, value);
+    return this.operate(`-`, value);
   }
   multiply(value: BaseType) {
     return this.operate(`+`, value);

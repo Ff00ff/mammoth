@@ -29,18 +29,18 @@
     "docs": "rimraf ./docs && typedoc --out docs src --ignoreCompilerErrors --excludeNotExported --excludePrivate --theme default"
   },
   "devDependencies": {
-    "@types/jest": "^23.3.8",
+    "@types/jest": "^24.0.11",
     "@types/lodash": "^4.14.117",
     "@types/minimist": "^1.2.0",
     "@types/node": "^10.12.1",
     "@types/pg": "^7.4.11",
     "@types/uuid": "^3.4.4",
-    "coveralls": "^3.0.2",
-    "jest": "^23.6.0",
+    "coveralls": "^3.0.3",
+    "jest": "^24.7.1",
     "prettier": "^1.14.3",
     "rimraf": "^2.6.2",
     "standard-version": "^4.4.0",
-    "ts-jest": "^23.10.4",
+    "ts-jest": "^24.0.2",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "tslint-config-airbnb": "^5.11.0",
@@ -63,6 +63,10 @@
     "testRegex": "/__tests__/.*\\.test\\.tsx?$",
     "transform": {
       "\\.tsx?$": "ts-jest"
-    }
+    },
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ]
   }
 }

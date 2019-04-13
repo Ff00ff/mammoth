@@ -64,9 +64,6 @@
     "transform": {
       "\\.tsx?$": "ts-jest"
     },
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/**/*.ts"
-    ]
+    "collectCoverage": true
   }
 }

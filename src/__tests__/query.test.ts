@@ -1,6 +1,12 @@
 import * as uuid from 'uuid';
 import { not, now, EnumColumn } from '..';
-import { IntegerColumn, TimestampWithTimeZoneColumn, UuidColumn, ByteaColumn } from '../columns';
+import {
+  IntegerColumn,
+  TimestampWithTimeZoneColumn,
+  UuidColumn,
+  ByteaColumn,
+  TextColumn,
+} from '../columns';
 import { createDatabase } from '../database/pool';
 import { Default, Now, UuidGenerateV4 } from '../keywords';
 import { Query } from '../query';
@@ -35,12 +41,18 @@ class EnumTest {
   letter = new EnumColumn(['a', 'b']).notNull();
 }
 
+class Bar {
+  id = new UuidColumn().primaryKey().default(new UuidGenerateV4());
+  val = new TextColumn().notNull();
+}
+
 const db = createDatabase({
   account: new Account(),
   test: new Test(),
   foo: new Foo(),
   binaryTest: new BinaryTest(),
   enumTest: new EnumTest(),
+  bar: new Bar(),
 });
 
 type Db = typeof db;
@@ -54,6 +66,11 @@ describe('Query', () => {
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE,
       value INTEGER NOT NULL
+    )`);
+
+    await db.exec(`CREATE TABLE IF NOT EXISTS bar (
+      id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+      val TEXT NOT NULL
     )`);
 
     await db.exec(`CREATE TABLE IF NOT EXISTS foo (
@@ -525,6 +542,14 @@ describe('Query', () => {
       query: db
         .select(db.account.id)
         .from(db.account)
+        .where(db.account.value.betweenSymmetric(0).and(100)),
+      text: `SELECT account.id FROM account WHERE account.value BETWEEN SYMMETRIC $1 AND $2`,
+      parameters: [0, 100],
+    },
+    {
+      query: db
+        .select(db.account.id)
+        .from(db.account)
         .limit(5)
         .offset(10),
       text: `SELECT account.id FROM account LIMIT 5 OFFSET 10`,
@@ -544,6 +569,79 @@ describe('Query', () => {
       text: `SELECT account.id FROM account WHERE account.id IN (SELECT test.account_id FROM test WHERE test.id = $1)`,
       parameters: ['1'],
     },
+    {
+      query: db.select(db.account.id.as(`test`)).from(db.account),
+      text: `SELECT account.id AS "test" FROM account`,
+    },
+    {
+      query: db.select(db.account.value.sum()).from(db.account),
+      text: `SELECT SUM(account.value) FROM account`,
+    },
+    {
+      query: db.select(db.account.value.min()).from(db.account),
+      text: `SELECT MIN(account.value) FROM account`,
+    },
+    {
+      query: db.select(db.account.value.avg()).from(db.account),
+      text: `SELECT AVG(account.value) FROM account`,
+    },
+    {
+      query: db
+        .select(db.account.id)
+        .from(db.account)
+        .where(db.account.value.notIn([1, 2, 3])),
+      text: `SELECT account.id FROM account WHERE account.value NOT IN ([$1, $2, $3])`,
+      parameters: [1, 2, 3],
+    },
+    {
+      query: db
+        .select(db.bar.id)
+        .from(db.bar)
+        .where(db.bar.val.like('%test%')),
+      text: `SELECT bar.id FROM bar WHERE bar.val LIKE $1`,
+      parameters: [`%test%`],
+    },
+    {
+      query: db
+        .select(db.bar.id)
+        .from(db.bar)
+        .where(db.bar.val.ilike('%test%')),
+      text: `SELECT bar.id FROM bar WHERE bar.val ILIKE $1`,
+      parameters: [`%test%`],
+    },
+    {
+      query: db
+        .select(db.bar.id)
+        .from(db.bar)
+        .where(db.bar.val.ne('test')),
+      text: `SELECT bar.id FROM bar WHERE bar.val != $1`,
+      parameters: [`test`],
+    },
+    {
+      query: db
+        .select(db.account.id)
+        .from(db.account)
+        .where(db.account.value.gte(1)),
+      text: `SELECT account.id FROM account WHERE account.value >= $1`,
+      parameters: [1],
+    },
+    {
+      query: db
+        .select(db.account.id)
+        .from(db.account)
+        .where(db.account.value.lt(1)),
+      text: `SELECT account.id FROM account WHERE account.value < $1`,
+      parameters: [1],
+    },
+    {
+      query: db
+        .select(db.account.id)
+        .from(db.account)
+        .where(db.account.value.lte(1)),
+      text: `SELECT account.id FROM account WHERE account.value <= $1`,
+      parameters: [1],
+    },
+    // TODO: minus, multiply, divide, modulo, concat
 
     // Insert
     {

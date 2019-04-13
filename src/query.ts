@@ -313,6 +313,26 @@ export class PartialQuery implements Tokenable {
     return this;
   }
 
+  gt(partialQuery: PartialQuery) {
+    this.tokens.push(new StringToken(`>`), ...partialQuery.toTokens());
+    return this;
+  }
+
+  lt(partialQuery: PartialQuery) {
+    this.tokens.push(new StringToken(`<`), ...partialQuery.toTokens());
+    return this;
+  }
+
+  gte(partialQuery: PartialQuery) {
+    this.tokens.push(new StringToken(`>=`), ...partialQuery.toTokens());
+    return this;
+  }
+
+  lte(partialQuery: PartialQuery) {
+    this.tokens.push(new StringToken(`<=`), ...partialQuery.toTokens());
+    return this;
+  }
+
   not(partialQuery?: PartialQuery) {
     this.tokens.push(new StringToken(`NOT`));
     if (partialQuery) {

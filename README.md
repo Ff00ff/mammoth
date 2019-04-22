@@ -1,4 +1,6 @@
-# Mammoth
+![Mammoth](https://s3-eu-west-1.amazonaws.com/mammoth-static.ff00ff.nl/mammoth-logo.png)
+
+# Mammoth: A (mostly) type-safe Postgres query builder for TypeScript.
 
 [![Build Status](https://travis-ci.org/Ff00ff/mammoth.svg?branch=master)](https://travis-ci.org/Ff00ff/mammoth)
 [![Coverage Status](https://coveralls.io/repos/github/Ff00ff/mammoth/badge.svg?branch=master)](https://coveralls.io/github/Ff00ff/mammoth?branch=master)
@@ -7,7 +9,9 @@
 yarn add @ff00ff/mammoth
 ```
 
-A (mostly) type-safe Postgres query builder for TypeScript. **This is not for the front-end, but for the back-end.**
+<br/>
+
+---
 
 ## Features
 
@@ -19,6 +23,10 @@ A (mostly) type-safe Postgres query builder for TypeScript. **This is not for th
 - Connection pooling.
 - Automatic camelCase to snake_case conversion.
 - CLI.
+
+---
+
+<br/>
 
 ### Quick start
 
@@ -168,7 +176,7 @@ export type Database = typeof db;
 
 _It's a best practice to place your tables in `src/tables` instead of directly in `src/db.ts`._
 
-`db migrations generate` should read your tables in `src/tables`, read your migrations and generate a new migration based on the changes between them.
+`mammoth migrations generate` should read your tables in `src/tables`, read your migrations and generate a new migration based on the changes between them.
 
 ### Raw queries
 
@@ -231,13 +239,6 @@ You can use `JSONBColumn<T>` to store json data. By using the `T` parameter you 
 type e.g. `JSONBColumn<{ foo: number }>`. This makes it easy to work with json columns. You do need
 to be careful when your type needs to evolve (change).
 
-### Up next
-
-- Refactor internal API as some bits are a bit in a proof on concept state.
-- Extend SQL keywords e.g. UNION, WITH, INSERT INTO-SELECT, etc.
-- Improve upsert, delete.
-- Support indices and enums.
-
 ### Versioning
 
 A final note on the versioning: we're at version 0.X until we consider Mammoth production-ready.
@@ -256,4 +257,8 @@ If you installed postgres using homebrow, make sure you have a postgres user nam
 
 Finally, make sure all the tests run and pass before making any changes:
 
-    $ DATABASE_URL=postgres://postgres@localhost/mammath_test yarn test
+    $ DATABASE_URL=postgres://postgres@localhost/mammoth_test yarn test
+
+---
+
+##### Mammoth logo created by Eucalyp from the Noun Project.

@@ -63,7 +63,6 @@
     "testRegex": "/__tests__/.*\\.test\\.tsx?$",
     "transform": {
       "\\.tsx?$": "ts-jest"
-    },
-    "collectCoverage": true
+    }
   }
 }

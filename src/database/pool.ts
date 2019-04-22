@@ -43,14 +43,10 @@ export class PoolDatabase<Tables extends TableMap> extends Database<Tables> {
     return new pg.Pool(config as any);
   }
 
-  constructor(tables: Tables) {
+  constructor(databaseUrl: string, tables: Tables) {
     super(tables);
 
-    if (!process.env.DATABASE_URL) {
-      throw new Error(`DATABASE_URL is not set.`);
-    }
-
-    this.databaseUrl = String(process.env.DATABASE_URL);
+    this.databaseUrl = databaseUrl;
     this.pool = this.createPool({
       min: process.env.DB_MIN_POOL_SIZE ? parseInt(process.env.DB_MIN_POOL_SIZE!, 10) : undefined,
       max: process.env.DB_MAX_POOL_SIZE ? parseInt(process.env.DB_MAX_POOL_SIZE!, 10) : undefined,
@@ -247,8 +243,9 @@ export const createDatabase = <
       }
   }
 >(
+  databaseUrl: string,
   tables: Tables,
 ): State & PoolDatabase<Tables> => {
-  const database = new PoolDatabase(tables);
+  const database = new PoolDatabase(databaseUrl, tables);
   return extendDatabase<State, Tables, PoolDatabase<Tables>>(tables, database);
 };

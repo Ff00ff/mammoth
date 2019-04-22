@@ -46,7 +46,7 @@ class Bar {
   val = new TextColumn().notNull();
 }
 
-const db = createDatabase({
+const db = createDatabase(process.env.DATABASE_URL!, {
   account: new Account(),
   test: new Test(),
   foo: new Foo(),

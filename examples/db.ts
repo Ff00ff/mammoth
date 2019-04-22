@@ -7,7 +7,9 @@ export class Test {
   value = new IntegerColumn();
 }
 
-export const db = createDatabase({
+const dbName = process.env.DATABASE_URL || 'postgres://postgres@localhost/test'
+
+export const db = createDatabase(dbName, {
   test: new Test(),
 });
 

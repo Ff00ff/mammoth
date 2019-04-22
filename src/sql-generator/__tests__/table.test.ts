@@ -24,7 +24,7 @@ import { Table } from '../../table';
 import { generateSql } from '../table';
 
 const test = (clazz: any) => {
-  const db = createDatabase({
+  const db = createDatabase(process.env.DATABASE_URL!, {
     test: clazz,
   });
 
@@ -121,7 +121,7 @@ describe('generate sql', () => {
       id = new UuidColumn().primaryKey().notNull();
     }
 
-    const db = createDatabase({
+    const db = createDatabase(process.env.DATABASE_URL!, {
       foo: new Foo(),
       bar: new Bar(),
     });
@@ -150,7 +150,7 @@ describe('generate sql', () => {
       id = new UuidColumn().primaryKey().notNull();
     }
 
-    const db = createDatabase({
+    const db = createDatabase(process.env.DATABASE_URL!, {
       foo: new Foo(),
       bar: new Bar(),
     });
@@ -179,7 +179,7 @@ describe('generate sql', () => {
       id = new UuidColumn().primaryKey().notNull();
     }
 
-    const db = createDatabase({
+    const db = createDatabase(process.env.DATABASE_URL!, {
       foo: new Foo(),
       bar: new Bar(),
     });
@@ -208,7 +208,7 @@ describe('generate sql', () => {
       id = new UuidColumn().primaryKey().notNull();
     }
 
-    const db = createDatabase({
+    const db = createDatabase(process.env.DATABASE_URL!, {
       foo: new Foo(),
       bar: new Bar(),
     });
@@ -237,7 +237,7 @@ describe('generate sql', () => {
       id = new UuidColumn().primaryKey().notNull();
     }
 
-    const db = createDatabase({
+    const db = createDatabase(process.env.DATABASE_URL!, {
       foo: new Foo(),
       bar: new Bar(),
     });

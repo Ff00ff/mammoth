@@ -240,3 +240,17 @@ to be careful when your type needs to evolve (change).
 A final note on the versioning: we're at version 0.X until we consider Mammoth production-ready.
 This should be fairly soon as Mammoth is used in a couple of projects already. Once we do we bump to
 1.0 though we will strictly abide to semver.
+
+## Developing Locally
+
+To contribute to this library, you first need to do a few things to get set up.
+
+First make user you have a test postgres database. For example, `mammath_test`:
+
+    $ createdb mammath_test
+
+If you installed postgres using homebrow, make sure you have a postgres user named `postgres`. You can create one using this command: `createuser -s postgres`
+
+Finally, make sure all the tests run and pass before making any changes:
+
+    $ DATABASE_URL=postgres://postgres@localhost/mammath_test yarn test

@@ -1152,6 +1152,52 @@ describe(`Simulator`, () => {
       simulate(before, query, after);
     });
 
+    it(`should alter column set data type with multiple identifiers`, () => {
+      const before: TableMap = {
+        account: {
+          name: `account`,
+          columns: {
+            id: {
+              dataType: `INTEGER`,
+              name: `id`,
+              modifiers: {},
+            },
+          },
+          indexes: [],
+        },
+      };
+
+      const query = `ALTER TABLE account ALTER COLUMN id SET DATA TYPE TIMESTAMP WITHOUT TIME ZONE`;
+
+      const after = cloneDeep(before);
+      after.account!.columns.id!.dataType = `TIMESTAMP WITHOUT TIME ZONE`;
+
+      simulate(before, query, after);
+    });
+
+    it(`should alter column type with multiple identifiers`, () => {
+      const before: TableMap = {
+        account: {
+          name: `account`,
+          columns: {
+            id: {
+              dataType: `INTEGER`,
+              name: `id`,
+              modifiers: {},
+            },
+          },
+          indexes: [],
+        },
+      };
+
+      const query = `ALTER TABLE account ALTER COLUMN id TYPE TIMESTAMP WITHOUT TIME ZONE`;
+
+      const after = cloneDeep(before);
+      after.account!.columns.id!.dataType = `TIMESTAMP WITHOUT TIME ZONE`;
+
+      simulate(before, query, after);
+    });
+
     it(`should alter column set default 123`, () => {
       const before: TableMap = {
         account: {

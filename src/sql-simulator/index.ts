@@ -399,6 +399,22 @@ export default class Simulator {
     });
   }
 
+  getDataType() {
+    return this.getUntil([
+      `COLLATE`,
+      `CONSTRAINT`,
+      `NULL`,
+      `NOT NULL`,
+      `CHECK`,
+      `DEFAULT`,
+      `UNIQUE`,
+      `PRIMARY KEY`,
+      `REFERENCES`,
+      `,`,
+      `)`,
+    ]);
+  }
+
   simulateAlterTable() {
     const tablespace = this.ifToken([`ALL IN TABLESPACE`], () => {
       // tableName
@@ -587,12 +603,12 @@ export default class Simulator {
 
             this.switchToken({
               'SET DATA TYPE': () => {
-                const dataType = this.getIdentifier();
+                const dataType = this.getDataType();
                 column.dataType = dataType;
               },
 
               TYPE: () => {
-                const dataType = this.getIdentifier();
+                const dataType = this.getDataType();
                 column.dataType = dataType;
               },
 
@@ -767,19 +783,7 @@ export default class Simulator {
         column = {
           // TODO: The name may include the schema e.g. my.table (where "my" is the schema name)?
           name: this.getIdentifier(),
-          dataType: this.getUntil([
-            `COLLATE`,
-            `CONSTRAINT`,
-            `NULL`,
-            `NOT NULL`,
-            `CHECK`,
-            `DEFAULT`,
-            `UNIQUE`,
-            `PRIMARY KEY`,
-            `REFERENCES`,
-            `,`,
-            `)`,
-          ]),
+          dataType: this.getDataType(),
           modifiers: {},
         };
 

@@ -157,7 +157,7 @@ class Test {
 }
 
 // Example value: `postgres://postgres@localhost/test`
-const dbName = process.env.DATABASE_URL
+const dbName = process.env.DATABASE_URL;
 
 export const db = createDatabase(dbName, {
   test: new Test(),
@@ -248,9 +248,9 @@ This should be fairly soon as Mammoth is used in a couple of projects already. O
 
 To contribute to this library, you first need to do a few things to get set up.
 
-First make user you have a test postgres database. For example, `mammath_test`:
+First make user you have a test postgres database. For example, `mammoth_test`:
 
-    $ createdb mammath_test
+    $ createdb mammoth_test
 
 If you installed postgres using homebrow, make sure you have a postgres user named `postgres`. You can create one using this command: `createuser -s postgres`
 

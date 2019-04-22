@@ -677,6 +677,17 @@ describe('Query', () => {
         .doNothing(),
       parameters: [123],
     },
+    {
+      text: `INSERT INTO foo (value) VALUES ($1) ON CONFLICT (value) DO UPDATE SET value = $2`,
+      query: db
+        .insertInto(db.foo)
+        .values({ id: null, value: 123 })
+        .onConflict('value')
+        .doUpdateSet({
+          value: 124,
+        }),
+      parameters: [123, 124],
+    },
 
     // Update
     {
@@ -701,13 +712,15 @@ describe('Query', () => {
     },
   ];
 
-  (queries.filter(queryTest => queryTest.only) || queries).forEach(queryTest => {
-    it(queryTest.text, () => {
-      const query = queryTest.query.toQuery();
+  describe('query tests', () => {
+    (queries.filter(queryTest => queryTest.only) || queries).forEach(queryTest => {
+      it(queryTest.text, () => {
+        const query = queryTest.query.toQuery();
 
-      expect(query).toEqual({
-        text: queryTest.text,
-        parameters: queryTest.parameters || [],
+        expect(query).toEqual({
+          text: queryTest.text,
+          parameters: queryTest.parameters || [],
+        });
       });
     });
   });

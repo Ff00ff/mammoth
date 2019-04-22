@@ -16,9 +16,10 @@ export class SeparatorToken extends Token {
 
   reduce(state: State, numberOfParameters: number) {
     const length = this.tokens.length;
+    let parameterIndex = numberOfParameters;
     this.tokens.forEach((token, index) => {
       const last = index === length - 1;
-      const tokenState = createState([token], numberOfParameters + state.parameters.length);
+      const tokenState = createState([token], parameterIndex);
 
       if (tokenState.text.length > 0) {
         if (!last) {
@@ -28,6 +29,7 @@ export class SeparatorToken extends Token {
 
       state.text.push(...tokenState.text);
       state.parameters.push(...tokenState.parameters);
+      parameterIndex += tokenState.parameters.length;
     });
     return state;
   }

@@ -81,17 +81,7 @@ const createToSimulator = (db: Database<any>) => {
   return to;
 };
 
-const generateZeros = (count: number) => {
-  let string = '';
-
-  if (count > 0) {
-    for (let i = 0; i < count; i++) {
-      string += '0';
-    }
-  }
-
-  return string;
-};
+const generateZeros = (count: number) => new Array(count).fill('0').join('');
 
 const leftpad = (number: number, size: number) =>
   generateZeros(String(size).length - String(number).length) + number;

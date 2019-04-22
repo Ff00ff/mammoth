@@ -156,7 +156,10 @@ class Test {
   value = new IntegerColumn();
 }
 
-export const db = createDatabase({
+// Example value: `postgres://postgres@localhost/test`
+const dbName = process.env.DATABASE_URL
+
+export const db = createDatabase(dbName, {
   test: new Test(),
 });
 

@@ -130,7 +130,7 @@ export const generate = async (db: Database<any>, migrationsDir: string) => {
     const timestamp = getTimestamp();
     const name = `${timestamp}-${up.names.join('-').slice(0, 50)}.ts`;
 
-    const contents = `import { Transaction } from '@ff00ff/db';
+    const contents = `import { Transaction } from '@ff00ff/mammoth';
 
 export const up = async (db: Transaction) => {
 ${up.queries.map(query => addTabs(`await db.sql \`${query}\`;`)).join(`\n\n`)}

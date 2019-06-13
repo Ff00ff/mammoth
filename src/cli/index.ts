@@ -8,9 +8,9 @@ import { apply, generate, rollback } from './migrations';
 const addSpaces = (count: number) => new Array(count + 1).join(' ');
 
 const loadDatabase = (databasePath: string): Database<any> | undefined => {
-  // require(`ts-node`).register();
+  require(`ts-node`).register();
 
-  const object = require(path.join(process.cwd(), databasePath));
+  const object = require(databasePath);
 
   return object.default || object.db;
 }

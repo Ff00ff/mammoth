@@ -10,6 +10,8 @@ before_script:
   - psql -U postgres test -c "CREATE EXTENSION \"citext\";"
 script:
   - yarn test
+  - yarn build
+  - yarn test_build
 after_script:
   - yarn test --coverage
   - yarn reportCoverage

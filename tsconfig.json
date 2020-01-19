@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "es2015"
-    ],
+    "lib": ["es2015"],
     "target": "es5",
     "module": "commonjs",
     "allowJs": false,
@@ -15,10 +13,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true
   },
-  "exclude": [
-    "node_modules",
-    "examples"
-  ]
+  "exclude": ["node_modules", "examples"]
 }

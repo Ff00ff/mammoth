@@ -1,9 +1,9 @@
 language: node_js
 node_js:
-  - '10'
-  - '11'
+  - '12'
+  - '13'
 addons:
-  postgresql: '9.6'
+  postgresql: '12'
 before_script:
   - psql -c 'create database test;' -U postgres
   - psql -U postgres test -c "CREATE EXTENSION \"uuid-ossp\";"

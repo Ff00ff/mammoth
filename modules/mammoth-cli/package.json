@@ -1,9 +1,5 @@
 {
-  "private": true,
-  "workspaces": [
-    "modules/*"
-  ],
-  "name": "@ff00ff/mammoth",
+  "name": "@ff00ff/mammoth-cli",
   "version": "0.10.0",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -29,6 +25,7 @@
     "test": "NODE_ENV=test jest",
     "build": "rimraf ./lib && tsc",
     "test_build": "tsc --noEmit lib/**/*.ts",
+    "prepublishOnly": "yarn build",
     "reportCoverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "docs": "rimraf ./docs && typedoc --out docs src --ignoreCompilerErrors --excludeNotExported --excludePrivate --theme default"
   },

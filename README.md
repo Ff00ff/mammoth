@@ -16,14 +16,14 @@ yarn add @ff00ff/mammoth
 
 ## Features
 
-- Type-safe query builder.
-- Supports Postgres only.
-- Excellent autocomplete.
-- Transactions.
-- Automatic migration generation based on changes to your schema.
-- Connection pooling.
-- Automatic camelCase to snake_case conversion.
-- CLI.
+- Type-safe query builder
+- Supports Postgres only
+- Excellent autocomplete
+- Transactions
+- Automatic migration generation based on changes to your schema
+- Connection pooling
+- Automatic camelCase to snake_case conversion
+- CLI
 
 ---
 
@@ -32,31 +32,112 @@ yarn add @ff00ff/mammoth
 ### Quick start
 
 ```ts
-const rows = await db
-  .select(db.list.id, db.list.createdAt)
-  .from(db.list)
-  .where(db.list.createdAt.gt(now().minus(`2 days`)).or(db.list.value.eq(0)))
+const rows = await select(list.id, list.createdAt)
+  .from(list)
+  .where(list.createdAt.gt(now().minus(`2 days`)).or(list.value.eq(0)))
   .limit(10);
 ```
 
 _A select should not require declaring an additional interface explicitly._
 
-The type of rows is automatically derived from the table. You do not have to specify this. For example, column `value` with type `INTEGER` is not declared `NOT NULL` and thus is `null` or `number`.
+The type of rows is automatically derived from the table. `.notNull()` columns are automatically required and the other columns are all optional.
 
 ```ts
 const rows: {
   id: string;
   name: string;
   createdAt: Date;
-  value: number | null;
+  value?: number;
 }[];
 ```
 
-**Mammoth is under active development. Some things work, but some things are a bit weird and will improve in the coming months.**
+### Update
 
-### Create
+To update rows. By default the return type is `number` which indicates the number of affected rows.
 
-To create a table. Using `mammoth migrations generate` you can generate migrations of your tables and `mammoth migrations apply` applies the migrations in your database. When you applied the migrations, change your tables and generate your migrations again, a new migration file with only the changes is created. See [Migrations](#migrations) section for more info.
+```ts
+const numberOfUpdates = await update(list)
+  .set({
+    name: `New Name`,
+  })
+  .where(list.id.eq(`acb82ff3-3311-430e-9d1d-8ff600abee31`));
+```
+
+But when you use `.returning(..)` the return type is changed to an array of rows.
+
+```ts
+// { id: string }[]
+const rows = await update(list)
+  .set({
+    name: `New Name`,
+  })
+  .where(list.id.eq(`acb82ff3-3311-430e-9d1d-8ff600abee31`))
+  .returning(`id`);
+```
+
+### Insert
+
+To insert a row you only have to specify the `.notNull()` columns. The other columns are optional.
+
+```ts
+const numberOfRows = await insertInto(list).values({
+  name: `My List`,
+});
+```
+
+Again, if you use `.returning(..)` the return type is changed automatically.
+
+```ts
+// { id: string, createdAt: Date, name: string }
+const list = await insertInto(list)
+  .values({
+    createdAt: null,
+    name: `My List`,
+  })
+  .returning(`id`, `createdAt`, `name`);
+```
+
+If you insert an array of rows and you use the `.returning(..)` the return type will change to an array as well.
+
+```ts
+// { id: string, createdAt: Date, name: string }[]
+const lists = await db
+  .insertInto(db.list)
+  .values([
+    {
+      name: `List #1`,
+    },
+    {
+      name: `List #2`,
+    },
+  ])
+  .returning(`id`, `createdAt`, `name`);
+```
+
+### Transactions
+
+You can call `transaction(callback)` which begins a transaction and depending on the promise you return in the transaction will commit or rollback the transaction.
+
+```ts
+const result = await transaction(({ insertInto }) => {
+  const row = await insertInto(list)
+    .values({
+      name: `My List`,
+    })
+    .returning(`id`);
+
+  await insertInto(listItem).values({
+    listId: row.id,
+    name: `My Item`,
+  });
+
+  return row;
+});
+```
+
+### Schema
+
+Before Mammoth can offer type safety features you have to define the schema in Mammoth's syntax. The syntax is designed to be as close to SQL as possible. You create a class per table like the below.
 
 ```ts
 class List {
@@ -80,111 +161,16 @@ class ListItem {
 }
 ```
 
-### Update
-
-To update rows.
-
-```ts
-const numberOfUpdates = await db
-  .update(db.list)
-  .set({
-    name: `New Name`,
-  })
-  .where(db.list.id.eq(`acb82ff3-3311-430e-9d1d-8ff600abee31`));
-```
-
-### Insert
-
-To insert a row.
-
-```ts
-const numberOfRows = await db.insertInto(db.list).values({
-  createdAt: null,
-  name: `My List`,
-});
-```
-
-_You do need to explicitly set all values. The return type is automatically handled._
-
-```ts
-const list = await db
-  .insertInto(db.list)
-  .values({
-    createdAt: null,
-    name: `My List`,
-  })
-  .returning(`id`, `createdAt`, `name`);
-```
-
-_When using `returning()` the return value is automatically changed from an integer (number of affected rows) to an object or array of objects with keys matching the columns specified._
-
-### Transactions
-
-You can call `db.transaction(callback)` which begins a transaction and depending on the promise you return in the transaction will commit or rollback the transaction.
-
-Best practice is to shadow your database variable, generally `db`, so you do not mistakenly execute queries outside the transaction.
-
-```ts
-const list = await db.transaction(db => {
-  const list = await db
-    .insertInto(db.list)
-    .values({
-      createdAt: null,
-      name: `My List`,
-    })
-    .returning(`id`);
-
-  await db.insertInto(db.listItem).values({
-    createdAt: undefined,
-    listId: list.id,
-    name: `My Item`,
-  });
-
-  return list;
-});
-```
-
 ### Migrations
 
-The idea is to automatically generate migrations based on the changes in your tables. A rough first version of the CLI is working, but it's picky about you project structure:
-
-- It expects your db instance to be at `src/db.ts`.
-- It writes your migrations to `migrations/`.
-
-For example, in `src/db.ts`:
-
-```ts
-import { createDatabase, UuidColumn, TextColumn, IntegerColumn } from '@ff00ff/mammoth';
-
-class Test {
-  id = new UuidColumn()
-    .primaryKey()
-    .notNull()
-    .default(new UuidGenerateV4());
-  name = new TextColumn().notNull();
-  value = new IntegerColumn();
-}
-
-// Example value: `postgres://postgres@localhost/test`
-const dbName = process.env.DATABASE_URL;
-
-export const db = createDatabase(dbName, {
-  test: new Test(),
-});
-
-export type Database = typeof db;
-```
-
-_It's a best practice to place your tables in `src/tables` instead of directly in `src/db.ts`._
-
-`mammoth migrations generate` should read your tables in `src/tables`, read your migrations and generate a new migration based on the changes between them.
+The accompanying `mammoth-cli` helps you generate migrations based on your schema and existing migrations.
 
 ### Raw queries
 
 When a new keyword is introduced in Postgres which you want to use badly but is not supported in this library yet, you can always fall back to raw sql. You can mix the type-safe functions with raw sql:
 
 ```ts
-db.select(db.account.id).from(db.account).append`MAGIC NEW ORDER BY`;
+select(account.id).from(account).append`MAGIC NEW ORDER BY`;
 ```
 
 ```sql
@@ -194,7 +180,7 @@ SELECT account.id FROM account MAGIC NEW ORDER BY
 You can also write raw sql completely. This is not advised, obviously, because it defeats the whole purpose of this library.
 
 ```ts
-const result = await db.sql`SELECT * FROM account WHERE account.name = ${name}`;
+const result = await sql`SELECT * FROM account WHERE account.name = ${name}`;
 ```
 
 ### Column data type
@@ -231,14 +217,49 @@ const result = await db.sql`SELECT * FROM account WHERE account.name = ${name}`;
 
 Instead of using an `EnumColumn`, which is sometimes inflexible, you can also opt to use a
 `TextColumn<T>` which allows enforcing a type in your application e.g.
-`TextColumn<'ONE' | 'TWO' | 'THREE'>`. Of course it doesn't create any constraints on the database
-like `EnumColumn` is doing.
+`TextColumn<'ONE' | 'TWO' | 'THREE'>`.
+
+```ts
+class MyTable {
+  id = new UuidColumn()
+    .primaryKey()
+    .notNull()
+    .default(new UuidGenerateV4());
+  value = new TextColumn<'FOO' | 'BAR' | 'BAZ'>().notNull();
+}
+```
+
+Which enforces type checking of the value column in TypeScript land.
+
+```ts
+// Allowed
+await db.insertInto(db.myTable).values({ value: `FOO` });
+
+// Not allowed
+await db.insertInto(db.myTable).values({ value: `another string value` });
+```
+
+Of course it doesn't create any constraints on the database level like `EnumColumn` is doing. If that's something you desire you should pick enum instead.
 
 ### Documents & JSON(B)
 
 You can use `JSONBColumn<T>` to store json data. By using the `T` parameter you can specify the
-type e.g. `JSONBColumn<{ foo: number }>`. This makes it easy to work with json columns. You do need
-to be careful when your type needs to evolve (change).
+type e.g. `JSONBColumn<{ foo: number }>`. This makes it easy to work with json columns.
+
+```ts
+class MyTable {
+  id = new UuidColumn()
+    .primaryKey()
+    .notNull()
+    .default(new UuidGenerateV4());
+  value = new JSONBColumn<{ foo: string }>();
+}
+```
+
+```ts
+```
+
+You do need to be careful when your type needs to evolve (change).
 
 ### Versioning
 

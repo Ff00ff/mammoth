@@ -1,0 +1,61 @@
+{
+  "name": "@ff00ff/mammoth",
+  "version": "0.10.0",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "keywords": [
+    "typescript",
+    "postgres",
+    "query",
+    "builder",
+    "sql",
+    "typed",
+    "database",
+    "orm"
+  ],
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "NODE_ENV=test jest",
+    "build": "rimraf ./lib && tsc",
+    "test_build": "tsc --noEmit",
+    "prepublishOnly": "yarn build"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.9.0",
+    "@types/lodash": "^4.14.149",
+    "@types/node": "^13.1.8",
+    "@types/pg": "^7.14.1",
+    "@types/uuid": "^3.4.6",
+    "coveralls": "^3.0.9",
+    "jest": "^24.9.0",
+    "prettier": "^1.19.1",
+    "rimraf": "^3.0.0",
+    "standard-version": "^7.0.1",
+    "ts-jest": "^24.3.0",
+    "ts-node": "^8.6.2",
+    "tslint": "^5.20.1",
+    "tslint-config-airbnb": "^5.11.2",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "3.7.5",
+    "uuid": "^3.4.0"
+  },
+  "dependencies": {
+    "lodash": "^4.17.13",
+    "pg": "^7.6.0",
+    "utility-types": "^3.10.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "testRegex": "/__tests__/.*\\.test\\.tsx?$",
+    "transform": {
+      "\\.tsx?$": "ts-jest"
+    }
+  }
+}

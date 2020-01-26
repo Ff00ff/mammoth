@@ -45,9 +45,7 @@ The type of rows is automatically derived from the table. `.notNull()` columns a
 ```ts
 const rows: {
   id: string;
-  name: string;
   createdAt: Date;
-  value?: number;
 }[];
 ```
 
@@ -77,13 +75,15 @@ const rows = await update(list)
 
 ### Insert
 
-To insert a row you only have to specify the `.notNull()` columns. The other columns are optional.
+To insert a row you only have to specify the `.notNull()` without a `.default()`. The other columns are optional.
 
 ```ts
 const numberOfRows = await insertInto(list).values({
   name: `My List`,
 });
 ```
+
+> In an earlier version of Mammoth you still had to pass `undefined` for nullable columns, but with some type magic this is now fixed!
 
 Again, if you use `.returning(..)` the return type is changed automatically.
 
@@ -156,7 +156,7 @@ class ListItem {
     .notNull()
     .default(new UuidGenerateV4());
   createdAt = new TimestampWithTimeZoneColumn().notNull().default(new Now());
-  listId = new UuidColumn().notNull().references<Database>(db => db.list.id);
+  listId = new UuidColumn().notNull().references(() => db.list.id);
   name = new TextColumn().notNull();
 }
 ```

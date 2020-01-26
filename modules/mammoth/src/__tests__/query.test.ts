@@ -414,7 +414,7 @@ describe('Query', () => {
       query: db.select(db.account.id.as(`id`)).from(db.account),
     },
     {
-      text: `SELECT account.id AS "id", test.id AS "testId" FROM account INNER JOIN test ON test.account_id = account.id`,
+      text: `SELECT account.id, test.id AS "testId" FROM account INNER JOIN test ON (test.account_id = account.id)`,
       query: db
         .select(db.account.id, db.test.id.as(`testId`))
         .from(db.account)
@@ -507,8 +507,8 @@ describe('Query', () => {
         .select(db.account.id)
         .from(db.account)
         .having(db.account.value.in([1, 2, 3])),
-      text: `SELECT account.id FROM account HAVING account.value IN ($1)`,
-      parameters: [[1, 2, 3]],
+      text: `SELECT account.id FROM account HAVING account.value IN ($1, $2, $3)`,
+      parameters: [1, 2, 3],
     },
     {
       query: db
@@ -592,7 +592,7 @@ describe('Query', () => {
         .select(db.account.id)
         .from(db.account)
         .where(db.account.value.notIn([1, 2, 3])),
-      text: `SELECT account.id FROM account WHERE account.value NOT IN ([$1, $2, $3])`,
+      text: `SELECT account.id FROM account WHERE account.value NOT IN ($1, $2, $3)`,
       parameters: [1, 2, 3],
     },
     {
@@ -656,7 +656,7 @@ describe('Query', () => {
       query: db
         .insertInto(db.account)
         .values(account)
-        .returning(db.account.id),
+        .returning(db.account.id.as(`id`)),
       parameters: [account.createdAt, account.value],
     },
     {
@@ -673,7 +673,7 @@ describe('Query', () => {
         value: 123,
         createdAt: new Default(),
       }),
-      parameters: [],
+      parameters: [123],
     },
     {
       text: `INSERT INTO foo (value) VALUES ($1) ON CONFLICT (value) DO NOTHING`,
@@ -696,6 +696,22 @@ describe('Query', () => {
           value: 124,
         }),
       parameters: [123, 124],
+    },
+    {
+      text: `INSERT INTO foo (value) VALUES ($1) ON CONFLICT (value) DO UPDATE SET value = (SELECT foo.value FROM foo LIMIT 1)`,
+      query: db
+        .insertInto(db.foo)
+        .values({
+          value: 123,
+        })
+        .onConflict(`value`)
+        .doUpdateSet({
+          value: db
+            .select(db.foo.value)
+            .from(db.foo)
+            .limit(1),
+        }),
+      parameters: [123],
     },
 
     // Update
@@ -722,7 +738,7 @@ describe('Query', () => {
   ];
 
   describe('query tests', () => {
-    (queries.filter(queryTest => queryTest.only) || queries).forEach(queryTest => {
+    queries.forEach(queryTest => {
       it(queryTest.text, () => {
         const query = queryTest.query.toQuery();
 

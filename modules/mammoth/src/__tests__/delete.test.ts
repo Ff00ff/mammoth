@@ -1,13 +1,14 @@
 import { createDatabase } from '../database';
-import { UuidColumn, IntegerColumn, TextColumn } from '../columns';
-import { UuidGenerateV4 } from '../keywords';
+import { UuidColumn, IntegerColumn, TextColumn, TimestampWithTimeZoneColumn } from '../columns';
+import { UuidGenerateV4, Now } from '../keywords';
 
-describe(`sql`, () => {
+describe(`delete`, () => {
   class Item {
     id = new UuidColumn()
       .primary()
       .notNull()
       .default(new UuidGenerateV4());
+    createdAt = new TimestampWithTimeZoneColumn().notNull().default(new Now());
     name = new TextColumn().notNull();
     value = new IntegerColumn();
   }
@@ -19,6 +20,7 @@ describe(`sql`, () => {
   beforeEach(async () => {
     await db.sql`CREATE TABLE item (
       id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       name TEXT NOT NULL,
       value INTEGER
     )`;
@@ -32,28 +34,12 @@ describe(`sql`, () => {
     await db.destroy();
   });
 
-  it(`should insert multiple rows and return them when using returning`, async () => {
-    const items = await db
-      .insertInto(db.item)
-      .values([
-        {
-          name: `Item #1`,
-        },
-        {
-          name: `Item #2`,
-        },
-      ])
+  it(`should delete item using where clause`, async () => {
+    const rows = await db
+      .deleteFrom(db.item)
+      .where(db.item.name.eq(`Test`))
       .returning(`name`);
 
-    expect(items).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          "name": "Item #1",
-        },
-        Object {
-          "name": "Item #2",
-        },
-      ]
-    `);
+    expect(rows).toHaveLength(0);
   });
 });

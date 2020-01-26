@@ -17,12 +17,6 @@
   "files": [
     "lib"
   ],
-  "scripts": {
-    "pretest": "tsc --noEmit",
-    "test": "NODE_ENV=test jest",
-    "build": "rimraf ./lib && tsc",
-    "prepublishOnly": "yarn build"
-  },
   "devDependencies": {
     "@types/jest": "^24.9.0",
     "@types/lodash": "^4.14.149",
@@ -30,7 +24,7 @@
     "@types/pg": "^7.14.1",
     "@types/uuid": "^3.4.6",
     "coveralls": "^3.0.9",
-    "jest": "^24.9.0",
+    "jest": "^25.1.0",
     "prettier": "^1.19.1",
     "rimraf": "^3.0.0",
     "standard-version": "^7.0.1",

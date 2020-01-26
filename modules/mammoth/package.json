@@ -21,7 +21,8 @@
     "pretest": "tsc --noEmit",
     "test": "NODE_ENV=test jest",
     "build": "rimraf ./lib && tsc",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build",
+    "reportCoverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "devDependencies": {
     "@types/jest": "^24.9.0",

@@ -11,7 +11,6 @@ before_script:
 script:
   - yarn test
   - yarn build
-  - yarn test_build
 after_script:
   - yarn test --coverage
   - yarn reportCoverage

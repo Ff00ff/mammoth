@@ -28,6 +28,10 @@ describe(`sql`, () => {
     await db.sql`DROP TABLE item`;
   });
 
+  afterAll(async () => {
+    await db.destroy();
+  });
+
   it(`should insert multiple rows and return them when using returning`, async () => {
     const items = await db
       .insertInto(db.item)

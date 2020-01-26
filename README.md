@@ -2,7 +2,7 @@
 
 ![Mammoth](https://s3-eu-west-1.amazonaws.com/mammoth-static.ff00ff.nl/mammoth-logo.png)
 
-# Mammoth: A (mostly) type-safe Postgres query builder for TypeScript.
+# Mammoth: A type-safe Postgres query builder for TypeScript.
 
 [![Build Status](https://travis-ci.org/Ff00ff/mammoth.svg?branch=next)](https://travis-ci.org/Ff00ff/mammoth)
 [![MIT License](https://img.shields.io/github/license/ff00ff/mammoth.svg)](https://raw.githubusercontent.com/Ff00ff/mammoth/master/LICENSE)

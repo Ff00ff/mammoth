@@ -2,9 +2,9 @@
 
 # Mammoth: A (mostly) type-safe Postgres query builder for TypeScript.
 
-[![Build Status](https://travis-ci.org/Ff00ff/mammoth.svg?branch=master)](https://travis-ci.org/Ff00ff/mammoth)
+[![Build Status](https://travis-ci.org/Ff00ff/mammoth.svg?branch=next)](https://travis-ci.org/Ff00ff/mammoth)
 [![MIT License](https://img.shields.io/github/license/ff00ff/mammoth.svg)](https://raw.githubusercontent.com/Ff00ff/mammoth/master/LICENSE)
-[![Coverage Status](https://coveralls.io/repos/github/Ff00ff/mammoth/badge.svg?branch=master)](https://coveralls.io/github/Ff00ff/mammoth?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/Ff00ff/mammoth/badge.svg?branch=next)](https://coveralls.io/github/Ff00ff/mammoth?branch=master)
 
 ```
 yarn add @ff00ff/mammoth

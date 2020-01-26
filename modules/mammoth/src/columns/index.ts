@@ -321,7 +321,7 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
   }
 
   lt(value: toType<BaseType> | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
-    return this.compare(value, `>=`);
+    return this.compare(value, `<`);
   }
   lte(value: toType<BaseType> | ColumnWrapper<any, BaseType, any, any, any> | PartialQuery) {
     return this.compare(value, `<=`);

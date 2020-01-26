@@ -1,3 +1,5 @@
+> This is `mammoth@next` which is not available in npm yet. Switch to [mammoth@master](https://github.com/Ff00ff/mammoth/tree/master) to see the current version.
+
 ![Mammoth](https://s3-eu-west-1.amazonaws.com/mammoth-static.ff00ff.nl/mammoth-logo.png)
 
 # Mammoth: A (mostly) type-safe Postgres query builder for TypeScript.

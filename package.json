@@ -7,7 +7,8 @@
   "license": "MIT",
   "scripts": {
     "postinstall": "lerna bootstrap",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "build": "lerna run build"
   },
   "dependencies": {
     "lerna": "^3.20.2"

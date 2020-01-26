@@ -4,9 +4,6 @@
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "license": "MIT",
-  "bin": {
-    "mammoth": "./bin/mammoth.js"
-  },
   "keywords": [
     "typescript",
     "postgres",
@@ -22,12 +19,8 @@
     "bin"
   ],
   "scripts": {
-    "test": "NODE_ENV=test jest",
-    "build": "rimraf ./lib && tsc",
-    "test_build": "tsc --noEmit lib/**/*.ts",
-    "prepublishOnly": "yarn build",
-    "reportCoverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "docs": "rimraf ./docs && typedoc --out docs src --ignoreCompilerErrors --excludeNotExported --excludePrivate --theme default"
+    "test": "echo \"nothing yet\"",
+    "build": "echo \"nothing yet\""
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",

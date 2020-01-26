@@ -8,8 +8,8 @@ import {
 } from '../tokens';
 import { Table } from '../table';
 import { Database } from '../database';
-import { QueryResult } from 'pg';
 import { ColumnWrapper } from '../columns';
+import { QueryResult } from '../database/backend';
 
 export interface Tokenable {
   toTokens(): Token[];
@@ -113,7 +113,7 @@ export class Query<Db extends Database<any>, Ret, SingleRet, Tables = undefined>
   protected getRet(result: QueryResult): Ret {
     switch (this.type) {
       case 'COUNT':
-        return result.rowCount as any;
+        return result.count as any;
       case 'ROWS':
         return result.rows.map(this.getRow) as any;
     }
@@ -122,7 +122,10 @@ export class Query<Db extends Database<any>, Ret, SingleRet, Tables = undefined>
   /** @internal */
   async exec(): Promise<Ret> {
     const query = this.toQuery();
+    console.log(query);
     const result = await this.db.exec(query.text, query.parameters);
+
+    console.log(result);
 
     return this.getRet(result);
   }
@@ -244,13 +247,15 @@ export class Query<Db extends Database<any>, Ret, SingleRet, Tables = undefined>
 
   protected internalReturning(...columns: (ColumnWrapper<any, any, any, any, any> | undefined)[]) {
     this.type = 'ROWS';
-    this.columnsMap = columns.filter(column => Boolean(column)).reduce(
-      (map, column) => ({
-        ...map,
-        [column!.getSnakeCaseName()]: column!.getCamelCaseName(),
-      }),
-      {},
-    );
+    this.columnsMap = columns
+      .filter(column => Boolean(column))
+      .reduce(
+        (map, column) => ({
+          ...map,
+          [column!.getSnakeCaseName()]: column!.getCamelCaseName(),
+        }),
+        {},
+      );
 
     this.tokens.push(
       new StringToken(`RETURNING`),

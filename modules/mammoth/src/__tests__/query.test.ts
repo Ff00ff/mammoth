@@ -7,7 +7,7 @@ import {
   ByteaColumn,
   TextColumn,
 } from '../columns';
-import { createDatabase } from '../database/pool';
+import { createDatabase } from '../database';
 import { Default, Now, UuidGenerateV4 } from '../keywords';
 import { Query } from '../query';
 
@@ -170,7 +170,8 @@ describe('Query', () => {
       db.exec(`CREATE TABLE binary_test (
       id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
       value BYTEA NOT NULL
-    )`));
+    )`),
+    );
 
     afterEach(() => db.exec(`DROP TABLE binary_test`));
 
@@ -203,16 +204,19 @@ describe('Query', () => {
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE,
         value INTEGER NOT NULL
-      )`));
+      )`),
+    );
     beforeEach(() =>
       db.exec(`CREATE TABLE IF NOT EXISTS account_item (
         id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
         account_id UUID NOT NULL REFERENCES account (id)
-      )`));
+      )`),
+    );
     beforeEach(() =>
-      db.exec(`INSERT INTO account (id, value) VALUES ($1, 123), ($2, 100), ($3, 42)`, ids));
+      db.exec(`INSERT INTO account (id, value) VALUES ($1, 123), ($2, 100), ($3, 42)`, ids),
+    );
 
-    afterEach(() => db.exec(`DROP TABLE account_item, account`));
+    afterEach(() => db.sql`DROP TABLE account_item, account`);
 
     it(`transaction should rollback`, async () => {
       const result = db.transaction(async db => {
@@ -676,7 +680,6 @@ describe('Query', () => {
       query: db
         .insertInto(db.foo)
         .values({
-          id: null,
           value: 123,
         })
         .onConflict(`value`)
@@ -687,7 +690,7 @@ describe('Query', () => {
       text: `INSERT INTO foo (value) VALUES ($1) ON CONFLICT (value) DO UPDATE SET value = $2`,
       query: db
         .insertInto(db.foo)
-        .values({ id: null, value: 123 })
+        .values({ value: 123 })
         .onConflict('value')
         .doUpdateSet({
           value: 124,

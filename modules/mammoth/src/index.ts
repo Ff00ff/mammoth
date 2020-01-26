@@ -3,12 +3,9 @@ import { PartialQuery, Tokenable } from './query';
 import { GroupToken, StringToken } from './tokens';
 
 export * from './database';
-export * from './database/pool';
 export * from './columns';
-export * from './transaction';
 export * from './unsafe';
 export * from './keywords';
-// export * from './db';
 
 // TODO: move this to expressions.
 

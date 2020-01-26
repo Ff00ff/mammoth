@@ -132,7 +132,12 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
       new StringToken(`IN`),
       // FIXME: it should be possible to just pass a single parameter token into the group with an
       // array as parameter. Unfortunately this fails in practice.
-      new GroupToken([new SeparatorToken(',', array.map(param => new ParameterToken(param)))]),
+      new GroupToken([
+        new SeparatorToken(
+          ',',
+          array.map(param => new ParameterToken(param)),
+        ),
+      ]),
     );
   }
 
@@ -257,7 +262,12 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
     return new PartialQuery(
       new StringToken(this.toSql()),
       new StringToken(`NOT IN`),
-      new GroupToken([new SeparatorToken(',', value.map(val => new ParameterToken(val)))]),
+      new GroupToken([
+        new SeparatorToken(
+          ',',
+          value.map(val => new ParameterToken(val)),
+        ),
+      ]),
     );
   }
 
@@ -475,7 +485,7 @@ export class Column<T, IT = Null<T>, ST = Null<T>, UT = T> {
     return this;
   }
 
-  default(sql: T | Unsafe | Keyword): Column<T, toNull<T | Default>, ST, UT | Default> {
+  default(sql: T | Unsafe | Keyword): Column<T, toNull<T | Default>, ST, toNull<UT | Default>> {
     const escape = (val: T) => {
       if (typeof val === 'number' || typeof val === 'boolean') {
         return val;

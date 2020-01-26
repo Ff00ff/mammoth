@@ -18,9 +18,9 @@
     "lib"
   ],
   "scripts": {
+    "pretest": "tsc --noEmit",
     "test": "NODE_ENV=test jest",
     "build": "rimraf ./lib && tsc",
-    "test_build": "tsc --noEmit",
     "prepublishOnly": "yarn build"
   },
   "devDependencies": {
@@ -34,7 +34,7 @@
     "prettier": "^1.19.1",
     "rimraf": "^3.0.0",
     "standard-version": "^7.0.1",
-    "ts-jest": "^24.3.0",
+    "ts-jest": "^25.0.0",
     "ts-node": "^8.6.2",
     "tslint": "^5.20.1",
     "tslint-config-airbnb": "^5.11.2",

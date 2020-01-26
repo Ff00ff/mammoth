@@ -1,5 +1,5 @@
 import { PickByValue } from 'utility-types';
-import { ColumnWrapper } from '.';
+import { ColumnWrapper } from './columns';
 
 // These types are used to switch between optional and required properties. Because these are
 // specific types it's possible to use TypeScript's condition types feature to map nullable columns

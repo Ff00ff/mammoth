@@ -1,4 +1,4 @@
-import { ColumnWrapper } from '..';
+import { ColumnWrapper } from '../columns';
 import { Database } from '../database';
 import { Table } from '../table';
 import { CollectionToken, SeparatorToken, StringToken } from '../tokens';
@@ -161,7 +161,10 @@ export class SelectQuery<
   groupBy(...columns: ColumnWrapper<any, any, any, any, any>[]) {
     this.tokens.push(
       new StringToken(`GROUP BY`),
-      new SeparatorToken(`,`, columns.map(column => new CollectionToken(column!.toTokens()))),
+      new SeparatorToken(
+        `,`,
+        columns.map(column => new CollectionToken(column!.toTokens())),
+      ),
     );
     return this;
   }

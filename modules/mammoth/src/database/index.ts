@@ -1,29 +1,58 @@
-import * as pg from 'pg';
-import { ColumnWrapper } from '../columns';
-import { DeleteQuery, InsertQuery, PartialQuery, SelectQuery, UpdateQuery } from '../query';
 import { Table } from '../table';
-import { CollectionToken, ParameterToken, SeparatorToken, StringToken } from '../tokens';
-import { toType, SparseArray } from '../types';
+import { ColumnWrapper } from '../columns';
+import { SplitOptionalAndRequired, toType, SparseArray } from '../types';
+import { SelectQuery, InsertQuery, DeleteQuery, UpdateQuery, PartialQuery } from '../query';
+import { Backend, PgBackend } from './backend';
+import { StringToken, CollectionToken, SeparatorToken, ParameterToken } from '../tokens';
 
-// FIXME: any should be replaced by something specific. But specifying Table, which should be the
-// right type, breaks functionality. Table adds an index signature which means doing keyof MyTable
-// (which extends from Table) returns string instead a type with all keys.
-export interface TableMap {
+interface TableMap {
   [tableName: string]: any;
 }
 
-export abstract class Database<Tables extends TableMap> {
-  protected tables: Tables;
+export class InternalDatabase<UserDefinedTables> {
+  private backend: Backend;
+  private tables: { [tableName: string]: Table<any, any, any> } = {};
 
-  constructor(tables: Tables) {
+  constructor(backend: Backend, tables: { [tableName: string]: Table<any, any, any> }) {
     this.tables = tables;
+    this.backend = backend;
+
+    this.defineGetters();
   }
 
-  abstract async reconnect(databaseName: string): Promise<void>;
-  abstract async disconnect(): Promise<void>;
+  private defineGetters() {
+    const tableNames = Object.keys(this.tables);
 
-  getTableNames() {
-    return Object.keys(this.tables);
+    tableNames.forEach(tableName => {
+      Object.defineProperty(this, tableName, {
+        get() {
+          const table = this.tables[tableName];
+
+          // TODO: does lazy loading the tables work?
+          table.init();
+
+          return table;
+        },
+      });
+    });
+  }
+
+  async transaction<Callback extends (db: this) => Promise<any>>(callback: Callback): Promise<any> {
+    return this.backend.transaction(backend => {
+      const db = new InternalDatabase(backend, this.tables);
+
+      return Promise.resolve(callback(db as any));
+    });
+  }
+
+  destroy() {
+    return this.backend.destroy();
+  }
+
+  exec(query: string, parameters?: any[]) {
+    // TODO: let's make this as deprecated in favor of this#sql``.
+
+    return this.backend.query(query, parameters);
   }
 
   sql(strings: TemplateStringsArray, ...parameters: any[]) {
@@ -33,9 +62,7 @@ export abstract class Database<Tables extends TableMap> {
       ``,
     );
 
-    // FIXME: this returns a pg.QueryResult which has `any[]` as type of the rows. This is
-    // less than ideal. Ideally it's passed as a type so we avoid any.
-    return this.exec(text, parameters);
+    return this.backend.query(text, parameters);
   }
 
   select<
@@ -378,7 +405,7 @@ export abstract class Database<Tables extends TableMap> {
   ): {
     from(table: Table<any, any, any>): SelectQuery<any, {}, {}, {}, SparseArray<Ret>, Ret>;
   };
-  select(...columns: ColumnWrapper<any, any, any, any, any>[]) {
+  select(this: Database<UserDefinedTables>, ...columns: ColumnWrapper<any, any, any, any, any>[]) {
     const columnsMap = columns.reduce(
       (map, column) => ({
         ...map,
@@ -404,8 +431,17 @@ export abstract class Database<Tables extends TableMap> {
   }
 
   insertInto<T extends Table<any, any, any>>(
+    this: Database<UserDefinedTables>,
     table: T,
-  ): InsertQuery<this, T, T['$row'], T['$insertRow'], T['$updateRow'], number, void> {
+  ): InsertQuery<
+    Database<UserDefinedTables>,
+    T,
+    T['$row'],
+    T['$insertRow'],
+    T['$updateRow'],
+    number,
+    void
+  > {
     return new InsertQuery(
       this,
       table,
@@ -415,8 +451,17 @@ export abstract class Database<Tables extends TableMap> {
   }
 
   deleteFrom<T extends Table<any, any, any>>(
+    this: Database<UserDefinedTables>,
     table: T,
-  ): DeleteQuery<this, T, T['$row'], T['$insertRow'], T['$updateRow'], number, void> {
+  ): DeleteQuery<
+    Database<UserDefinedTables>,
+    T,
+    T['$row'],
+    T['$insertRow'],
+    T['$updateRow'],
+    number,
+    void
+  > {
     return new DeleteQuery(
       this,
       table,
@@ -427,8 +472,17 @@ export abstract class Database<Tables extends TableMap> {
 
   update<
     T extends Table<any, any, any>,
-    Ret = UpdateQuery<this, T, T['$row'], T['$insertRow'], T['$updateRow'], number, void>
+    Ret = UpdateQuery<
+      Database<UserDefinedTables>,
+      T,
+      T['$row'],
+      T['$insertRow'],
+      T['$updateRow'],
+      number,
+      void
+    >
   >(
+    this: Database<UserDefinedTables>,
     table: T,
   ): { set(object: { [P in keyof T['$updateRow']]?: T['$updateRow'][P] | PartialQuery }): Ret } {
     const getColumn = (
@@ -470,26 +524,47 @@ export abstract class Database<Tables extends TableMap> {
       },
     };
   }
-
-  abstract async exec(text: string, parameters: any[]): Promise<pg.QueryResult>;
-  abstract async destroy(): Promise<void>;
-  abstract async transaction<
-    Ret,
-    State = {
-      [TableName in keyof Tables]: Table<
-        { [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['selectType'] },
-        { [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['insertType'] },
-        { [ColumnName in keyof Tables[TableName]]: Tables[TableName][ColumnName]['updateType'] }
-      > &
-        {
-          [ColumnName in keyof Tables[TableName]]: ColumnWrapper<
-            ColumnName,
-            Tables[TableName][ColumnName]['type'],
-            Tables[TableName][ColumnName]['selectType'],
-            Tables[TableName][ColumnName]['insertType'],
-            Tables[TableName][ColumnName]['updateType']
-          >;
-        };
-    }
-  >(callback: (db: Database<Tables> & State) => Promise<Ret>): Promise<Ret | undefined>;
 }
+
+export type Schema<UserDefinedTables extends TableMap> = {
+  [TableName in keyof UserDefinedTables]: Table<
+    // Selectable columns
+    {
+      [ColumnName in keyof UserDefinedTables[TableName]]: toType<
+        UserDefinedTables[TableName][ColumnName]['selectType']
+      >;
+    },
+    // Insertable columns
+    SplitOptionalAndRequired<UserDefinedTables[TableName], 'insertType'>,
+    // Update -- can't we just get rid of this as this is basically the regular column types but
+    // everything is optional?
+    SplitOptionalAndRequired<UserDefinedTables[TableName], 'updateType'>
+  > &
+    {
+      [ColumnName in keyof UserDefinedTables[TableName]]: ColumnWrapper<
+        ColumnName,
+        UserDefinedTables[TableName][ColumnName]['type'],
+        UserDefinedTables[TableName][ColumnName]['selectType'],
+        UserDefinedTables[TableName][ColumnName]['insertType'],
+        UserDefinedTables[TableName][ColumnName]['updateType']
+      >;
+    };
+};
+
+export type Database<T> = InternalDatabase<T> & Schema<T>;
+
+export const createDatabase = <UserDefinedTables extends TableMap>(
+  databaseUrl: string,
+  userDefinedTables: UserDefinedTables,
+): Database<UserDefinedTables> => {
+  const tables = Object.keys(userDefinedTables).reduce((tables, tableName) => {
+    const table = userDefinedTables[tableName];
+
+    tables[tableName] = new Table<any, any, any>(table, tableName);
+    return tables;
+  }, {} as { [tableName: string]: Table<any, any, any> });
+
+  const backend = new PgBackend(databaseUrl);
+
+  return new InternalDatabase(backend, tables) as any;
+};

@@ -1,5 +1,4 @@
-import { ColumnWrapper } from '.';
-import { Column, toSnakeCase } from './columns';
+import { Column, toSnakeCase, ColumnWrapper } from './columns';
 
 export class TableType {
   [columnName: string]: Column<any>;

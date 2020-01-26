@@ -1,4 +1,4 @@
-import { ColumnWrapper } from '..';
+import { ColumnWrapper } from '../columns';
 import { Database } from '../database';
 import { Table } from '../table';
 import { Token } from '../tokens';
@@ -473,11 +473,10 @@ export class UpdateQuery<
   ): UpdateQuery<Db, T, Row, InsertRow, UpdateRow, R[], R>;
   returning(...columns: (ColumnWrapper<any, any, any, any, any> | keyof Row)[]) {
     return this.internalReturning(
-      ...(columns.map(
-        columnOrColumnName =>
-          typeof columnOrColumnName === `string`
-            ? this.getColumn(columnOrColumnName as any)
-            : columnOrColumnName,
+      ...(columns.map(columnOrColumnName =>
+        typeof columnOrColumnName === `string`
+          ? this.getColumn(columnOrColumnName as any)
+          : columnOrColumnName,
       ) as ColumnWrapper<any, any, any, any, any>[]),
     );
   }

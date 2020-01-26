@@ -12,10 +12,8 @@ import {
 } from '../tokens';
 import { Query, Tokenable } from './base';
 import { QueryResult } from '../database/backend';
-
-if (!Query) {
-  throw new Error(`Query is undefined in InsertQuery`);
-}
+import { SelectQuery } from './select';
+import { SparseArray } from '../types';
 
 export class InsertQuery<
   Db extends Database<any>,
@@ -97,7 +95,14 @@ export class InsertQuery<
               new GroupToken([
                 new SeparatorToken(
                   ',',
-                  keys.map(key => new ParameterToken(object[key as keyof InsertRow])),
+                  keys.map(key => {
+                    const val = object[key as keyof InsertRow];
+                    if (val instanceof Keyword) {
+                      return new StringToken(val.toSql());
+                    }
+
+                    return new ParameterToken(val);
+                  }),
                 ),
               ]),
           ),
@@ -138,7 +143,15 @@ export class InsertQuery<
           {
             [K in keyof InsertRow]:
               | InsertRow[K]
-              | Query<any, any, { [string: string]: InsertRow[K] }>;
+              | SelectQuery<
+                  any,
+                  any,
+                  any,
+                  any,
+                  SparseArray<{ [string: string]: InsertRow[K] | undefined } | undefined>,
+                  { [string: string]: InsertRow[K] | undefined } | undefined
+                >
+              | undefined;
           }
         >,
       ): UpsertQuery<Db, T, Row, InsertRow, UpdateRow, Ret, SingleRet> => {

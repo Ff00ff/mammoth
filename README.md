@@ -286,7 +286,7 @@ First make user you have a test postgres database. For example, `mammoth_test`:
 
     $ createdb mammoth_test
 
-If you installed postgres using homebrow, make sure you have a postgres user named `postgres`. You can create one using this command: `createuser -s postgres`
+If you installed postgres using homebrew, make sure you have a postgres user named `postgres`. You can create one using this command: `createuser -s postgres`
 
 Finally, make sure all the tests run and pass before making any changes:
 

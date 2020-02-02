@@ -1,8 +1,8 @@
 {
   "name": "@ff00ff/mammoth-core",
   "version": "0.10.0",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
   "license": "MIT",
   "keywords": [
     "typescript",
@@ -15,12 +15,11 @@
     "orm"
   ],
   "files": [
-    "lib",
-    "bin"
+    "build"
   ],
   "scripts": {
-    "test": "echo \"nothing yet\"",
-    "build": "echo \"nothing yet\""
+    "test": "jest",
+    "build": "tsc"
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",

@@ -6,7 +6,6 @@
     "allowJs": false,
     "declaration": true,
     "sourceMap": true,
-    "outDir": "./lib",
     "stripInternal": true,
     "strict": true,
     "alwaysStrict": true,
@@ -17,5 +16,6 @@
     "noImplicitAny": true,
     "esModuleInterop": true
   },
+  "include": ["src"],
   "exclude": ["node_modules", "examples"]
 }

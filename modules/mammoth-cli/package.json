@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "test": "echo \"nothing yet\"",
-    "build": "echo \"nothing yet\""
+    "build": "tsc"
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",
@@ -46,6 +46,7 @@
     "uuid": "^3.3.2"
   },
   "dependencies": {
+    "@ff00ff/mammoth": "^0.10.0",
     "chalk": "^2.4.1",
     "lodash": "^4.17.13",
     "minimist": "^1.2.0",

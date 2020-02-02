@@ -1,8 +1,8 @@
 {
   "name": "@ff00ff/mammoth",
   "version": "0.10.0",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
   "license": "MIT",
   "keywords": [
     "typescript",
@@ -15,12 +15,12 @@
     "orm"
   ],
   "files": [
-    "lib"
+    "build"
   ],
   "scripts": {
     "pretest": "tsc --noEmit",
     "test": "NODE_ENV=test jest",
-    "build": "rimraf ./lib && tsc",
+    "build": "rimraf ./build && tsc",
     "prepublishOnly": "yarn build",
     "reportCoverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },

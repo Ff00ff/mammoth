@@ -161,8 +161,8 @@ class List {
   id = new UuidColumn()
     .primary()
     .notNull()
-    .default(new UuidGenerateV4());
-  createdAt = new TimestampWithTimeZoneColumn().notNull().default(new Now());
+    .default(`gen_random_uuid()`);
+  createdAt = new TimestampWithTimeZoneColumn().notNull().default(`NOW()`);
   name = new TextColumn().notNull();
   value = new IntegerColumn();
 }
@@ -171,7 +171,7 @@ class ListItem {
   id = new UuidColumn()
     .primary()
     .notNull()
-    .default(new UuidGenerateV4());
+    .default(new GenRandomUuid());
   createdAt = new TimestampWithTimeZoneColumn().notNull().default(new Now());
   listId = new UuidColumn().notNull().references(() => db.list.id);
   name = new TextColumn().notNull();
@@ -241,7 +241,7 @@ class MyTable {
   id = new UuidColumn()
     .primaryKey()
     .notNull()
-    .default(new UuidGenerateV4());
+    .default(new GenRandomUuid());
   value = new TextColumn<'FOO' | 'BAR' | 'BAZ'>().notNull();
 }
 ```
@@ -268,7 +268,7 @@ class MyTable {
   id = new UuidColumn()
     .primaryKey()
     .notNull()
-    .default(new UuidGenerateV4());
+    .default(new GenRandomUuid());
   value = new JSONBColumn<{ foo: string }>();
 }
 ```

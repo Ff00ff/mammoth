@@ -144,6 +144,20 @@ Before Mammoth can offer type safety features you have to define the schema in M
 
 ```ts
 class List {
+  id = new Column<string>(`UUID`)
+    .primary()
+    .notNull()
+    .default(`gen_random_uuid()`);
+  createdAt = new Column<Date>(`TIMESTAMP WITH TIME ZONE`).notNull().default(`NOW()`);
+  name = new Column<string>(`TEXT`).notNull();
+  value = new Column<number>(`INTEGER`);
+}
+```
+
+But to make things easier, there are data type specific columns. When using auto import this should be a breeze.
+
+```ts
+class List {
   id = new UuidColumn()
     .primary()
     .notNull()

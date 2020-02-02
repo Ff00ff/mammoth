@@ -1,13 +1,13 @@
 import { createDatabase } from '../database';
 import { UuidColumn, IntegerColumn, TextColumn, TimestampWithTimeZoneColumn } from '../columns';
-import { UuidGenerateV4, Now } from '../keywords';
+import { GenRandomUuid, Now } from '../keywords';
 
 describe(`delete`, () => {
   class Item {
     id = new UuidColumn()
       .primary()
       .notNull()
-      .default(new UuidGenerateV4());
+      .default(new GenRandomUuid());
     createdAt = new TimestampWithTimeZoneColumn().notNull().default(new Now());
     name = new TextColumn().notNull();
     value = new IntegerColumn();
@@ -18,8 +18,10 @@ describe(`delete`, () => {
   });
 
   beforeEach(async () => {
+    await db.sql`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`;
+
     await db.sql`CREATE TABLE item (
-      id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+      id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       name TEXT NOT NULL,
       value INTEGER

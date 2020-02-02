@@ -8,14 +8,14 @@ import {
   TextColumn,
 } from '../columns';
 import { createDatabase } from '../database';
-import { Default, Now, UuidGenerateV4 } from '../keywords';
+import { Default, Now, GenRandomUuid } from '../keywords';
 import { Query } from '../query';
 
 class Account {
   id = new UuidColumn()
     .primary()
     .notNull()
-    .default(new UuidGenerateV4());
+    .default(new GenRandomUuid());
   createdAt = new TimestampWithTimeZoneColumn().notNull().default(new Now());
   updatedAt = new TimestampWithTimeZoneColumn();
   value = new IntegerColumn().notNull();
@@ -27,22 +27,22 @@ class Test {
 }
 
 class Foo {
-  id = new UuidColumn().primary().default(new UuidGenerateV4());
+  id = new UuidColumn().primary().default(new GenRandomUuid());
   value = new IntegerColumn();
 }
 
 class BinaryTest {
-  id = new UuidColumn().primary().default(new UuidGenerateV4());
+  id = new UuidColumn().primary().default(new GenRandomUuid());
   value = new ByteaColumn().notNull();
 }
 
 class EnumTest {
-  id = new UuidColumn().primaryKey().default(new UuidGenerateV4());
+  id = new UuidColumn().primaryKey().default(new GenRandomUuid());
   letter = new EnumColumn(['a', 'b']).notNull();
 }
 
 class Bar {
-  id = new UuidColumn().primaryKey().default(new UuidGenerateV4());
+  id = new UuidColumn().primaryKey().default(new GenRandomUuid());
   val = new TextColumn().notNull();
 }
 
@@ -59,22 +59,22 @@ describe('Query', () => {
   afterAll(() => db.destroy());
 
   beforeAll(async () => {
-    await db.exec(`CREATE EXTENSION "uuid-ossp"`);
+    await db.sql`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`;
 
     await db.exec(`CREATE TABLE IF NOT EXISTS account (
-      id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+      id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE,
       value INTEGER NOT NULL
     )`);
 
     await db.exec(`CREATE TABLE IF NOT EXISTS bar (
-      id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+      id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
       val TEXT NOT NULL
     )`);
 
     await db.exec(`CREATE TABLE IF NOT EXISTS foo (
-      id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+      id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
       value INTEGER
     )`);
   });
@@ -149,7 +149,7 @@ describe('Query', () => {
       await db.exec(`CREATE TYPE LETTER_ENUM AS ENUM ('a', 'b')`);
 
       await db.exec(`CREATE TABLE enum_test (
-        id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+        id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
         letter LETTER_ENUM NOT NULL
       )`);
     });
@@ -170,7 +170,7 @@ describe('Query', () => {
   describe('bytea', () => {
     beforeEach(() =>
       db.exec(`CREATE TABLE binary_test (
-      id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+      id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
       value BYTEA NOT NULL
     )`),
     );
@@ -202,7 +202,7 @@ describe('Query', () => {
     const ids = [uuid.v4(), uuid.v4(), uuid.v4()];
     beforeEach(() =>
       db.exec(`CREATE TABLE IF NOT EXISTS account (
-        id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+        id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE,
         value INTEGER NOT NULL
@@ -210,7 +210,7 @@ describe('Query', () => {
     );
     beforeEach(() =>
       db.exec(`CREATE TABLE IF NOT EXISTS account_item (
-        id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+        id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
         account_id UUID NOT NULL REFERENCES account (id)
       )`),
     );

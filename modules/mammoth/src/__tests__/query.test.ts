@@ -59,6 +59,8 @@ describe('Query', () => {
   afterAll(() => db.destroy());
 
   beforeAll(async () => {
+    await db.exec(`CREATE EXTENSION "uuid-ossp"`);
+
     await db.exec(`CREATE TABLE IF NOT EXISTS account (
       id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),

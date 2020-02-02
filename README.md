@@ -278,12 +278,6 @@ class MyTable {
 
 You do need to be careful when your type needs to evolve (change).
 
-### Versioning
-
-A final note on the versioning: we're at version 0.X until we consider Mammoth production-ready.
-This should be fairly soon as Mammoth is used in a couple of projects already. Once we do we bump to
-1.0 though we will strictly abide to semver.
-
 ## Developing Locally
 
 To contribute to this library, you first need to do a few things to get set up.

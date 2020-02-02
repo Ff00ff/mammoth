@@ -1,4 +1,4 @@
-import { Default, Keyword } from '../keywords';
+import { Default, Keyword, Unsafe } from '../keywords';
 import { PartialQuery, SelectQuery, Query } from '../query';
 import { Table } from '../table';
 import {
@@ -9,7 +9,6 @@ import {
   Token,
   SeparatorToken,
 } from '../tokens';
-import { Unsafe } from '../unsafe';
 import { Null, toNotNull, toNull, toType } from '../types';
 
 export type RowActionType = 'restrict' | 'cascade' | 'no action';

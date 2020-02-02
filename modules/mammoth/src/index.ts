@@ -4,7 +4,6 @@ import { GroupToken, StringToken } from './tokens';
 
 export * from './database';
 export * from './columns';
-export * from './unsafe';
 export * from './keywords';
 
 // TODO: move this to expressions.

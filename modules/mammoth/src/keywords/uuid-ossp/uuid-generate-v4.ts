@@ -1,4 +1,4 @@
-import { Keyword } from '../keywords';
+import { Keyword } from '../../keywords';
 
 export class UuidGenerateV4 extends Keyword {
   toSql() {

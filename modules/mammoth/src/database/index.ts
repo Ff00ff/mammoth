@@ -20,6 +20,11 @@ export class InternalDatabase<UserDefinedTables> {
     this.defineGetters();
   }
 
+  /** @internal */
+  getTables() {
+    return this.tables;
+  }
+
   private defineGetters() {
     const tableNames = Object.keys(this.tables);
 

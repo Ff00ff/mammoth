@@ -409,10 +409,10 @@ export class Column<T, IT = Null<T>, ST = Null<T>, UT = T> {
   dataType?: string;
 
   // These types are required
-  type: T;
-  insertType: IT;
-  selectType: ST;
-  updateType: UT;
+  type!: T;
+  insertType!: IT;
+  selectType!: ST;
+  updateType!: UT;
 
   /** @internal */
   name?: string;
@@ -421,18 +421,12 @@ export class Column<T, IT = Null<T>, ST = Null<T>, UT = T> {
   /** @internal */
   table?: Table<any>;
 
-  config: ColumnConfig<T>;
+  config: ColumnConfig<T> = {};
 
-  constructor(name?: string, config = {}) {
-    this.name = name;
-
-    this.dataType = undefined as any;
-    this.type = undefined as any;
-    this.insertType = undefined as any;
-    this.selectType = undefined as any;
-    this.updateType = undefined as any;
-
-    this.config = config;
+  constructor(dataType?: string) {
+    if (dataType) {
+      this.dataType = dataType;
+    }
   }
 
   /** @internal */

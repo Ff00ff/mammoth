@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "lib": ["es2015"],
-    "target": "es5",
+    "lib": [],
+    "target": "es2018",
     "module": "commonjs",
     "allowJs": false,
     "declaration": true,
@@ -14,8 +14,9 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "outDir": ".build"
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "examples"]
+  "exclude": ["node_modules", ".build"],
+  "include": ["src"]
 }

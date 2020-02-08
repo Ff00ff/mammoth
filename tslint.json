@@ -26,6 +26,8 @@
     "no-shadowed-variable": false,
     "no-increment-decrement": false,
     "ordered-imports": false,
-    "no-implicit-dependencies": [true, "dev"]
+    "no-implicit-dependencies": [true, "dev"],
+    "arrow-return-shorthand": false,
+    "no-object-literal-type-assertion": false
   }
 }

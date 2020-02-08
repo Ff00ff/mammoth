@@ -1,17 +1,36 @@
 {
-  "private": true,
-  "workspaces": [
-    "modules/*"
-  ],
-  "name": "mammoth",
+  "name": "@ff00ff/mammoth",
   "license": "MIT",
+  "version": "0.10.0",
+  "main": "./.build/index.js",
+  "types": "./.build/index.d.ts",
+  "bin": {
+    "mammoth": "./bin/mammoth.js"
+  },
+  "keywords": [
+    "typescript",
+    "postgres",
+    "query",
+    "builder",
+    "sql",
+    "typed",
+    "database",
+    "orm"
+  ],
+  "files": [
+    ".build",
+    "bin"
+  ],
   "scripts": {
-    "postinstall": "lerna bootstrap",
-    "test": "lerna run test",
-    "build": "lerna run build"
+    "test": "jest",
+    "prebuild": "rm -rf .build && rm -rf coverage",
+    "build": "tsc"
   },
   "dependencies": {
-    "lerna": "^3.20.2"
+    "lodash": "^4.17.15",
+    "minimist": "^1.2.0",
+    "pg": "^7.18.1",
+    "utility-types": "^3.10.0"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -23,5 +42,17 @@
     "transform": {
       "\\.tsx?$": "ts-jest"
     }
+  },
+  "devDependencies": {
+    "@types/jest": "^25.1.2",
+    "@types/lodash": "^4.14.149",
+    "@types/minimist": "^1.2.0",
+    "@types/node": "^13.7.0",
+    "@types/pg": "^7.14.1",
+    "@types/uuid": "^3.4.7",
+    "jest": "^25.1.0",
+    "ts-jest": "^25.2.0",
+    "typescript": "^3.7.5",
+    "uuid": "^3.4.0"
   }
 }

@@ -232,7 +232,7 @@ const result = await sql`SELECT * FROM account WHERE account.name = ${name}`;
 
 ### Enum alternative
 
-Instead of using an `EnumColumn`, which is sometimes inflexible, you can also opt to use a
+Instead of using an `EnumColumn`, [because you cannot remove values (only add or rename)](https://www.postgresql.org/docs/current/sql-altertype.html), you can also opt to use a
 `TextColumn<T>` which allows enforcing a type in your application e.g.
 `TextColumn<'ONE' | 'TWO' | 'THREE'>`.
 

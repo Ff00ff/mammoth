@@ -32,10 +32,8 @@ export class SelectQuery<
   }
 
   crossJoin<T extends Table<any>>(table: T) {
-    return this.internalJoin<T, SelectQuery<Db, Row, InsertRow, UpdateRow, Ret, SingleRet, Tables>>(
-      'CROSS JOIN',
-      table,
-    );
+    this.tokens.push(new StringToken(`CROSS JOIN`), new StringToken(table.getName()));
+    return this;
   }
 
   innerJoin<T extends Table<any>>(table: T) {
@@ -95,7 +93,7 @@ export class SelectQuery<
     );
   }
 
-  fulllOuterJoin<T extends Table<any>>(table: T) {
+  fullOuterJoin<T extends Table<any>>(table: T) {
     return this.internalJoin<T, SelectQuery<Db, Row, InsertRow, UpdateRow, Ret, SingleRet, Tables>>(
       'FULL OUTER JOIN',
       table,
@@ -153,8 +151,39 @@ export class SelectQuery<
     return this;
   }
 
+  forNoKeyUpdate() {
+    this.tokens.push(new StringToken(`FOR UPDATE`));
+    return this;
+  }
+
+  forShare() {
+    this.tokens.push(new StringToken(`FOR UPDATE`));
+    return this;
+  }
+
+  forNoKeyShare() {
+    this.tokens.push(new StringToken(`FOR UPDATE`));
+    return this;
+  }
+
+  of(...tables: Table<any>[]) {
+    this.tokens.push(
+      new StringToken(`OF`),
+      new SeparatorToken(
+        `,`,
+        tables.map(table => new StringToken(table.getName())),
+      ),
+    );
+    return this;
+  }
+
   skipLocked() {
     this.tokens.push(new StringToken(`SKIP LOCKED`));
+    return this;
+  }
+
+  nowait() {
+    this.tokens.push(new StringToken(`NOWAIT`));
     return this;
   }
 

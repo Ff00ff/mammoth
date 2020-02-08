@@ -22,7 +22,7 @@
     "bin"
   ],
   "scripts": {
-    "test": "jest",
+    "test": "jest --runInBand",
     "prebuild": "rm -rf .build && rm -rf coverage",
     "build": "tsc"
   },

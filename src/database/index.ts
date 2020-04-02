@@ -559,9 +559,20 @@ export type Schema<UserDefinedTables extends TableMap> = {
 export type Database<T> = InternalDatabase<T> & Schema<T>;
 
 export const createDatabase = <UserDefinedTables extends TableMap>(
-  databaseUrl: string,
+  databaseUrlOrOptions: string | { databaseUrl: string; debug?: boolean },
   userDefinedTables: UserDefinedTables,
 ): Database<UserDefinedTables> => {
+  if (!databaseUrlOrOptions) {
+    throw new Error(
+      `You should pass in a databaseUrl or options object when calling createDatabase().`,
+    );
+  }
+
+  const databaseUrl =
+    typeof databaseUrlOrOptions === `string`
+      ? databaseUrlOrOptions
+      : databaseUrlOrOptions.databaseUrl;
+  const debug = typeof databaseUrlOrOptions === `string` ? false : databaseUrlOrOptions.debug;
   const tables = Object.keys(userDefinedTables).reduce((tables, tableName) => {
     const table = userDefinedTables[tableName];
 
@@ -569,7 +580,10 @@ export const createDatabase = <UserDefinedTables extends TableMap>(
     return tables;
   }, {} as { [tableName: string]: Table<any, any, any> });
 
-  const backend = new PgBackend(databaseUrl);
+  const backend = new PgBackend({
+    databaseUrl,
+    debug,
+  });
 
   return new InternalDatabase(backend, tables) as any;
 };

@@ -1,14 +1,32 @@
-import { Pool, PoolConfig, PoolClient } from 'pg';
+import { Pool } from 'pg';
+import type { PoolConfig, PoolClient } from 'pg';
 import { Backend, QueryResult } from './backend';
 import url from 'url';
 
-export class PgBackend implements Backend {
-  private client: Pool | PoolClient;
+export {
+  PoolClient
+}
 
-  constructor(databaseUrlOrClient: string | PoolClient) {
-    if (typeof databaseUrlOrClient === `string`) {
-      const databaseUrl = databaseUrlOrClient;
-      const { auth, hostname, port, pathname } = url.parse(databaseUrl);
+type Options = StandardOptions | TransactionOptions;
+
+interface StandardOptions {
+  debug?: boolean;
+  databaseUrl: string;
+  client?: never;
+}
+
+interface TransactionOptions {
+  client: PoolClient;
+  debug?: boolean;
+}
+
+export class PgBackend implements Backend {
+  private client!: Pool | PoolClient;
+  private debug!: boolean;
+
+  private init(options: Options) {
+    if (!options.client) {
+      const { auth, hostname, port, pathname } = url.parse(options.databaseUrl);
       const [user, password] = (auth || '').split(':');
 
       const config: PoolConfig = {
@@ -30,16 +48,28 @@ export class PgBackend implements Backend {
 
       this.client = new Pool(config);
     } else {
-      const client = databaseUrlOrClient;
-      this.client = client;
+      this.client = options.client;
     }
 
-    if (!this.client) {
-      throw new Error(`Could not find client: ${databaseUrlOrClient}`);
+    this.debug = options.debug || false;
+  }
+
+  constructor(databaseUrlOrOptions: string | Options) {
+    if (typeof databaseUrlOrOptions === `string`) {
+      this.init({
+        debug: false,
+        databaseUrl: databaseUrlOrOptions,
+      });
+    } else {
+      this.init(databaseUrlOrOptions);
     }
   }
 
-  async query(text: string, parameters?: any[]): Promise<QueryResult> {
+  async query<T>(text: string, parameters?: any[]): Promise<QueryResult<T>> {
+    if (this.debug) {
+      console.log(text, parameters);
+    }
+
     const result = await this.client.query(text, parameters);
 
     return {
@@ -66,7 +96,7 @@ export class PgBackend implements Backend {
     try {
       await client.query(`BEGIN`);
 
-      const backend = new PgBackend(client);
+      const backend = new PgBackend({ client });
       const result = await Promise.resolve(callback(backend));
 
       await client.query(`COMMIT`);

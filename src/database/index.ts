@@ -1,9 +1,10 @@
-import { Table } from '../table';
-import { ColumnWrapper } from '../columns';
-import { SplitOptionalAndRequired, toType } from '../types';
-import { SelectQuery, InsertQuery, DeleteQuery, UpdateQuery, PartialQuery } from '../query';
 import { Backend, PgBackend } from './backend';
-import { StringToken, CollectionToken, SeparatorToken, ParameterToken } from '../tokens';
+import { CollectionToken, ParameterToken, SeparatorToken, StringToken } from '../tokens';
+import { DeleteQuery, InsertQuery, PartialQuery, SelectQuery, UpdateQuery } from '../query';
+import { SplitOptionalAndRequired, toType } from '../types';
+
+import { ColumnWrapper } from '../columns';
+import { Table } from '../table';
 
 interface TableMap {
   [tableName: string]: any;
@@ -17,7 +18,25 @@ export class InternalDatabase<UserDefinedTables> {
     this.tables = tables;
     this.backend = backend;
 
+    // To avoid losing `this` when destructuring these methods from the db we explicitly bind this.
+    //
+    // ```ts
+    // const { deleteFrom } = db;
+    //
+    // await deleteFrom(item).where(item.name.eq(`Test`))
+    // ```
+    // this.insertInto.bind(this);
+    // this.deleteFrom.bind(this);
+    this.select.bind(this);
+    this.update.bind(this);
+    this.insertInto.bind(this);
+
     this.defineGetters();
+  }
+
+  /** @internal */
+  getTable(tableName: string) {
+    return this.tables[tableName];
   }
 
   /** @internal */
@@ -33,8 +52,7 @@ export class InternalDatabase<UserDefinedTables> {
         get() {
           const table = this.tables[tableName];
 
-          // TODO: does lazy loading the tables work?
-          table.init();
+          table.init(this);
 
           return table;
         },
@@ -42,33 +60,33 @@ export class InternalDatabase<UserDefinedTables> {
     });
   }
 
-  async transaction<Callback extends (db: this) => Promise<any>>(callback: Callback): Promise<any> {
+  transaction = <Callback extends (db: this) => Promise<any>>(callback: Callback): Promise<any> => {
     return this.backend.transaction(backend => {
       const db = new InternalDatabase(backend, this.tables);
 
       return Promise.resolve(callback(db as any));
     });
-  }
+  };
 
-  destroy() {
+  destroy = () => {
     return this.backend.destroy();
-  }
+  };
 
-  exec(query: string, parameters?: any[]) {
+  exec = <T>(query: string, parameters?: any[]) => {
     // TODO: let's make this as deprecated in favor of this#sql``.
 
-    return this.backend.query(query, parameters);
-  }
+    return this.backend.query<T>(query, parameters);
+  };
 
-  sql(strings: TemplateStringsArray, ...parameters: any[]) {
+  sql = <T>(strings: TemplateStringsArray, ...parameters: any[]) => {
     const text = strings.reduce(
       (query, string, index) =>
         query + string + (index < parameters.length ? `$${String(index + 1)}` : ``),
       ``,
     );
 
-    return this.backend.query(text, parameters);
-  }
+    return this.backend.query<T>(text, parameters);
+  };
 
   select<
     A extends ColumnWrapper<any, any, any, any, any>,
@@ -434,7 +452,6 @@ export class InternalDatabase<UserDefinedTables> {
   }
 
   insertInto<T extends Table<any, any, any>>(
-    this: Database<UserDefinedTables>,
     table: T,
   ): InsertQuery<
     Database<UserDefinedTables>,
@@ -446,15 +463,14 @@ export class InternalDatabase<UserDefinedTables> {
     void
   > {
     return new InsertQuery(
-      this,
+      (this as unknown) as Database<UserDefinedTables>,
       table,
       new StringToken(`INSERT INTO`),
       new StringToken(table.getName()),
     );
   }
 
-  deleteFrom<T extends Table<any, any, any>>(
-    this: Database<UserDefinedTables>,
+  deleteFrom = <T extends Table<any, any, any>>(
     table: T,
   ): DeleteQuery<
     Database<UserDefinedTables>,
@@ -464,14 +480,14 @@ export class InternalDatabase<UserDefinedTables> {
     T['$updateRow'],
     number,
     void
-  > {
+  > => {
     return new DeleteQuery(
-      this,
+      (this as unknown) as Database<UserDefinedTables>,
       table,
       new StringToken(`DELETE FROM`),
       new StringToken(table.getName()),
     );
-  }
+  };
 
   update<
     T extends Table<any, any, any>,
@@ -485,7 +501,6 @@ export class InternalDatabase<UserDefinedTables> {
       void
     >
   >(
-    this: Database<UserDefinedTables>,
     table: T,
   ): {
     set(object: { [P in keyof T['$updateRow']]?: toType<T['$updateRow'][P]> | PartialQuery }): Ret;
@@ -494,12 +509,13 @@ export class InternalDatabase<UserDefinedTables> {
       key: string | number | symbol,
     ): ColumnWrapper<any, any, any, any, any> | undefined => (table as any)[key];
 
+    const self: Database<UserDefinedTables> = this as any;
     return {
-      set: (object: { [P in keyof T['$updateRow']]?: T['$updateRow'][P] | PartialQuery }): Ret => {
+      set(object: { [P in keyof T['$updateRow']]?: T['$updateRow'][P] | PartialQuery }): Ret {
         const keys = Object.keys(object) as (keyof T['$row'])[];
 
         return new UpdateQuery(
-          this,
+          self,
           table,
           new StringToken(`UPDATE`),
           new StringToken(table.getName()),

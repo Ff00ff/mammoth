@@ -1,7 +1,8 @@
+import { StringToken } from './../../tokens';
 import { Keyword } from '../../keywords';
 
 export class UuidGenerateV4 extends Keyword {
-  toSql() {
-    return `uuid_generate_v4()`;
+  toTokens() {
+    return [new StringToken(`uuid_generate_v4()`)];
   }
 }

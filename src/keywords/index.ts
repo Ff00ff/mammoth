@@ -1,14 +1,11 @@
-import { StringToken } from '../tokens';
+import { Token } from '../tokens';
 
 export abstract class Keyword {
-  abstract toSql(): string;
-
-  toTokens() {
-    return [new StringToken(this.toSql())];
-  }
+  abstract toTokens(): Token[];
 }
 
 export * from './current-timestamp';
+export * from './date';
 export * from './default';
 export * from './now';
 export * from './uuid-ossp';

@@ -1,7 +1,10 @@
-import { Keyword } from '../keywords';
+import { PartialQuery } from './../query/partial';
+import { StringToken } from './../tokens';
 
-export class Now extends Keyword {
-  toSql() {
-    return `NOW()`;
+export class Now extends PartialQuery {
+  constructor() {
+    super(new StringToken(`NOW()`));
   }
 }
+
+export const now = () => new Now();

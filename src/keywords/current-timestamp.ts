@@ -1,7 +1,8 @@
+import { StringToken } from './../tokens/string-token';
 import { Keyword } from '../keywords';
 
 export class CurrentTimestamp extends Keyword {
-  toSql() {
-    return `CURRENT_TIMESTAMP`;
+  toTokens() {
+    return [new StringToken(`CURRENT_TIMESTAMP`)];
   }
 }

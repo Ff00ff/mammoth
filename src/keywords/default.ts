@@ -1,7 +1,8 @@
+import { StringToken } from '../tokens';
 import { Keyword } from '../keywords';
 
 export class Default extends Keyword {
-  toSql() {
-    return `DEFAULT`;
+  toTokens() {
+    return [new StringToken(`DEFAULT`)];
   }
 }

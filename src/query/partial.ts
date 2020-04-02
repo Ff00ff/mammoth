@@ -1,6 +1,7 @@
-import { GroupToken, ParameterToken, StringToken, Token } from '../tokens';
+import { GroupToken, ParameterToken, StringToken, Token, NoSpaceToken } from '../tokens';
 import { Tokenable, Query } from './base';
 
+// TODO: we can probably change this to be an expression.
 export class PartialQuery implements Tokenable {
   tokens: Token[] = [];
 
@@ -40,8 +41,24 @@ export class PartialQuery implements Tokenable {
     return this;
   }
 
-  minus(string: string) {
-    this.tokens.push(new StringToken(`-`), new ParameterToken(string));
+  interval() {
+    return this.castTo(`interval`);
+  }
+
+  castTo(type: string) {
+    // TODO: should we enclose the already existing tokens in a group token so we surround it with
+    // ( and ).
+    this.tokens.push(new NoSpaceToken(`::${type}`));
+    return this;
+  }
+
+  minus(string: string | PartialQuery) {
+    if (string instanceof PartialQuery) {
+      this.tokens.push(new StringToken(`-`), ...string.toTokens());
+    } else {
+      this.tokens.push(new StringToken(`-`), new ParameterToken(string));
+    }
+
     return this;
   }
 

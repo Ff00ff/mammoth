@@ -1,14 +1,13 @@
 import { StringToken } from '../tokens';
+import { Keyword } from '.';
 
-export class Unsafe {
+export class Unsafe extends Keyword {
   private sql: string;
 
   constructor(sql: string) {
-    this.sql = sql;
-  }
+    super();
 
-  toSql() {
-    return this.sql;
+    this.sql = sql;
   }
 
   toTokens() {

@@ -1,7 +1,8 @@
+import { StringToken } from './../../tokens';
 import { Keyword } from '../../keywords';
 
 export class GenRandomUuid extends Keyword {
-  toSql() {
-    return `gen_random_uuid()`;
+  toTokens() {
+    return [new StringToken(`gen_random_uuid()`)];
   }
 }

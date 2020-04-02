@@ -1,6 +1,19 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "declaration": false
+    "declaration": false,
+    "lib": [],
+    "target": "es2018",
+    "module": "commonjs",
+    "allowJs": false,
+    "sourceMap": true,
+    "stripInternal": true,
+    "strict": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true
   }
 }

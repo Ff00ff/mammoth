@@ -30,3 +30,4 @@ lib
 build
 .build
 .TODO
+.env

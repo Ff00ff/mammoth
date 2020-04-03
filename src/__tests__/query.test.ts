@@ -1,15 +1,16 @@
 import * as uuid from 'uuid';
-import { not, now, EnumColumn } from '..';
+
 import {
+  ByteaColumn,
   IntegerColumn,
+  TextColumn,
   TimestampWithTimeZoneColumn,
   UuidColumn,
-  ByteaColumn,
-  TextColumn,
 } from '../columns';
 import { createDatabase } from '../database';
-import { Default, Now, GenRandomUuid } from '../keywords';
+import { Default, GenRandomUuid, Now, days } from '../keywords';
 import { Query } from '../query';
+import { EnumColumn, not, now } from '..';
 
 class Account {
   id = new UuidColumn()
@@ -23,7 +24,7 @@ class Account {
 
 class Test {
   id = new UuidColumn();
-  accountId = new UuidColumn().notNull().references(() => db.account.id);
+  accountId = new UuidColumn().notNull().references({ id: 123 }, `id`);
 }
 
 class Foo {
@@ -440,12 +441,12 @@ describe('Query', () => {
         .where(db.account.id.eq(`test`).and(db.account.id.eq(`test2`))),
     },
     {
-      text: `SELECT account.id, account.created_at FROM account WHERE account.created_at > NOW() - $1 LIMIT 10`,
+      text: `SELECT account.id, account.created_at FROM account WHERE account.created_at > NOW() - $1::interval LIMIT 10`,
       parameters: [`2 days`],
       query: db
         .select(db.account.id, db.account.createdAt)
         .from(db.account)
-        .where(db.account.createdAt.gt(now().minus(`2 days`)))
+        .where(db.account.createdAt.gt(now().minus(days(2))))
         .limit(10),
     },
     {
@@ -741,13 +742,17 @@ describe('Query', () => {
 
   describe('query tests', () => {
     queries.forEach(queryTest => {
-      it(queryTest.text, () => {
+      it(queryTest.text, async () => {
         const query = queryTest.query.toQuery();
 
         expect(query).toEqual({
           text: queryTest.text,
           parameters: queryTest.parameters || [],
         });
+
+        // TODO: it would be nice if we can do a check if the query is actually valid by simply
+        // executing it.
+        // await queryTest.query.exec();
       });
     });
   });

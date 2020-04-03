@@ -1,9 +1,9 @@
-import { integer, text, timestamptz, uuid } from './../columns/dataTypes';
-
+import { uuid, timestamptz, text, integer } from './../columns/dataTypes';
+import { defineTable } from '../defines';
 import { createDatabase } from '../database';
-import { defineTable } from '../defines/table';
+import { now } from '../keywords';
 
-describe(`delete`, () => {
+describe(`update`, () => {
   const itemTable = defineTable({
     id: uuid()
       .primary()
@@ -11,7 +11,7 @@ describe(`delete`, () => {
       .default(`gen_random_uuid()`),
     createdAt: timestamptz()
       .notNull()
-      .default(`now()`),
+      .default(now()),
     name: text().notNull(),
     value: integer(),
   });
@@ -39,12 +39,18 @@ describe(`delete`, () => {
     await db.destroy();
   });
 
-  it(`should delete item using where clause`, async () => {
-    const rows = await db
-      .deleteFrom(db.item)
-      .where(db.item.name.eq(`Test`))
-      .returning(`name`);
+  it(`should update and return affect rows`, async () => {
+    const affectedRows = await db.update(db.item).set({ value: undefined });
 
-    expect(rows).toHaveLength(0);
+    expect(affectedRows).toEqual(0);
+  });
+
+  it(`should update with returning`, async () => {
+    const result = await db
+      .update(db.item)
+      .set({ value: undefined })
+      .returning(db.item.value);
+
+    expect(result).toHaveLength(0);
   });
 });

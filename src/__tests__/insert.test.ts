@@ -1,20 +1,36 @@
+import { integer, text, timestamptz, uuid } from './../columns/dataTypes';
+
 import { createDatabase } from '../database';
-import { UuidColumn, IntegerColumn, TextColumn, TimestampWithTimeZoneColumn } from '../columns';
-import { GenRandomUuid, Now } from '../keywords';
+import { defineTable } from '../defines/table';
+import { now } from '../keywords';
 
 describe(`insert`, () => {
-  class Item {
-    id = new UuidColumn()
-      .primary()
+  const item = defineTable({
+    id: uuid()
+      .primaryKey()
       .notNull()
-      .default(new GenRandomUuid());
-    createdAt = new TimestampWithTimeZoneColumn().notNull().default(new Now());
-    name = new TextColumn().notNull();
-    value = new IntegerColumn();
-  }
+      .default(`gen_random_uuid()`),
+    createdAt: timestamptz()
+      .notNull()
+      .default(`now()`),
+    name: text().notNull(),
+    value: integer(),
+  });
+
+  const entry = defineTable({
+    id: uuid()
+      .primaryKey()
+      .notNull()
+      .default(`gen_random_uuid()`),
+    createdAt: timestamptz()
+      .notNull()
+      .default(`now()`),
+    value: integer().default(1),
+  });
 
   const db = createDatabase(process.env.DATABASE_URL!, {
-    item: new Item(),
+    item,
+    entry,
   });
 
   beforeEach(async () => {
@@ -26,10 +42,16 @@ describe(`insert`, () => {
       name TEXT NOT NULL,
       value INTEGER
     )`;
+
+    await db.sql`CREATE TABLE entry (
+      id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      value INTEGER DEFAULT 1
+    )`;
   });
 
   afterEach(async () => {
-    await db.sql`DROP TABLE item`;
+    await db.sql`DROP TABLE item, entry`;
   });
 
   afterAll(async () => {
@@ -49,6 +71,21 @@ describe(`insert`, () => {
         "name": "Item #1",
       }
     `);
+  });
+
+  it(`should insert and return using column syntax`, async () => {
+    const item = await db
+      .insertInto(db.item)
+      .values({
+        name: `Item #1`,
+      })
+      .returning(db.item.name);
+
+    expect(item).toMatchInlineSnapshot(`
+Object {
+  "name": "Item #1",
+}
+`);
   });
 
   it(`should insert multiple rows and return them when using returning`, async () => {
@@ -84,7 +121,7 @@ describe(`insert`, () => {
       })
       .onConflict(`id`)
       .doUpdateSet({
-        createdAt: new Now(),
+        createdAt: now(),
       });
     expect(result).toEqual(1);
   });
@@ -104,5 +141,28 @@ describe(`insert`, () => {
           .limit(1),
       });
     expect(result).toEqual(1);
+  });
+
+  it(`should upsert using where clause`, async () => {
+    const result = await db
+      .insertInto(db.item)
+      .values({ name: `Item #1` })
+      .onConflict(`id`)
+      .doUpdateSet({ value: db.item.value.plus(1) })
+      .where(db.item.value.lt(100));
+
+    expect(result).toEqual(1);
+  });
+
+  it(`should err when inserting multiple rows with default values`, async () => {
+    expect.assertions(1);
+
+    try {
+      await db.insertInto(db.entry).values([{ value: null }, { value: null }]);
+    } catch (e) {
+      expect(e).toMatchInlineSnapshot(
+        `[Error: Cannot insert multiple rows with only default values]`,
+      );
+    }
   });
 });

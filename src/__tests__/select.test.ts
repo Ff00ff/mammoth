@@ -1,31 +1,39 @@
-import { createDatabase } from '../database';
-import { UuidColumn, IntegerColumn, TextColumn, TimestampWithTimeZoneColumn } from '../columns';
 import { GenRandomUuid, Now } from '../keywords';
+import { IntegerColumn, TextColumn, TimestampWithTimeZoneColumn, UuidColumn } from '../columns';
+import { text, uuid } from './../columns/dataTypes';
+
+import { createDatabase } from '../database';
+import { defineTable } from '../defines';
 
 describe(`select`, () => {
-  class Item {
-    id = new UuidColumn()
+  const item = defineTable({
+    id: new UuidColumn()
       .primary()
       .notNull()
-      .default(new GenRandomUuid());
-    createdAt = new TimestampWithTimeZoneColumn().notNull().default(new Now());
-    name = new TextColumn().notNull();
-    value = new IntegerColumn();
-  }
-
-  class ItemFoo {
-    id = new UuidColumn()
-      .primary()
-      .notNull()
-      .default(new GenRandomUuid());
-    itemId = new UuidColumn().notNull().references(() => db.item.id);
-    name = new TextColumn().notNull();
-  }
-
-  const db = createDatabase(process.env.DATABASE_URL!, {
-    item: new Item(),
-    itemFoo: new ItemFoo(),
+      .default(new GenRandomUuid()),
+    createdAt: new TimestampWithTimeZoneColumn().notNull().default(new Now()),
+    name: new TextColumn().notNull(),
+    value: new IntegerColumn(),
   });
+
+  const itemFoo = defineTable({
+    id: uuid()
+      .primary()
+      .notNull()
+      .default(new GenRandomUuid()),
+    itemId: uuid()
+      .notNull()
+      .references(item, `id`),
+    name: text().notNull(),
+  });
+
+  const db = createDatabase(
+    { databaseUrl: process.env.DATABASE_URL!, debug: true },
+    {
+      item,
+      itemFoo,
+    },
+  );
 
   beforeEach(async () => {
     await db.sql`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`;
@@ -212,5 +220,45 @@ describe(`select`, () => {
       .on(db.itemFoo.itemId.eq(db.item.id));
 
     expect(rows).toHaveLength(0);
+  });
+
+  it(`should select count in subquery`, async () => {
+    const result = await db
+      .insertInto(db.item)
+      .values({ name: `Test` })
+      .returning(`id`);
+    const { id: itemId } = result;
+
+    await db.insertInto(db.itemFoo).values([
+      {
+        itemId,
+        name: `A`,
+      },
+      {
+        itemId,
+        name: `B`,
+      },
+    ]);
+
+    const [row] = await db
+      .select(
+        db.item.id,
+        db
+          .select(db.itemFoo.id.count())
+          .from(db.itemFoo)
+          .where(db.itemFoo.itemId.eq(db.item.id))
+          .as(`test`),
+      )
+      .from(db.item);
+
+    expect(row).toMatchInlineSnapshot(
+      { id: expect.any(String) },
+      `
+      Object {
+        "id": Any<String>,
+        "test": "2",
+      }
+    `,
+    );
   });
 });

@@ -1,15 +1,17 @@
-import { Default, Keyword, Unsafe } from '../keywords';
-import { PartialQuery, SelectQuery, Query } from '../query';
-import { Table } from '../table';
 import {
   CollectionToken,
   GroupToken,
   ParameterToken,
+  SeparatorToken,
   StringToken,
   Token,
-  SeparatorToken,
 } from '../tokens';
-import { Null, toNotNull, toNull, toType, NotNull } from '../types';
+import { Default, Keyword, Unsafe } from '../keywords';
+import { NotNull, Null, toNotNull, toNull, toType } from '../types';
+import { PartialQuery, Query, SelectQuery } from '../query';
+
+import { Table } from '../table';
+import { createState } from './../query/base';
 
 export type RowActionType = 'restrict' | 'cascade' | 'no action';
 
@@ -19,6 +21,8 @@ export interface ColumnConfig<T> {
   check?: string;
   notNull?: boolean;
   unique?: boolean;
+  referenceTable?: { [columnName: string]: object };
+  referenceColumn?: string;
   references?: {
     tableName: string;
     columnName: string;
@@ -144,6 +148,7 @@ export class ColumnWrapper<Name, BaseType, SelectType, InsertType, UpdateType> {
     );
   }
 
+  // TODO: rename this to to sql name or something?
   toSql() {
     return `${this.table!.getName()}.${this.snakeCaseName}`;
   }
@@ -467,7 +472,7 @@ export class Column<T, IT = Null<T>, ST = Null<T>, UT = Null<T>> {
     return this as any;
   }
 
-  notNull(): Column<toNotNull<T>, toNotNull<T>, toNotNull<T>> {
+  notNull(): Column<toNotNull<T>, toNotNull<T>, toNotNull<T>, toNull<T>> {
     this.config.notNull = true;
 
     return this as any;
@@ -479,37 +484,47 @@ export class Column<T, IT = Null<T>, ST = Null<T>, UT = Null<T>> {
   }
 
   default(
-    sql: Exclude<toType<T>, null | undefined> | Unsafe | Keyword,
+    rawSql: Exclude<toType<T>, null | undefined> | Unsafe | Keyword | string,
   ): Column<T, toNull<T | Default>, ST, toNull<UT | Default>> {
-    const escape = (val: T) => {
-      if (typeof val === 'number' || typeof val === 'boolean') {
-        return val;
+    if (rawSql) {
+      if (rawSql instanceof Keyword) {
+        const state = createState(rawSql.toTokens());
+
+        if (state.parameters.length > 0) {
+          throw new Error(`Cannot create default with parameters`);
+        }
+
+        this.config.default = state.text.join(` `);
+      } else {
+        this.config.default = rawSql;
       }
-
-      // FIXME: this escaping is too simple.
-      return `'${val}'`;
-    };
-
-    this.config.default =
-      sql && (sql instanceof Unsafe || sql instanceof Keyword) ? sql.toSql() : escape(sql);
+    } else {
+      // TODO: should we set the default to undefined or some empty value now? Perhaps if using the
+      // DEFAULT keyword one wants to reset the column's value this way.
+    }
     return this as any;
   }
 
   /** @internal */
-  createReference() {
-    if (this.config.columnFunction) {
-      const column = this.config.columnFunction();
-
-      this.config.references = {
-        tableName: column.table!.getName(),
-        columnName: column.snakeCaseName,
-      };
-      this.config.columnFunction = undefined;
+  createReference(db: any) {
+    const tableNames = db.getTableNames() as string[];
+    const table = tableNames
+      .map(tableName => db.getTable(tableName))
+      .find(table => table.getUserDefinedTable() === this.config.referenceTable);
+    if (table) {
+      const column = this.config.referenceTable![this.config.referenceColumn!];
+      if (column) {
+        this.config.references = {
+          tableName: table.getName(),
+          columnName: this.config.referenceColumn!,
+        };
+      }
     }
   }
 
-  references(columnFunction: ColumnFunction<T>) {
-    this.config.columnFunction = columnFunction;
+  references<Table extends object, T extends keyof Table>(table: Table, column?: T) {
+    this.config.referenceTable = table as any;
+    this.config.referenceColumn = column as string;
     return this;
   }
 

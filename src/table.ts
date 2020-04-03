@@ -9,6 +9,7 @@ export class Table<Row, InsertRow = Row, UpdateRow = Row> {
   private readonly $columnNames: ReadonlyArray<keyof Row>;
   private readonly $userDefinedTable: TableType;
 
+  [`*`]: keyof Row;
   $row: Row;
   $insertRow: InsertRow;
   $updateRow: UpdateRow;
@@ -17,6 +18,7 @@ export class Table<Row, InsertRow = Row, UpdateRow = Row> {
     this.$userDefinedTable = userDefinedTable;
     this.$name = toSnakeCase(name);
     this.$columnNames = Object.keys(userDefinedTable) as (keyof Row)[];
+    this[`*`] = `${this.$name}.*` as any;
 
     const self = this as any;
     this.$columnNames.forEach(camelCaseName => {
@@ -42,12 +44,17 @@ export class Table<Row, InsertRow = Row, UpdateRow = Row> {
     this.$updateRow = undefined as any;
   }
 
-  init() {
+  init(db: any) {
     this.$columnNames.forEach(columnName => {
       const column = this.$userDefinedTable[columnName as string];
 
-      column.createReference();
+      column.createReference(db);
     });
+  }
+
+  /** @internal */
+  getUserDefinedTable() {
+    return this.$userDefinedTable;
   }
 
   /** @internal */

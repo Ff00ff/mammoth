@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "lib": [],
-    "target": "es2018",
+    "lib": ["ES2019"],
+    "target": "es2019",
     "module": "commonjs",
     "allowJs": false,
     "declaration": true,

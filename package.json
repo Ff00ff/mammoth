@@ -1,7 +1,7 @@
 {
   "name": "@ff00ff/mammoth",
   "license": "MIT",
-  "version": "0.10.0",
+  "version": "1.0.0-beta.9",
   "main": "./.build/index.js",
   "types": "./.build/index.d.ts",
   "bin": {
@@ -22,7 +22,7 @@
     "bin"
   ],
   "scripts": {
-    "test": "jest --runInBand",
+    "test": "jest --runInBand --setupFiles dotenv/config",
     "prebuild": "rm -rf .build && rm -rf coverage",
     "build": "tsc"
   },
@@ -38,8 +38,9 @@
       "tsx",
       "js"
     ],
-    "testRegex": "/__tests__/.*\\.test\\.tsx?$",
+    "testRegex": "/__tests__|__checks__/.*\\.(test|check)\\.tsx?$",
     "transform": {
+      "\\.check\\.ts$": "dts-jest/transform",
       "\\.tsx?$": "ts-jest"
     }
   },
@@ -50,9 +51,13 @@
     "@types/node": "^13.7.0",
     "@types/pg": "^7.14.1",
     "@types/uuid": "^3.4.7",
+    "dotenv": "^8.2.0",
+    "dts-jest": "^23.0.0",
     "jest": "^25.1.0",
+    "prettier": "^1.19.1",
     "ts-jest": "^25.2.0",
-    "typescript": "^3.7.5",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.3",
     "uuid": "^3.4.0"
   }
 }

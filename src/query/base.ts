@@ -1,15 +1,16 @@
 import {
+  CollectionToken,
+  GroupToken,
+  ParameterToken,
+  SeparatorToken,
   StringToken,
   Token,
-  ParameterToken,
-  GroupToken,
-  CollectionToken,
-  SeparatorToken,
 } from '../tokens';
-import { Table } from '../table';
-import { Database } from '../database';
+
 import { ColumnWrapper } from '../columns';
+import { Database } from '../database';
 import { QueryResult } from '../database/backend';
+import { Table } from '../table';
 
 export interface Tokenable {
   toTokens(): Token[];
@@ -25,7 +26,7 @@ export interface QueryState {
   parameters: any[];
 }
 
-export const createState = (tokens: Token[], currentParameterIndex: number): State => {
+export const createState = (tokens: Token[], currentParameterIndex: number = 0): State => {
   const initialState = {
     text: [],
     parameters: [],
@@ -122,10 +123,7 @@ export class Query<Db extends Database<any>, Ret, SingleRet, Tables = undefined>
   /** @internal */
   async exec(): Promise<Ret> {
     const query = this.toQuery();
-    console.log(query);
     const result = await this.db.exec(query.text, query.parameters);
-
-    console.log(result);
 
     return this.getRet(result);
   }
@@ -149,7 +147,7 @@ export class Query<Db extends Database<any>, Ret, SingleRet, Tables = undefined>
 
   /** @internal */
   toQuery(): QueryState {
-    const state = createState(this.tokens, 0);
+    const state = createState(this.tokens);
 
     return {
       text: state.text.join(' '),

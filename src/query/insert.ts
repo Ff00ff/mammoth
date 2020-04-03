@@ -1,7 +1,3 @@
-import { ColumnWrapper } from '../columns';
-import { Database } from '../database';
-import { Keyword } from '../keywords';
-import { Table } from '../table';
 import {
   CollectionToken,
   GroupToken,
@@ -11,8 +7,15 @@ import {
   Token,
 } from '../tokens';
 import { Query, Tokenable } from './base';
+
+import { ColumnWrapper } from '../columns';
+import { Database } from '../database';
+import { Keyword } from '../keywords';
+import { PartialQuery } from './partial';
 import { QueryResult } from '../database/backend';
 import { SelectQuery } from './select';
+import { Table } from '../table';
+import { toType } from '../types';
 
 export class InsertQuery<
   Db extends Database<any>,
@@ -32,12 +35,10 @@ export class InsertQuery<
   }
 
   protected getRet(result: QueryResult): Ret {
-    // TODO: we should support an array in InsertQuery#values. Based on the input we determine the output of the insert into.
     switch (this.type) {
       case `COUNT`:
         return result.count as any;
       case `ROWS`:
-        // TODO: does this support returning multiple rows when inserting multiple rows?
         return this.getRow(result.rows[0]) as any;
     }
   }
@@ -46,11 +47,6 @@ export class InsertQuery<
     key: string | number | symbol,
   ): ColumnWrapper<any, any, any, any, any> | undefined {
     return (this.table as any)[key];
-  }
-
-  defaultValues(): InsertQuery<Db, T, Row, InsertRow, UpdateRow, number, {}> {
-    this.tokens.push(new StringToken(`DEFAULT VALUES`));
-    return this as any;
   }
 
   // TODO: the return type of the query, in the object, should only contain a single field and the
@@ -69,12 +65,12 @@ export class InsertQuery<
       key => firstObject[key as keyof InsertRow] !== null,
     );
     if (keys.length === 0) {
-      if (objects.length === 1) {
-        return this.defaultValues();
+      if (objects.length > 1) {
+        throw new Error(`Cannot insert multiple rows with only default values`);
       }
 
-      // TODO: insert multiple rows with default values.
-      throw new Error(`inserting multiple rows with default values is not possible yet`);
+      this.tokens.push(new StringToken(`DEFAULT VALUES`));
+      return this as any;
     } else {
       this.tokens.push(
         new GroupToken([
@@ -94,13 +90,13 @@ export class InsertQuery<
               new GroupToken([
                 new SeparatorToken(
                   ',',
-                  keys.map(key => {
+                  keys.flatMap(key => {
                     const val = object[key as keyof InsertRow];
                     if (val instanceof Keyword) {
-                      return new StringToken(val.toSql());
+                      return val.toTokens();
                     }
 
-                    return new ParameterToken(val);
+                    return [new ParameterToken(val)];
                   }),
                 ),
               ]),
@@ -116,17 +112,21 @@ export class InsertQuery<
     return this as any;
   }
 
-  onConflict(...columnNames: (keyof Row)[]) {
+  onConflict(...columnNamesOrConstraintNames: (keyof Row | string)[]) {
     // TODO: It's also possible to specify ON CONSTRAINT :constraintName.
     this.tokens.push(
       new StringToken(`ON CONFLICT`),
       new GroupToken([
         new SeparatorToken(
           `,`,
-          columnNames
-            .map(columnName => this.getColumn(columnName))
-            .filter(column => Boolean(column))
-            .map(column => new StringToken(column!.snakeCaseName)),
+          columnNamesOrConstraintNames.map(columnNameOrConstraintName => {
+            const column = this.getColumn(columnNameOrConstraintName);
+            if (column) {
+              return new StringToken(column.snakeCaseName);
+            } else {
+              return new StringToken(columnNameOrConstraintName as string);
+            }
+          }),
         ),
       ]),
     );
@@ -142,6 +142,7 @@ export class InsertQuery<
           {
             [K in keyof InsertRow]:
               | InsertRow[K]
+              | PartialQuery
               | SelectQuery<
                   any,
                   any,
@@ -158,12 +159,14 @@ export class InsertQuery<
 
         const getValueTokens = (value: any) => {
           if (value instanceof Keyword) {
-            return new StringToken(value.toSql());
+            return value.toTokens();
           } else if (value instanceof Query) {
-            return new GroupToken(value.toTokens());
+            return [new GroupToken(value.toTokens())];
+          } else if (value instanceof PartialQuery) {
+            return value.toTokens();
           }
 
-          return new ParameterToken(value);
+          return [new ParameterToken(value)];
         };
 
         this.tokens.push(
@@ -178,7 +181,7 @@ export class InsertQuery<
                 return new CollectionToken([
                   new StringToken(column!.snakeCaseName),
                   new StringToken(`=`),
-                  getValueTokens(value),
+                  ...getValueTokens(value),
                 ]);
               }),
           ),
@@ -377,30 +380,31 @@ export class InsertQuery<
   ): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
   returning<
     A extends ColumnWrapper<any, any, any, any, any>,
-    R = { [PA in A['name']]: A['selectType'] }
+    R = { [PA in A['name']]: toType<A['selectType']> }
   >(columnA: A): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
   returning<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
-    R = { [PA in A['name']]: A['selectType'] } & { [PA in B['name']]: B['selectType'] }
+    R = { [PA in A['name']]: toType<A['selectType']> } &
+      { [PA in B['name']]: toType<B['selectType']> }
   >(columnA: A, columnB: B): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
   returning<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
     C extends ColumnWrapper<any, any, any, any, any>,
-    R = { [PA in A['name']]: A['selectType'] } &
-      { [PA in B['name']]: B['selectType'] } &
-      { [PA in C['name']]: C['selectType'] }
+    R = { [PA in A['name']]: toType<A['selectType']> } &
+      { [PA in B['name']]: toType<B['selectType']> } &
+      { [PA in C['name']]: toType<C['selectType']> }
   >(columnA: A, columnB: B, columnC: C): InsertQuery<Db, T, Row, InsertRow, UpdateRow, R, R>;
   returning<
     A extends ColumnWrapper<any, any, any, any, any>,
     B extends ColumnWrapper<any, any, any, any, any>,
     C extends ColumnWrapper<any, any, any, any, any>,
     D extends ColumnWrapper<any, any, any, any, any>,
-    R = { [PA in A['name']]: A['selectType'] } &
-      { [PA in B['name']]: B['selectType'] } &
-      { [PA in C['name']]: C['selectType'] } &
-      { [PA in D['name']]: D['selectType'] }
+    R = { [PA in A['name']]: toType<A['selectType']> } &
+      { [PA in B['name']]: toType<B['selectType']> } &
+      { [PA in C['name']]: toType<C['selectType']> } &
+      { [PA in D['name']]: toType<D['selectType']> }
   >(
     columnA: A,
     columnB: B,
@@ -413,11 +417,11 @@ export class InsertQuery<
     C extends ColumnWrapper<any, any, any, any, any>,
     D extends ColumnWrapper<any, any, any, any, any>,
     E extends ColumnWrapper<any, any, any, any, any>,
-    R = { [PA in A['name']]: A['selectType'] } &
-      { [PA in B['name']]: B['selectType'] } &
-      { [PA in C['name']]: C['selectType'] } &
-      { [PA in D['name']]: D['selectType'] } &
-      { [PA in E['name']]: E['selectType'] }
+    R = { [PA in A['name']]: toType<A['selectType']> } &
+      { [PA in B['name']]: toType<B['selectType']> } &
+      { [PA in C['name']]: toType<C['selectType']> } &
+      { [PA in D['name']]: toType<D['selectType']> } &
+      { [PA in E['name']]: toType<E['selectType']> }
   >(
     columnA: A,
     columnB: B,
@@ -432,12 +436,12 @@ export class InsertQuery<
     D extends ColumnWrapper<any, any, any, any, any>,
     E extends ColumnWrapper<any, any, any, any, any>,
     F extends ColumnWrapper<any, any, any, any, any>,
-    R = { [PA in A['name']]: A['selectType'] } &
-      { [PA in B['name']]: B['selectType'] } &
-      { [PA in C['name']]: C['selectType'] } &
-      { [PA in D['name']]: D['selectType'] } &
-      { [PA in E['name']]: E['selectType'] } &
-      { [PA in F['name']]: F['selectType'] }
+    R = { [PA in A['name']]: toType<A['selectType']> } &
+      { [PA in B['name']]: toType<B['selectType']> } &
+      { [PA in C['name']]: toType<C['selectType']> } &
+      { [PA in D['name']]: toType<D['selectType']> } &
+      { [PA in E['name']]: toType<E['selectType']> } &
+      { [PA in F['name']]: toType<F['selectType']> }
   >(
     columnA: A,
     columnB: B,
@@ -454,13 +458,13 @@ export class InsertQuery<
     E extends ColumnWrapper<any, any, any, any, any>,
     F extends ColumnWrapper<any, any, any, any, any>,
     G extends ColumnWrapper<any, any, any, any, any>,
-    R = { [P in A['name']]: A['selectType'] } &
-      { [P in B['name']]: B['selectType'] } &
-      { [P in C['name']]: C['selectType'] } &
-      { [P in D['name']]: D['selectType'] } &
-      { [P in E['name']]: E['selectType'] } &
-      { [P in F['name']]: F['selectType'] } &
-      { [P in G['name']]: G['selectType'] }
+    R = { [P in A['name']]: toType<A['selectType']> } &
+      { [P in B['name']]: toType<B['selectType']> } &
+      { [P in C['name']]: toType<C['selectType']> } &
+      { [P in D['name']]: toType<D['selectType']> } &
+      { [P in E['name']]: toType<E['selectType']> } &
+      { [P in F['name']]: toType<F['selectType']> } &
+      { [P in G['name']]: toType<G['selectType']> }
   >(
     columnA: A,
     columnB: B,
@@ -479,14 +483,14 @@ export class InsertQuery<
     F extends ColumnWrapper<any, any, any, any, any>,
     G extends ColumnWrapper<any, any, any, any, any>,
     H extends ColumnWrapper<any, any, any, any, any>,
-    R = { [PA in A['name']]: A['selectType'] } &
-      { [PA in B['name']]: B['selectType'] } &
-      { [PA in C['name']]: C['selectType'] } &
-      { [PA in D['name']]: D['selectType'] } &
-      { [PA in E['name']]: E['selectType'] } &
-      { [PA in F['name']]: F['selectType'] } &
-      { [PA in G['name']]: G['selectType'] } &
-      { [PA in H['name']]: H['selectType'] }
+    R = { [PA in A['name']]: toType<A['selectType']> } &
+      { [PA in B['name']]: toType<B['selectType']> } &
+      { [PA in C['name']]: toType<C['selectType']> } &
+      { [PA in D['name']]: toType<D['selectType']> } &
+      { [PA in E['name']]: toType<E['selectType']> } &
+      { [PA in F['name']]: toType<F['selectType']> } &
+      { [PA in G['name']]: toType<G['selectType']> } &
+      { [PA in H['name']]: toType<H['selectType']> }
   >(
     columnA: A,
     columnB: B,
@@ -507,15 +511,15 @@ export class InsertQuery<
     G extends ColumnWrapper<any, any, any, any, any>,
     H extends ColumnWrapper<any, any, any, any, any>,
     I extends ColumnWrapper<any, any, any, any, any>,
-    R = { [PA in A['name']]: A['selectType'] } &
-      { [PA in B['name']]: B['selectType'] } &
-      { [PA in C['name']]: C['selectType'] } &
-      { [PA in D['name']]: D['selectType'] } &
-      { [PA in E['name']]: E['selectType'] } &
-      { [PA in F['name']]: F['selectType'] } &
-      { [PA in G['name']]: G['selectType'] } &
-      { [PA in H['name']]: H['selectType'] } &
-      { [PA in I['name']]: I['selectType'] }
+    R = { [PA in A['name']]: toType<A['selectType']> } &
+      { [PA in B['name']]: toType<B['selectType']> } &
+      { [PA in C['name']]: toType<C['selectType']> } &
+      { [PA in D['name']]: toType<D['selectType']> } &
+      { [PA in E['name']]: toType<E['selectType']> } &
+      { [PA in F['name']]: toType<F['selectType']> } &
+      { [PA in G['name']]: toType<G['selectType']> } &
+      { [PA in H['name']]: toType<H['selectType']> } &
+      { [PA in I['name']]: toType<I['selectType']> }
   >(
     columnA: A,
     columnB: B,
@@ -538,16 +542,16 @@ export class InsertQuery<
     H extends ColumnWrapper<any, any, any, any, any>,
     I extends ColumnWrapper<any, any, any, any, any>,
     J extends ColumnWrapper<any, any, any, any, any>,
-    R = { [PA in A['name']]: A['selectType'] } &
-      { [PA in B['name']]: B['selectType'] } &
-      { [PA in C['name']]: C['selectType'] } &
-      { [PA in D['name']]: D['selectType'] } &
-      { [PA in E['name']]: E['selectType'] } &
-      { [PA in F['name']]: F['selectType'] } &
-      { [PA in G['name']]: G['selectType'] } &
-      { [PA in H['name']]: H['selectType'] } &
-      { [PA in I['name']]: I['selectType'] } &
-      { [PA in J['name']]: J['selectType'] }
+    R = { [PA in A['name']]: toType<A['selectType']> } &
+      { [PA in B['name']]: toType<B['selectType']> } &
+      { [PA in C['name']]: toType<C['selectType']> } &
+      { [PA in D['name']]: toType<D['selectType']> } &
+      { [PA in E['name']]: toType<E['selectType']> } &
+      { [PA in F['name']]: toType<F['selectType']> } &
+      { [PA in G['name']]: toType<G['selectType']> } &
+      { [PA in H['name']]: toType<H['selectType']> } &
+      { [PA in I['name']]: toType<I['selectType']> } &
+      { [PA in J['name']]: toType<J['selectType']> }
   >(
     columnA: A,
     columnB: B,

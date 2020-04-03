@@ -1,8 +1,10 @@
+import { CollectionToken, GroupToken, SeparatorToken, StringToken } from '../tokens';
+import { Query, QueryType, Tokenable } from './base';
+
+import { AliasedColumnWrapper } from './../columns';
 import { ColumnWrapper } from '../columns';
 import { Database } from '../database';
 import { Table } from '../table';
-import { CollectionToken, SeparatorToken, StringToken } from '../tokens';
-import { Tokenable, Query, QueryType } from './base';
 
 export class SelectQuery<
   Db extends Database<any>,
@@ -14,6 +16,16 @@ export class SelectQuery<
   Tables = undefined
 > extends Query<Db, Ret, SingleRet, Tables> {
   protected type: QueryType = 'ROWS';
+
+  as<T extends string>(name: T) {
+    return new AliasedColumnWrapper<
+      T,
+      unknown,
+      SingleRet extends { [_ in keyof SingleRet]: infer U } ? U : never,
+      unknown,
+      unknown
+    >(name, [new GroupToken(this.tokens)], undefined as any, undefined as any, name, name);
+  }
 
   /** @internal */
   from<T extends Table<any, any, any>>(
@@ -44,10 +56,6 @@ export class SelectQuery<
   }
 
   leftJoin<T extends Table<any>>(table: T) {
-    // TODO: this isn't rock solid yet. It's changing the return type of the columns selected from the
-    // left joined table to be undefined (as that's how it supposed to be). But, we're targeting the
-    // columns based on the name, so a collision is likely and column#as() is not supported as it doesn't
-    // change the return type.
     return this.internalJoin<
       T,
       SelectQuery<
@@ -55,18 +63,19 @@ export class SelectQuery<
         Row,
         InsertRow,
         UpdateRow,
-        // @ts-ignore
-        (Pick<Ret[number], Exclude<keyof Ret[number], keyof T['$row']>> &
-          Pick<
-            { [P in keyof T['$row']]?: T['$row'][P] },
-            // @ts-ignore
-            Extract<keyof Ret[number], keyof T['$row']>
-          >)[],
-        Pick<SingleRet, Exclude<keyof SingleRet, keyof T['$row']>> &
-          Pick<
-            { [P in keyof T['$row']]?: T['$row'][P] },
-            Extract<keyof SingleRet, keyof T['$row']>
-          >,
+        // TODO: we should change the return type to optional.
+        Ret,
+        SingleRet,
+        // (Pick<Ret[number], Exclude<keyof Ret[number], keyof T['$row']>> &
+        //   Pick<
+        //     { [P in keyof T['$row']]?: T['$row'][P] },
+        //     Extract<keyof Ret[number], keyof T['$row']>
+        //   >)[],
+        // Pick<SingleRet, Exclude<keyof SingleRet, keyof T['$row']>> &
+        //   Pick<
+        //     { [P in keyof T['$row']]?: T['$row'][P] },
+        //     Extract<keyof SingleRet, keyof T['$row']>
+        //   >,
         Tables
       >
     >('LEFT JOIN', table);

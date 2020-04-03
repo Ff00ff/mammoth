@@ -18,19 +18,6 @@ export class InternalDatabase<UserDefinedTables> {
     this.tables = tables;
     this.backend = backend;
 
-    // To avoid losing `this` when destructuring these methods from the db we explicitly bind this.
-    //
-    // ```ts
-    // const { deleteFrom } = db;
-    //
-    // await deleteFrom(item).where(item.name.eq(`Test`))
-    // ```
-    // this.insertInto.bind(this);
-    // this.deleteFrom.bind(this);
-    this.select.bind(this);
-    this.update.bind(this);
-    this.insertInto.bind(this);
-
     this.defineGetters();
   }
 
@@ -470,7 +457,7 @@ export class InternalDatabase<UserDefinedTables> {
     );
   }
 
-  deleteFrom = <T extends Table<any, any, any>>(
+  deleteFrom<T extends Table<any, any, any>>(
     table: T,
   ): DeleteQuery<
     Database<UserDefinedTables>,
@@ -480,14 +467,14 @@ export class InternalDatabase<UserDefinedTables> {
     T['$updateRow'],
     number,
     void
-  > => {
+  > {
     return new DeleteQuery(
       (this as unknown) as Database<UserDefinedTables>,
       table,
       new StringToken(`DELETE FROM`),
       new StringToken(table.getName()),
     );
-  };
+  }
 
   update<
     T extends Table<any, any, any>,
@@ -555,7 +542,8 @@ export type Schema<UserDefinedTables extends TableMap> = {
         UserDefinedTables[TableName][ColumnName]['selectType']
       >;
     },
-    // Insertable columns
+    // Insertable columns. We split the not null and nullable columns to make sure the nullable ones
+    // are optional.
     SplitOptionalAndRequired<UserDefinedTables[TableName], 'insertType'>,
     // Update -- can't we just get rid of this as this is basically the regular column types but
     // everything is optional?

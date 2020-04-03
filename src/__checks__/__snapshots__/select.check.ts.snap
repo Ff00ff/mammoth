@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should return string, Date, string, number | undefined (type) should match snapshot 1`] = `"SelectQuery<any, {}, {}, {}, ({ id: string; } & { createdAt: Date; } & { name: string; } & { value: number; })[], { id: string; } & { createdAt: Date; } & { name: string; } & { value: number; }, undefined>"`;

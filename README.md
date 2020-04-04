@@ -9,7 +9,7 @@
 [![MIT License](https://img.shields.io/github/license/ff00ff/mammoth.svg)](https://raw.githubusercontent.com/Ff00ff/mammoth/master/LICENSE)
 
 ```
-npm i @ff00ff/mammoth
+npm i @ff00ff/mammoth@1.0.0-beta.9
 ```
 
 <br/>

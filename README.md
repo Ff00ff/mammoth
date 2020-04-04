@@ -45,16 +45,20 @@ const rows = await db
 First of all it's important to define your schema. This means you have to define all your tables.
 
 ```ts
-export const list = defineTable({
-  id: uuid()
+import mammoth from '@ff00ff/mammoth';
+
+export const list = mammoth.defineTable({
+  id: mammoth
+    .uuid()
     .primary()
     .notNull()
     .default(`gen_random_uuid()`),
-  createdAt: timestamptz()
+  createdAt: mammoth
+    .timestamptz()
     .notNull()
     .default(`now()`),
-  name: text().notNull(),
-  value: integer(),
+  name: mammoth.text().notNull(),
+  value: mammoth.integer(),
 });
 ```
 
@@ -63,7 +67,9 @@ export const list = defineTable({
 Once your tables are defined you can create your database instance where you pass in all your tables.
 
 ```ts
-export const db = createDatabase(process.env.DATABASE_URL!, {
+import mammoth from '@ff00ff/mammoth';
+
+export const db = mammoth.createDatabase(process.env.DATABASE_URL!, {
   list,
 });
 ```
@@ -209,43 +215,54 @@ const result = await db.transaction(db => {
 Before Mammoth can offer type safety features you have to define the schema in Mammoth's syntax. The syntax is designed to be as close to SQL as possible.
 
 ```ts
-defineTable({
-  id: dataType(`UUID`).primary().notNull().default(`gen_random_uuid()`);
-  createdAt = dataType<Date>(`TIMESTAMP WITH TIME ZONE`).notNull().default(`NOW()`);
-  name = dataType(`TEXT`).notNull();
-  value = dataType<number>(`INTEGER`);
+import mammoth from '@ff00ff/mammoth';
+
+export const list = mammoth.defineTable({
+  id: mammoth.dataType(`UUID`).primary().notNull().default(`gen_random_uuid()`);
+  createdAt = mammoth.dataType<Date>(`TIMESTAMP WITH TIME ZONE`).notNull().default(`NOW()`);
+  name = mammoth.dataType(`TEXT`).notNull();
+  value = mammoth.dataType<number>(`INTEGER`);
 })
 ```
 
 But to make things easier, there are data type specific functions. When using auto import this should be a breeze.
 
 ```ts
-export const list = defineTable({
-  id: uuid()
+import mammoth from '@ff00ff/mammoth';
+
+export const list = mammoth.defineTable({
+  id: mammoth
+    .uuid()
     .primary()
     .notNull()
     .default(`gen_random_uuid()`),
-  createdAt: timestampWithTimeZone()
+  createdAt: mammoth
+    .timestampWithTimeZone()
     .notNull()
     .default(`NOW()`),
-  name: text().notNull(),
-  value: integer(),
+  name: mammoth.text().notNull(),
+  value: mammoth.integer(),
 });
 
-export const listItem = defineTable({
-  id: uuid()
+export const listItem = mammoth.defineTable({
+  id: mammoth
+    .uuid()
     .primary()
     .notNull()
     .default(`gen_random_uuid()`),
-  createdAt: timestampWithTimeZone()
+  createdAt: mammoth
+    .timestampWithTimeZone()
     .notNull()
     .default(`now()`),
-  listId: uuid()
+  listId: mammoth
+    .uuid()
     .notNull()
     .references(list, 'id'),
-  name: text().notNull(),
+  name: mammoth.text().notNull(),
 });
 ```
+
+Which matches the below schema in SQL.
 
 ```sql
 CREATE TABLE list (
@@ -326,12 +343,12 @@ Instead of using an `EnumColumn`, [because you cannot remove values (only add or
 `text<'ONE' | 'TWO' | 'THREE'>()`.
 
 ```ts
-export const item = defineTable({
-  id: uuid()
+export const item = mammoth.defineTable({
+  id: mammoth.uuid()
     .primaryKey()
     .notNull()
     .default(`gen_random_uuid()`),
-  value: text<'FOO' | 'BAR' | 'BAZ'>().notNull(),
+  value: mammoth.text<'FOO' | 'BAR' | 'BAZ'>().notNull(),
 });
 ```
 
@@ -339,10 +356,10 @@ Which enforces type checking of the value column in TypeScript land.
 
 ```ts
 // Allowed
-await db.insertInto(item).values({ value: `FOO` });
+await db.insertInto(db.item).values({ value: `FOO` });
 
 // Not allowed
-await db.insertInto(item).values({ value: `another string value` });
+await db.insertInto(db.item).values({ value: `another string value` });
 ```
 
 Of course it doesn't create any constraints on the database level like `enum()` is doing. If that's something you desire you should pick enum instead.

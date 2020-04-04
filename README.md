@@ -304,7 +304,15 @@ You can also write raw sql completely. This is not advised, obviously, because i
 const result = await db.sql`SELECT * FROM account WHERE account.name = ${name}`;
 ```
 
-Because type information is lost when using raw queries, you can
+Because type information is lost when using raw queries, you can pass in a type
+
+```ts
+const result = await db.sql<{ name: string }>`SELECT name FROM list`;
+
+result.rows.forEach(row => {
+  // row.name
+});
+```
 
 ### Column data type
 

@@ -5,7 +5,7 @@
   "main": "./.build/index.js",
   "types": "./.build/index.d.ts",
   "bin": {
-    "mammoth": "./bin/mammoth.js"
+    "mammoth": "./.build/cli.js"
   },
   "keywords": [
     "typescript",

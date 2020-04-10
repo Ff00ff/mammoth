@@ -17,6 +17,6 @@
     "esModuleInterop": true,
     "outDir": ".build"
   },
-  "exclude": ["node_modules", ".build"],
+  "exclude": ["node_modules", ".build", "./src/__checks__", "./src/__tests__"],
   "include": ["src"]
 }

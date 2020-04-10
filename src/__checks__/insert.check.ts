@@ -19,7 +19,7 @@ const db = createDatabase(process.env.DATABASE_URL!, {
   item,
 });
 
-// Mammoth uses complex types everywhere to create it's query builder. Even though Mammoth is
+// Mammoth uses complex types everywhere to create its query builder. Even though Mammoth is
 // covered by tests in most places, some of the features cannot be covered using traditional tests.
 // For example, it's not possible to test if something isn't allowed. So these things are easy to
 // break. To avoid things suddenly breaking, we use dts-jest which helps us assert types. This

@@ -14,7 +14,7 @@ export interface NotNull<T> {
 
 export type toNotNull<T> = T extends Null<any>
   ? NotNull<T['nullType']>
-  : T extends NotNull<ay>
+  : T extends NotNull<any>
   ? T
   : NotNull<T>;
 export type toNull<T> = T extends NotNull<any>

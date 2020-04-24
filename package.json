@@ -50,7 +50,7 @@
     "@types/minimist": "^1.2.0",
     "@types/node": "^13.7.0",
     "@types/pg": "^7.14.1",
-    "@types/uuid": "^3.4.7",
+    "@types/uuid": "^7.0.3",
     "dotenv": "^8.2.0",
     "dts-jest": "^23.0.0",
     "jest": "^25.1.0",

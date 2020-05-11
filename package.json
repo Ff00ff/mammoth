@@ -29,7 +29,7 @@
   "dependencies": {
     "lodash": "^4.17.15",
     "minimist": "^1.2.2",
-    "pg": "^7.18.1",
+    "pg": "^8.1.0",
     "utility-types": "^3.10.0"
   },
   "jest": {

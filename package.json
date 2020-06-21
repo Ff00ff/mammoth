@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.15",
-    "minimist": "^1.2.2",
+    "minimist": "^1.2.3",
     "pg": "^8.2.1",
     "utility-types": "^3.10.0"
   },

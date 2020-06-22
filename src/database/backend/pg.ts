@@ -1,17 +1,24 @@
 import { Pool } from 'pg';
-import type { PoolConfig, PoolClient } from 'pg';
+import type { PoolClient } from 'pg';
 import { Backend, QueryResult } from './backend';
-import url from 'url';
 
 export {
   PoolClient
+};
+
+type Options = StandardOptions | SharedPoolOptions | TransactionOptions;
+
+export interface StandardOptions {
+  debug?: boolean;
+  connectionString: string;
+  pool?: never;
+  client?: never;
 }
 
-type Options = StandardOptions | TransactionOptions;
-
-interface StandardOptions {
+export interface SharedPoolOptions {
   debug?: boolean;
-  databaseUrl: string;
+  pool: Pool;
+  connectionString?: never;
   client?: never;
 }
 
@@ -25,43 +32,31 @@ export class PgBackend implements Backend {
   private debug!: boolean;
 
   private init(options: Options) {
-    if (!options.client) {
-      const { auth, hostname, port, pathname } = url.parse(options.databaseUrl);
-      const [user, password] = (auth || '').split(':');
-
-      const config: PoolConfig = {
-        user,
-        password,
-        host: hostname || undefined,
-        port: parseInt(port || '5432', 10),
-        database: (pathname || '').slice(1),
-        ssl:
-          process.env.NODE_ENV !== `test` &&
-          !process.env.MAMMOTH_DISABLE_SSL &&
-          process.env.PGSSLROOTCERT
-            ? {
-                // sslmode: 'verify-full',
-                // sslrootcert: process.env.PGSSLROOTCERT,
-              }
-            : false,
-      };
-
-      this.client = new Pool(config);
-    } else {
+    if (!options.client && options.pool) {
+      this.client = options.pool;
+    } else if(!options.client && options.connectionString){
+    this.client = new Pool({connectionString: options.connectionString});
+    }else if(options.client){
       this.client = options.client;
     }
 
+    //assert that client is set?
     this.debug = options.debug || false;
   }
 
-  constructor(databaseUrlOrOptions: string | Options) {
-    if (typeof databaseUrlOrOptions === `string`) {
+  constructor(options: string | Options | Pool) {
+    if (typeof options === `string`) {
       this.init({
         debug: false,
-        databaseUrl: databaseUrlOrOptions,
+        connectionString: options,
       });
-    } else {
-      this.init(databaseUrlOrOptions);
+    } else if (("connectionString" in options) || ("pool" in options) || ("client" in options)) {
+      this.init(options)
+    }else {
+      this.init({
+        debug: false,
+        pool: options
+      });
     }
   }
 

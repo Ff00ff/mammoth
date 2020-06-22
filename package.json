@@ -29,7 +29,7 @@
   "dependencies": {
     "lodash": "^4.17.15",
     "minimist": "^1.2.2",
-    "pg": "^7.18.1",
+    "pg": "^8.2.1",
     "utility-types": "^3.10.0"
   },
   "jest": {
@@ -45,19 +45,19 @@
     }
   },
   "devDependencies": {
-    "@types/jest": "^25.1.2",
+    "@types/jest": "^26.0.0",
     "@types/lodash": "^4.14.149",
     "@types/minimist": "^1.2.0",
-    "@types/node": "^13.7.0",
+    "@types/node": "^14.0.13",
     "@types/pg": "^7.14.1",
-    "@types/uuid": "^3.4.7",
+    "@types/uuid": "^8.0.0",
     "dotenv": "^8.2.0",
     "dts-jest": "^23.0.0",
-    "jest": "^25.1.0",
-    "prettier": "^1.19.1",
-    "ts-jest": "^25.2.0",
+    "jest": "^26.0.1",
+    "prettier": "^2.0.5",
+    "ts-jest": "^26.1.0",
     "ts-node": "^8.6.2",
     "typescript": "^3.8.3",
-    "uuid": "^3.4.0"
+    "uuid": "^8.1.0"
   }
 }

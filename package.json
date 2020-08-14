@@ -27,7 +27,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.20",
     "minimist": "^1.2.2",
     "pg": "^8.2.1",
     "utility-types": "^3.10.0"

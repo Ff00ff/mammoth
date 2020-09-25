@@ -328,8 +328,8 @@ result.rows.forEach(row => {
 | enum()                     | _Creates an enum type_      |
 | integer()                  | INTEGER                     |
 | interval()                 | INTERVAL                    |
-| jsonb\<T>()                 | JSONB                       |
-| json\<T>()                  | JSON                        |
+| jsonb\<T>()                | JSONB                       |
+| json\<T>()                 | JSON                        |
 | money()                    | MONEY                       |
 | number()                   | IntegerColumn               |
 | serial()                   | SERIAL                      |

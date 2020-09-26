@@ -328,14 +328,14 @@ result.rows.forEach(row => {
 | enum()                     | _Creates an enum type_      |
 | integer()                  | INTEGER                     |
 | interval()                 | INTERVAL                    |
-| jsonb<T>()                 | JSONB                       |
-| json<T>()                  | JSON                        |
+| jsonb\<T>()                | JSONB                       |
+| json\<T>()                 | JSON                        |
 | money()                    | MONEY                       |
 | number()                   | IntegerColumn               |
 | serial()                   | SERIAL                      |
 | string()                   | TextColumn                  |
 | text()                     | TEXT                        |
-| text<T>()                  | TEXT                        |
+| text\<T>()                 | TEXT                        |
 | time()                     | TIME                        |
 | timestamp()                | TIMESTAMP                   |
 | timestampWithoutTimeZone() | TIMESTAMP WITHOUT TIME ZONE |

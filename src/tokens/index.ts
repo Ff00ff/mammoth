@@ -1,4 +1,5 @@
 export * from './collection-token';
+export * from './empty-token';
 export * from './group-token';
 export * from './no-space-token';
 export * from './parameter-token';

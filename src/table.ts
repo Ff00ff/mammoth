@@ -1,74 +1,105 @@
-import { Column, toSnakeCase, ColumnWrapper } from './columns';
+// type InternalTab<TableDefinitionName> = Nominal<TableDefinitionName>;
 
-export class TableType {
-  [columnName: string]: Column<any>;
+import { Column, ColumnDefinition, makeColumn } from './column';
+import { internalColumnData, internalTableData } from './data';
+
+import { toSnakeCase } from './naming/snake-case';
+
+export type Table<TableName, Columns> = InternalTable<TableName, Columns> & Columns;
+
+interface InternalTable<TableName, Columns> {
+  // Because we use the column's table name to determine whether the data type should be nullable
+  // when joining, we change the column's table name to the alias.
+  as<T>(
+    alias: T,
+  ): Table<
+    T,
+    {
+      [K in keyof Columns]: Columns[K] extends Column<
+        infer Name,
+        string,
+        infer DataType,
+        infer IsNotNull,
+        infer HasDefault,
+        infer JoinType
+      >
+        ? Column<Name, T, DataType, IsNotNull, HasDefault, JoinType>
+        : never;
+    }
+  >;
 }
 
-export class Table<Row, InsertRow = Row, UpdateRow = Row> {
-  private readonly $name: string;
-  private readonly $columnNames: ReadonlyArray<keyof Row>;
-  private readonly $userDefinedTable: TableType;
+const makeTable = <
+  TableName extends string,
+  TableDefinition extends { [column: string]: ColumnDefinition<any, any, any> }
+>(
+  tableName: TableName,
+  originalTableName: string | undefined,
+  tableDefinition: TableDefinition,
+) => {
+  const columnNames = Object.keys(
+    (tableDefinition as unknown) as object,
+  ) as (keyof TableDefinition)[];
 
-  [`*`]: keyof Row;
-  $row: Row;
-  $insertRow: InsertRow;
-  $updateRow: UpdateRow;
-
-  constructor(userDefinedTable: TableType, name: string) {
-    this.$userDefinedTable = userDefinedTable;
-    this.$name = toSnakeCase(name);
-    this.$columnNames = Object.keys(userDefinedTable) as (keyof Row)[];
-    this[`*`] = `${this.$name}.*` as any;
-
-    const self = this as any;
-    this.$columnNames.forEach(camelCaseName => {
-      const column = userDefinedTable[camelCaseName as string];
-      if (!(column instanceof Column)) {
-        throw new Error(`Invalid column at ${name}#${camelCaseName}`);
+  const columns = columnNames.reduce(
+    (map, columnName) => {
+      const column = makeColumn(columnName as string, tableName, undefined) as any;
+      internalColumnData.set(column, {
+        snakeCaseName: toSnakeCase(columnName as string),
+      });
+      map[columnName] = column;
+      return map;
+    },
+    {} as Table<
+      TableName,
+      {
+        [K in keyof TableDefinition]: Column<
+          K,
+          TableName,
+          TableDefinition[K] extends ColumnDefinition<infer DataType, any, any> ? DataType : never,
+          TableDefinition[K] extends ColumnDefinition<any, infer IsNotNull, any>
+            ? IsNotNull
+            : never,
+          TableDefinition[K] extends ColumnDefinition<any, any, infer HasDefault>
+            ? HasDefault
+            : never,
+          undefined
+        >;
       }
+    >,
+  );
 
-      const snakeCaseName = column.getSnakeCaseName(camelCaseName as string);
+  const table = {
+    ...columns,
+    as<T extends string>(alias: T) {
+      return makeTable(alias, tableName, tableDefinition) as any;
+    },
+  };
+  internalTableData.set(table, {
+    name: tableName,
+    originalName: originalTableName,
+  });
+  return table;
+};
 
-      if (self[camelCaseName]) {
-        throw new Error(
-          `Column \`${camelCaseName}\` in table \`${name}\` collides with property of the same name in TableWrapper class.`,
-        );
-      }
-
-      // TODO: change ColumnWrapper to Column instead ?!
-      self[camelCaseName] = new ColumnWrapper(this, column, camelCaseName as string, snakeCaseName);
-    });
-
-    this.$row = undefined as any;
-    this.$insertRow = undefined as any;
-    this.$updateRow = undefined as any;
+export const defineTable = <
+  T extends { [column: string]: ColumnDefinition<any, any, any> },
+  TableName extends string
+>(
+  tableName: TableName,
+  tableDefinition: T,
+): Table<
+  TableName,
+  {
+    [K in keyof T]: Column<
+      K,
+      TableName,
+      T[K] extends ColumnDefinition<infer DataType, any, any> ? DataType : never,
+      T[K] extends ColumnDefinition<any, infer IsNotNull, any> ? IsNotNull : never,
+      T[K] extends ColumnDefinition<any, any, infer HasDefault> ? HasDefault : never,
+      undefined
+    >;
   }
-
-  init(db: any) {
-    this.$columnNames.forEach(columnName => {
-      const column = this.$userDefinedTable[columnName as string];
-
-      column.createReference(db);
-    });
-  }
-
-  /** @internal */
-  getUserDefinedTable() {
-    return this.$userDefinedTable;
-  }
-
-  /** @internal */
-  getColumns() {
-    return this.$columnNames.map(columnName => this.getColumn(columnName)!);
-  }
-
-  /** @internal */
-  getColumn(columnName: string | symbol | number): ColumnWrapper<any, any, any, any, any> {
-    return (this as any)[columnName];
-  }
-
-  /** @internal */
-  getName() {
-    return this.$name;
-  }
-}
+> => {
+  return makeTable(tableName, undefined, tableDefinition) as any;
+};

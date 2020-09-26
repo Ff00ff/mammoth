@@ -1,5 +1,4 @@
-import { createState, State } from '../query/base';
-import { Token } from './token';
+import { State, Token, createQueryState } from './token';
 
 export class CollectionToken extends Token {
   tokens: Token[];
@@ -11,7 +10,7 @@ export class CollectionToken extends Token {
   }
 
   reduce(state: State, numberOfParameters: number) {
-    const tokensState = createState(this.tokens, numberOfParameters);
+    const tokensState = createQueryState(this.tokens, numberOfParameters);
     state.parameters.push(...tokensState.parameters);
     state.text.push(...tokensState.text);
     return state;

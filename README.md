@@ -1,40 +1,102 @@
-> This is `mammoth@next` which is available as beta in npm only. Switch to [mammoth@master](https://github.com/Ff00ff/mammoth/tree/master) to see the latest non-beta version.
+> This is `mammoth@next` which just had a major revamp. I'm about to publish a blog post with some more info. This will move to master soon.
 
 ![Mammoth](https://s3-eu-west-1.amazonaws.com/mammoth-static.ff00ff.nl/mammoth-logo.png)
 
-# Mammoth: A type-safe Postgres query builder for TypeScript.
+# Mammoth: A type-safe Postgres query builder pur sang for TypeScript.
 
-[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fff00ff%2Fmammoth%2Fbadge%3Fref%3Dnext&style=flat)](https://actions-badge.atrox.dev/ff00ff/mammoth/goto?ref=next)
-[![Coverage Status](https://coveralls.io/repos/github/Ff00ff/mammoth/badge.svg?branch=next)](https://coveralls.io/github/Ff00ff/mammoth?branch=next)
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fff00ff%2Fmammoth%2Fbadge%3Fref%3Dmaster&style=flat)](https://actions-badge.atrox.dev/ff00ff/mammoth/goto?ref=master)
+[![Coverage Status](https://coveralls.io/repos/github/Ff00ff/mammoth/badge.svg?branch=master)](https://coveralls.io/github/Ff00ff/mammoth?branch=master)
 [![MIT License](https://img.shields.io/github/license/ff00ff/mammoth.svg)](https://raw.githubusercontent.com/Ff00ff/mammoth/master/LICENSE)
 
 ```
-npm i @ff00ff/mammoth@1.0.0-beta.9
+npm i @ff00ff/mammoth@1.0.0-rc.1
 ```
 
 <br/>
 
-Mammoth is a type-safe query builder. It only supports Postgres which we consider a feature. It's syntax is as close to SQL as possible so you already know how to use it. It's autocomplete features are great. It helps you avoid mistakes so you can develop applications faster. It comes with all features you need to create production ready apps.
+Mammoth is a type-safe query builder. It only supports Postgres which we consider a feature. It's syntax is as close to SQL as possible so you already know how to use it. It's autocomplete features are great. It helps you avoid mistakes so you can develop applications faster.
 
 ```ts
 const rows = await db
-  .select(db.list.id, db.list.createdAt)
-  .from(db.list)
-  .where(db.list.createdAt.gt(now().minus(days(2))).or(db.list.value.eq(0)))
-  .limit(10);
+  .select(foo.id, bar.name)
+  .from(foo)
+  .leftJoin(bar)
+  .on(foo.barId.eq(bar.id))
+  .where(foo.id.eq(`1`));
 ```
 
----
+The above query produces the following SQL:
 
-## Features
+```sql
+SELECT
+  foo.id,
+  bar.name
+FROM foo
+LEFT JOIN bar ON (foo.bar_id = bar.id)
+WHERE
+  foo.id = $1
+```
 
-- Type-safe query builder
-- Supports Postgres only
-- Excellent autocomplete
-- Transactions
-- Connection pooling
-- Automatic camelCase to/from snake_case conversion
-- No build step or watch needed
+More importantly, the resulting type of rows is `{ id: string; name: string | undefined }[]`. Notice how the name is automatically nullable because of the left join.
+
+### Query examples
+
+<details>
+  <summary>Basic update</summary>
+
+```ts
+const updateCount = await db.update(foo).set({ name: `Test` }).where(foo.value.gt(0));
+```
+
+```sql
+UPDATE foo
+SET
+  name = $1
+WHERE
+  value > $2
+```
+
+</details>
+
+<details>
+  <summary>Basic insert</summary>
+
+```ts
+const rows = await db
+  .insertInto(foo)
+  .values({
+    name: `Test`,
+    value: 123,
+  })
+  .returning(`id`);
+```
+
+```sql
+INSERT INTO foo (
+  name,
+  value
+) VALUES (
+  $1,
+  $2
+)
+RETURNING
+  id
+```
+
+</details>
+
+<details>
+  <summary>Insert into select</summary>
+
+```ts
+const affectedCount = await db
+  .insertInto(foo, ['name'])
+  .select(bar.name)
+  .from(bar)
+  .where(bar.name.isNotNull());
+```
+
+</details>
 
 ---
 
@@ -42,277 +104,93 @@ const rows = await db
 
 ### Quick start
 
-First of all it's important to define your schema. This means you have to define all your tables.
+Mammoth is a query builder pur sang so it doesn't include a database driver. You need to create a db and pass a callback to execute the query.
 
 ```ts
-import mammoth from '@ff00ff/mammoth';
+import { defineDb } from '@ff00ff/mammoth';
 
-export const list = mammoth.defineTable({
-  id: mammoth
-    .uuid()
-    .primary()
-    .notNull()
-    .default(`gen_random_uuid()`),
-  createdAt: mammoth
-    .timestamptz()
-    .notNull()
-    .default(`now()`),
-  name: mammoth.text().notNull(),
-  value: mammoth.integer(),
+const db = defineDb(async (query, parameters) => {
+  const result = await pool.query(query, parameters);
+
+  return {
+    affectedRowCount: result.rowCount,
+    rows: result.rows,
+  };
 });
 ```
 
-> For now, it's only possible to define tables. But in the future you'll be able to define other types likes indices, functions, triggers, etc.
-
-Once your tables are defined you can create your database instance where you pass in all your tables.
+To
 
 ```ts
-import mammoth from '@ff00ff/mammoth';
-
-export const db = mammoth.createDatabase(process.env.DATABASE_URL!, {
-  list,
+const foo = defineTable(`foo`, {
+  id: uuid().primaryKey().default(`gen_random_id()`),
+  createDate: timestampWithTimeZone().notNull().default(`now()`),
+  name: text().notNull(),
+  value: integer(),
 });
 ```
 
-Using your database instance you can access Mammoth's type safe query builder. Your db instance is a singleton which you can share throughout your app.
+> You should keep your column names camelCase in the defineTable call as they are automatically transformed to train_case throughout Mammoth.
 
-```ts
-const rows = await db
-  .select(db.list.id, db.list.createdAt)
-  .from(db.list)
-  .where(db.list.createdAt.gt(now().minus(days(2))).or(db.list.value.eq(0)))
-  .limit(10);
-```
+## Compatibility
 
-```sql
-SELECT list.id, list.created_at FROM list WHERE list.created_at > NOW() - $1::interval OR list.value = $2 LIMIT 10;
-```
+Below is a list of clauses per query and a short description on what we Mammoth supports.
 
-_A select should not require declaring an additional interface explicitly._
+<details>
+  <summary>SELECT</summary>
 
-The type of rows is automatically derived from the table. `.notNull()` columns are automatically required and the other columns are all optional.
+- [ WITH [ RECURSIVE ] with_query [, ...] ] — Not supported yet
+- SELECT [ ALL | DISTINCT [ ON ( expression [, ...] ) ] ] — Mostly supported. Distinct not yet.
+- [ \* | expression [ [ AS ] output_name ] [, ...] ] — mostly supported. Selecting certain expressions like update queries, insert and delete queries are not supported yet. Select queries are though.
+- [ FROM from_item [, ...] ] — partially supported. Only 1 table is currently supported in the from.
+- [ WHERE condition ] — mostly supported. The condition concept is pretty broad but it should contain a lot of cases.
+- [ GROUP BY grouping_element [, ...] ] — supported.
+- [ HAVING condition [, ...] ] — supported.
+- [ WINDOW window_name AS ( window_definition ) [, ...] ] — not supported.
+- [ { UNION | INTERSECT | EXCEPT } [ ALL | DISTINCT ] select ] — not supported yet
+- [ ORDER BY expression [ ASC | DESC | USING operator ] [ NULLS { FIRST | LAST } ] [, ...] ] — supported, but expressions are pretty broad and there might be cases not covered yet.
+- [ LIMIT { count | ALL } ] — supported.
+- [ OFFSET start [ ROW | ROWS ] ] — supported.
+- [ FETCH { FIRST | NEXT } [ count ] { ROW | ROWS } ONLY ] — supported
+- [ FOR { UPDATE | NO KEY UPDATE | SHARE | KEY SHARE } [ OF table_name [, ...] ] [ NOWAIT | SKIP LOCKED ] [...] ] — supported
 
-```ts
-const rows: {
-  id: string;
-  createdAt: Date;
-}[];
-```
+</details>
 
-### Update
+<details>
+  <summary>UPDATE</summary>
 
-When executing an update query, by default, the return type is `number` which indicates the number of affected rows.
+- [ WITH [ RECURSIVE ] with_query [, ...] ] — not supported yet.
+- UPDATE [ ONLY ] table_name [ * ] [ [ AS ] alias ] — supported
+- SET { column_name = { expression | DEFAULT } | — supported, but expression concept is very broad and might be incomplete
+- ( column_name [, ...] ) = [ ROW ] ( { expression | DEFAULT } [, ...] ) | — supported, but expression concept is very broad and might be incomplete in some cases
+- ( column_name [, ...] ) = ( sub-SELECT ) — not supported
+- } [, ...]
+- [ FROM from_item [, ...] ] — partially supported. Only 1 table as from item is supported
+- [ WHERE condition | WHERE CURRENT OF cursor_name ] — supported, but the condition concept is very broad and is incomplete in some cases.
+- [ RETURNING \* | output_expression [ [ AS ] output_name ] [, ...] ] — supported, but up to 10 expressions
 
-```ts
-const numberOfUpdates = await db
-  .update(db.list)
-  .set({
-    name: `New Name`,
-  })
-  .where(db.list.id.eq(`acb82ff3-3311-430e-9d1d-8ff600abee31`));
-```
+</details>
 
-```sql
-UPDATE list SET name = $1 WHERE list.id = $2
-```
+<details>
+  <summary>DELETE</summary>
 
-But when you use `.returning(..)` the return type is changed to an array of rows.
+- [ WITH [ RECURSIVE ] with_query [, ...] ] — not supported yet
+- DELETE FROM [ ONLY ] table_name [ * ] [ [ AS ] alias ] — supported
+- [ USING from_item [, ...] ] — supported
+- [ WHERE condition | WHERE CURRENT OF cursor_name ] — supported, but the condition concept is very broad and might be incomplete
+- [ RETURNING \* | output_expression [ [ AS ] output_name ] [, ... ] ] — supported, but up to 10 expressions
+</details>
 
-```ts
-// { id: string }[]
-const rows = await db
-  .update(db.list)
-  .set({
-    name: `New Name`,
-  })
-  .where(db.list.id.eq(`acb82ff3-3311-430e-9d1d-8ff600abee31`))
-  .returning(`id`);
-```
+<details>
+  <summary>INSERT</summary>
 
-```sql
-UPDATE list SET name = $1 WHERE list.id = $2 RETURNING id
-```
-
-### Insert
-
-To insert a row you only have to specify the `.notNull()` without a `.default()`. The other columns are optional.
-
-```ts
-const numberOfRows = await db.insertInto(db.list).values({
-  name: `My List`,
-});
-```
-
-```sql
-INSERT INTO list (name) VALUES ($1)
-```
-
-> In an earlier version of Mammoth you still had to pass `undefined` for nullable columns, but with some type magic this is now fixed!
-
-Again, if you use `.returning(..)` the return type is changed automatically.
-
-```ts
-// { id: string, createdAt: Date, name: string }
-const list = await db
-  .insertInto(db.list)
-  .values({
-    name: `My List`,
-  })
-  .returning(`id`, `createdAt`, `name`);
-```
-
-```sql
-INSERT INTO list (name) VALUES ($1) RETURNING id, created_at, name
-```
-
-If you insert an array of rows and you use the `.returning(..)` the return type will change to an array as well.
-
-```ts
-// { id: string, createdAt: Date, name: string }[]
-const lists = await db
-  .insertInto(db.list)
-  .values([
-    {
-      name: `List #1`,
-    },
-    {
-      name: `List #2`,
-    },
-  ])
-  .returning(`id`, `createdAt`, `name`);
-```
-
-```sql
-INSERT INTO list (name) VALUES ($1), ($2) RETURNING id, created_at, name;
-```
-
-### Transactions
-
-You can call `transaction(callback)` which begins a transaction and depending on the promise you return in the transaction will commit or rollback the transaction.
-
-It's important you use the `db` passed in the transaction's callback, if not, you're effectively executing statements outside the transaction.
-
-```ts
-const result = await db.transaction(db => {
-  const row = await db
-    .insertInto(db.list)
-    .values({
-      name: `My List`,
-    })
-    .returning(`id`);
-
-  await db.insertInto(db.listItem).values({
-    listId: row.id,
-    name: `My Item`,
-  });
-
-  return row;
-});
-```
-
-### Schema
-
-Before Mammoth can offer type safety features you have to define the schema in Mammoth's syntax. The syntax is designed to be as close to SQL as possible.
-
-```ts
-import mammoth from '@ff00ff/mammoth';
-
-export const list = mammoth.defineTable({
-  id: mammoth.dataType(`UUID`).primary().notNull().default(`gen_random_uuid()`);
-  createdAt = mammoth.dataType<Date>(`TIMESTAMP WITH TIME ZONE`).notNull().default(`NOW()`);
-  name = mammoth.dataType(`TEXT`).notNull();
-  value = mammoth.dataType<number>(`INTEGER`);
-})
-```
-
-But to make things easier, there are data type specific functions. When using auto import this should be a breeze.
-
-```ts
-import mammoth from '@ff00ff/mammoth';
-
-export const list = mammoth.defineTable({
-  id: mammoth
-    .uuid()
-    .primary()
-    .notNull()
-    .default(`gen_random_uuid()`),
-  createdAt: mammoth
-    .timestampWithTimeZone()
-    .notNull()
-    .default(`NOW()`),
-  name: mammoth.text().notNull(),
-  value: mammoth.integer(),
-});
-
-export const listItem = mammoth.defineTable({
-  id: mammoth
-    .uuid()
-    .primary()
-    .notNull()
-    .default(`gen_random_uuid()`),
-  createdAt: mammoth
-    .timestampWithTimeZone()
-    .notNull()
-    .default(`now()`),
-  listId: mammoth
-    .uuid()
-    .notNull()
-    .references(list, 'id'),
-  name: mammoth.text().notNull(),
-});
-```
-
-Which matches the below schema in SQL.
-
-```sql
-CREATE TABLE list (
-  id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  name TEXT NOT NULL,
-  value INTEGER
-);
-
-CREATE TABLE list_item (
-  id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  list_id UUID NOT NULL REFERENCES list (id),
-  name TEXT NOT NULL
-);
-```
-
-> We want to avoid a build step (even if there is some smart watch going on) so the schema must be defined in TypeScript.
-
-### Migrations
-
-The accompanying `mammoth-cli` helps you generate migrations based on your schema and existing migrations.
-
-### Raw queries
-
-When a new keyword is introduced in Postgres which you want to use badly but is not supported in this library yet, you can always fall back to raw sql. You can mix the type-safe functions with raw sql:
-
-```ts
-db.select(db.list.id).from(db.list).append`MAGIC NEW ORDER BY`;
-```
-
-```sql
-SELECT list.id FROM list MAGIC NEW ORDER BY
-```
-
-You can also write raw sql completely. This is not advised, obviously, because it defeats the whole purpose of this library.
-
-```ts
-const result = await db.sql`SELECT * FROM account WHERE account.name = ${name}`;
-```
-
-Because type information is lost when using raw queries, you can pass in a type
-
-```ts
-const result = await db.sql<{ name: string }>`SELECT name FROM list`;
-
-result.rows.forEach(row => {
-  // row.name
-});
-```
+- [ WITH [ RECURSIVE ] with_query [, ...] ] — not supported
+- INSERT INTO table_name [ AS alias ] [ ( column_name [, ...] ) ] — supported
+- [ OVERRIDING { SYSTEM | USER } VALUE ] — not supported
+- { DEFAULT VALUES | VALUES ( { expression | DEFAULT } [, ...] ) [, ...] | query } - supported, but expression is a broad concept and may not be complete
+- [ ON CONFLICT [ conflict_target ] conflict_action ] — supported
+- [ RETURNING \* | output_expression [ [ AS ] output_name ] [, ...] ] — supported, but limited to 10 expressions
+</details>
 
 ### Column data type
 
@@ -325,7 +203,6 @@ result.rows.forEach(row => {
 | citext()                   | CITEXT                      |
 | date()                     | DATE                        |
 | decimal()                  | DECIMAL                     |
-| enum()                     | _Creates an enum type_      |
 | integer()                  | INTEGER                     |
 | interval()                 | INTERVAL                    |
 | jsonb\<T>()                | JSONB                       |
@@ -344,62 +221,9 @@ result.rows.forEach(row => {
 | timeWithTimeZone()         | TIME WITH TIME ZONE         |
 | uuid()                     | UUID                        |
 
-### Enum alternative
+## Contribute
 
-Instead of using an `EnumColumn`, [because you cannot remove values (only add or rename)](https://www.postgresql.org/docs/current/sql-altertype.html), you can also opt to use a
-`text<T>()` which allows enforcing a type in your application e.g.
-`text<'ONE' | 'TWO' | 'THREE'>()`.
-
-```ts
-export const item = mammoth.defineTable({
-  id: mammoth.uuid()
-    .primaryKey()
-    .notNull()
-    .default(`gen_random_uuid()`),
-  value: mammoth.text<'FOO' | 'BAR' | 'BAZ'>().notNull(),
-});
-```
-
-Which enforces type checking of the value column in TypeScript land.
-
-```ts
-// Allowed
-await db.insertInto(db.item).values({ value: `FOO` });
-
-// Not allowed
-await db.insertInto(db.item).values({ value: `another string value` });
-```
-
-Of course it doesn't create any constraints on the database level like `enum()` is doing. If that's something you desire you should pick enum instead.
-
-### Documents & JSON(B)
-
-You can use `jsonb<T>()` to store json data. By using the `T` parameter you can specify the
-type e.g. `jsonb<{ foo: number }>()`. This makes it easier to work with json columns.
-
-> There is currently limited support for the different json(b) functions and operators. This is planned for a next release.
-
-You do need to be careful when your type needs to evolve (change).
-
-## Contribute / Set up locally
-
-To contribute to this library, you first need to do a few things to get set up.
-
-First make sure you have a test postgres database. For example, `mammoth_test`:
-
-    $ createdb mammoth_test
-
-If you installed postgres using homebrew, make sure you have a postgres user named `postgres`. You can create one using this command: `createuser -s postgres`
-
-Finally, make sure all the tests run and pass before making any changes. Create a `.env` file with the following contents.
-
-```
-DATABASE_URL=postgres://postgres@localhost/mammoth_test
-```
-
-> Replace the database url connection string with a string to your local database
-
-    $ yarn test
+Once you clone the repo, do a `npm install` you should be able to run `npm test` seeing everything turn green. Feel free to pick up one of the open issues — in particular you can pick up one labeled with "good first issue". Be sure to claim the issue before you start so we avoid two or more people working on the same thing.
 
 ---
 

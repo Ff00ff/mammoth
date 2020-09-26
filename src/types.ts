@@ -1,56 +1,68 @@
-import { ColumnWrapper } from './columns';
-import { PickByValue } from 'utility-types';
+import { Column } from './column';
+import { DeleteQuery } from './delete';
+import { InsertQuery } from './insert';
+import { NamedExpression } from './expression';
+import { SelectQuery } from './select';
+import { UpdateQuery } from './update';
 
-// These types are used to switch between optional and required properties. Because these are
-// specific types it's possible to use TypeScript's condition types feature to map nullable columns
-// to optional keys.
-export interface Null<T> {
-  nullType: T;
+export type ResultType = 'ROWS' | 'AFFECTED_COUNT';
+
+export type PickByValue<T, ValueType> = Pick<
+  T,
+  {
+    [Key in keyof T]-?: T[Key] extends ValueType ? Key : never;
+  }[keyof T]
+>;
+
+export type Query =
+  | SelectQuery<any>
+  | UpdateQuery<any, any>
+  | InsertQuery<any, any>
+  | DeleteQuery<any, any>;
+
+type GetColumnDataType<C> = C extends Column<any, any, infer DataType, infer IsNotNull, any, any>
+  ? IsNotNull extends true
+    ? DataType
+    : DataType | undefined
+  : never;
+
+export type GetReturning<TableColumns, ColumnName extends keyof TableColumns> = {
+  [K in ColumnName]: GetColumnDataType<TableColumns[K]>;
+};
+
+class DataType<Type, IsNull> {
+  private _!: Type & IsNull;
 }
 
-export interface NotNull<T> {
-  notNullType: T;
-}
-
-export type toNotNull<T> = T extends Null<any>
-  ? NotNull<T['nullType']>
-  : T extends NotNull<any>
-  ? T
-  : NotNull<T>;
-export type toNull<T> = T extends NotNull<any>
-  ? Null<T['notNullType']>
-  : T extends Null<any>
-  ? T
-  : Null<T>;
-export type toType<T> = T extends never
-  ? never
-  : T extends NotNull<any>
-  ? T['notNullType']
-  : T extends Null<any>
-  ? T['nullType'] | undefined | null
-  : T;
-
-export type toTypeWithNull<T> = T extends NotNull<any>
-  ? T['notNullType']
-  : T extends Null<any>
-  ? null | undefined
-  : T;
-
-export type TypeOf<T> = {
-  [K in keyof T]?: toType<T[K]>;
-};
-
-export type TypeOfNotNullable<T> = {
-  [K in keyof T]: toType<T[K]>;
-};
-
-export type Nullable<T> = {
-  // To make sure explicitly passing null is allowed as well
-  [P in keyof T]?: T[P] | null | undefined;
-};
-
-export type SplitOptionalAndRequired<
-  Table extends { [columnName: string]: ColumnWrapper<any, any, any, any, any> },
-  ColumnType extends 'insertType' | 'selectType' | 'updateType'
-> = Nullable<TypeOf<PickByValue<{ [K in keyof Table]: Table[K][ColumnType] }, Null<any>>>> &
-  TypeOfNotNullable<PickByValue<{ [K in keyof Table]: Table[K][ColumnType] }, NotNull<any>>>;
+export type ResultSet<T extends Query> = T extends SelectQuery<infer Selectables>
+  ? {
+      [K in keyof Selectables]: Selectables[K] extends Column<
+        any,
+        any,
+        infer D,
+        infer N,
+        any,
+        infer JoinType
+      >
+        ? Extract<JoinType, 'left-join'> extends never
+          ? Extract<JoinType, 'left-side-of-right-join'> extends never
+            ? Extract<JoinType, 'full-join'> extends never
+              ? N extends true
+                ? DataType<D, true>
+                : DataType<D, false>
+              : DataType<D, false>
+            : DataType<D, false>
+          : DataType<D, false>
+        : Selectables[K] extends NamedExpression<any, infer D, infer IsNotNull>
+        ? DataType<D, IsNotNull>
+        : Selectables[K] extends SelectQuery<{}>
+        ? ResultSet<Selectables[K]>[keyof ResultSet<Selectables[K]>]
+        : never;
+    }
+  : T extends UpdateQuery<any, infer C>
+  ? C
+  : T extends InsertQuery<any, infer C>
+  ? C
+  : T extends DeleteQuery<any, infer C>
+  ? C
+  : never;

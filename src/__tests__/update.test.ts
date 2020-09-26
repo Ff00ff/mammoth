@@ -1,56 +1,31 @@
-import { uuid, timestamptz, text, integer } from './../columns/dataTypes';
-import { defineTable } from '../defines';
-import { createDatabase } from '../database';
-import { now } from '../keywords';
+import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
+
+import { toSnap } from './helpers';
 
 describe(`update`, () => {
-  const itemTable = defineTable({
-    id: uuid()
-      .primary()
-      .notNull()
-      .default(`gen_random_uuid()`),
-    createdAt: timestamptz()
-      .notNull()
-      .default(now()),
+  const foo = defineTable(`foo`, {
+    id: uuid().primaryKey().default(`gen_random_id()`),
+    createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
     value: integer(),
   });
 
-  const db = createDatabase(process.env.DATABASE_URL!, {
-    item: itemTable,
-  });
+  const db = defineDb(() => Promise.resolve({ rows: [], affectedRowsCount: 0 }));
 
-  beforeEach(async () => {
-    await db.sql`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`;
+  it(`should update foo`, () => {
+    const query = db
+      .update(foo)
+      .set({ name: `Test` })
+      .where(foo.value.isNull())
+      .returning(`id`, `createDate`);
 
-    await db.sql`CREATE TABLE item (
-      id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
-      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-      name TEXT NOT NULL,
-      value INTEGER
-    )`;
-  });
-
-  afterEach(async () => {
-    await db.sql`DROP TABLE item`;
-  });
-
-  afterAll(async () => {
-    await db.destroy();
-  });
-
-  it(`should update and return affect rows`, async () => {
-    const affectedRows = await db.update(db.item).set({ value: undefined });
-
-    expect(affectedRows).toEqual(0);
-  });
-
-  it(`should update with returning`, async () => {
-    const result = await db
-      .update(db.item)
-      .set({ value: undefined })
-      .returning(db.item.value);
-
-    expect(result).toHaveLength(0);
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "Test",
+        ],
+        "text": "UPDATE foo SET name = $1 WHERE foo.value IS NULL RETURNING id, create_date \\"createDate\\"",
+      }
+    `);
   });
 });

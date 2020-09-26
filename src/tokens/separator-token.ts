@@ -1,5 +1,4 @@
-import { createState, State } from '../query/base';
-import { Token } from './token';
+import { State, Token, createQueryState } from './token';
 
 export type Separator = ',';
 
@@ -19,7 +18,7 @@ export class SeparatorToken extends Token {
     let parameterIndex = numberOfParameters;
     this.tokens.forEach((token, index) => {
       const last = index === length - 1;
-      const tokenState = createState([token], parameterIndex);
+      const tokenState = createQueryState([token], parameterIndex);
 
       if (tokenState.text.length > 0) {
         if (!last) {

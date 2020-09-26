@@ -1,50 +1,46 @@
-import { integer, text, timestamptz, uuid } from './../columns/dataTypes';
+import {
+  defineDb,
+  defineTable,
+  integer,
+  text,
+  timestampWithTimeZone,
+  uuid,
+} from "..";
 
-import { createDatabase } from '../database';
-import { defineTable } from '../defines/table';
+import { toSnap } from "./helpers";
 
 describe(`delete`, () => {
-  const itemTable = defineTable({
-    id: uuid()
-      .primary()
-      .notNull()
-      .default(`gen_random_uuid()`),
-    createdAt: timestamptz()
-      .notNull()
-      .default(`now()`),
+  const foo = defineTable(`foo`, {
+    id: uuid().primaryKey().default(`gen_random_id()`),
+    createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
     value: integer(),
   });
 
-  const db = createDatabase(process.env.DATABASE_URL!, {
-    item: itemTable,
+  const bar = defineTable(`bar`, {
+    id: uuid().primaryKey().default(`gen_random_id()`),
   });
 
-  beforeEach(async () => {
-    await db.sql`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`;
-
-    await db.sql`CREATE TABLE item (
-      id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
-      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-      name TEXT NOT NULL,
-      value INTEGER
-    )`;
+  const baz = defineTable(`baz`, {
+    id: uuid().primaryKey().default(`gen_random_id()`),
   });
 
-  afterEach(async () => {
-    await db.sql`DROP TABLE item`;
-  });
+  const db = defineDb(() =>
+    Promise.resolve({ rows: [], affectedRowsCount: 0 })
+  );
 
-  afterAll(async () => {
-    await db.destroy();
-  });
+  it(`should delete`, () => {
+    const query = db
+      .deleteFrom(foo)
+      .using(bar, baz)
+      .where(foo.id.ne(bar.id))
+      .returning(`id`, `name`, `createDate`);
 
-  it(`should delete item using where clause`, async () => {
-    const rows = await db
-      .deleteFrom(db.item)
-      .where(db.item.name.eq(`Test`))
-      .returning(`name`);
-
-    expect(rows).toHaveLength(0);
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "DELETE FROM foo USING bar, baz WHERE foo.id <> bar.id RETURNING id, name, create_date \\"createDate\\"",
+      }
+    `);
   });
 });

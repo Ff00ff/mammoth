@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`update should delete and returning id (type) should match snapshot 1`] = `"GetReturning<{ id: Column<\\"id\\", \\"foo\\", string, true, any, undefined>; createDate: Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>; name: Column<\\"name\\", \\"foo\\", string, true, false, undefined>; value: Column<\\"value\\", \\"foo\\", number, false, false, undefined>; }, \\"id\\">"`;

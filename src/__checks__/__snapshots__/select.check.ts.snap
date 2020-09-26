@@ -1,3 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should return string, Date, string, number | undefined (type) should match snapshot 1`] = `"SelectQuery<any, {}, {}, {}, ({ id: string; } & { createdAt: Date; } & { name: string; } & { value: number; })[], { id: string; } & { createdAt: Date; } & { name: string; } & { value: number; }, undefined>"`;
+exports[`select should return null and not null properties (type) should match snapshot 1`] = `"{ id: DataType<string, true>; createDate: DataType<Date, true>; value: DataType<number, false>; }"`;
+
+exports[`select should return nullable properties of all sides because of full join (type) should match snapshot 1`] = `"{ name: DataType<string, false>; startDate: DataType<Date, false>; value: DataType<number, false>; }"`;
+
+exports[`select should return nullable properties of left joined columns (type) should match snapshot 1`] = `"{ id: DataType<string, true>; endDate: DataType<Date, false>; value: DataType<number, false>; }"`;
+
+exports[`select should return nullable properties of left side properties when right joining (type) should match snapshot 1`] = `"{ name: DataType<string, false>; startDate: DataType<Date, true>; value: DataType<number, false>; }"`;
+
+exports[`select should return renamed properties because of alias (type) should match snapshot 1`] = `"{ fooName: DataType<string, true>; fooValue: DataType<number, false>; }"`;
+
+exports[`select should select aggregate subquery (type) should match snapshot 1`] = `"{ id: DataType<string, true>; count: DataType<string, true>; }"`;
+
+exports[`select should select aggregate with alias (type) should match snapshot 1`] = `"{ id: DataType<string, true>; total: DataType<number, false>; }"`;
+
+exports[`select should select expression (type) should match snapshot 1`] = `"{ \\"?column?\\": DataType<number, false>; }"`;
+
+exports[`select should select named expression (type) should match snapshot 1`] = `"{ test: DataType<number, false>; }"`;
+
+exports[`select should select null column in subquery (type) should match snapshot 1`] = `"{ id: DataType<string, true>; value: DataType<number, false>; }"`;

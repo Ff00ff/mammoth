@@ -1,12 +1,9 @@
 {
   "name": "@ff00ff/mammoth",
   "license": "MIT",
-  "version": "1.0.0-beta.9",
+  "version": "1.0.0-rc.1",
   "main": "./.build/index.js",
   "types": "./.build/index.d.ts",
-  "bin": {
-    "mammoth": "./.build/cli.js"
-  },
   "keywords": [
     "typescript",
     "postgres",
@@ -18,46 +15,40 @@
     "orm"
   ],
   "files": [
-    ".build",
-    "bin"
+    ".build"
   ],
+  "devDependencies": {
+    "@types/jest": "^26.0.13",
+    "@types/node": "^14.6.4",
+    "dts-jest": "^23.3.0",
+    "jest": "^26.4.2",
+    "prettier": "^2.1.1",
+    "ts-jest": "^26.3.0",
+    "typescript": "^4.0.2"
+  },
   "scripts": {
-    "test": "jest --runInBand --setupFiles dotenv/config",
+    "test": "jest",
     "prebuild": "rm -rf .build && rm -rf coverage",
     "build": "tsc"
-  },
-  "dependencies": {
-    "lodash": "^4.17.15",
-    "minimist": "^1.2.2",
-    "pg": "^8.2.1",
-    "utility-types": "^3.10.0"
   },
   "jest": {
     "moduleFileExtensions": [
       "ts",
-      "tsx",
       "js"
     ],
-    "testRegex": "/__tests__|__checks__/.*\\.(test|check)\\.tsx?$",
+    "coveragePathIgnorePatterns": [
+      "__tests__",
+      "__checks__"
+    ],
+    "testPathIgnorePatterns": [
+      "/\\.build/",
+      "/node_modules/",
+      "helpers"
+    ],
+    "testRegex": "/__tests__|__checks__/.*\\.(test|check)\\.ts$",
     "transform": {
       "\\.check\\.ts$": "dts-jest/transform",
-      "\\.tsx?$": "ts-jest"
+      "\\.ts$": "ts-jest"
     }
-  },
-  "devDependencies": {
-    "@types/jest": "^25.1.2",
-    "@types/lodash": "^4.14.149",
-    "@types/minimist": "^1.2.0",
-    "@types/node": "^13.7.0",
-    "@types/pg": "^7.14.1",
-    "@types/uuid": "^3.4.7",
-    "dotenv": "^8.2.0",
-    "dts-jest": "^23.0.0",
-    "jest": "^25.1.0",
-    "prettier": "^1.19.1",
-    "ts-jest": "^25.2.0",
-    "ts-node": "^8.6.2",
-    "typescript": "^3.8.3",
-    "uuid": "^3.4.0"
   }
 }

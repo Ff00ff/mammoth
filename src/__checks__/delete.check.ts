@@ -19,5 +19,5 @@ const db = defineDb(() => Promise.resolve({ rows: [], affectedRowsCount: 0 }));
 // @dts-jest:group update
 {
   // @dts-jest:snap should delete and returning id
-  toSnap(db.insertInto(foo).values({ name: `Test` }));
+  toSnap(db.deleteFrom(foo).returning(`id`));
 }

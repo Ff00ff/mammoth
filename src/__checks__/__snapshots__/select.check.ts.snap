@@ -14,6 +14,8 @@ exports[`select should select aggregate subquery (type) should match snapshot 1`
 
 exports[`select should select aggregate with alias (type) should match snapshot 1`] = `"{ id: DataType<string, true>; total: DataType<number, false>; }"`;
 
+exports[`select should select and await result set (type) should match snapshot 1`] = `"{ id: string; }[]"`;
+
 exports[`select should select expression (type) should match snapshot 1`] = `"{ \\"?column?\\": DataType<number, false>; }"`;
 
 exports[`select should select named expression (type) should match snapshot 1`] = `"{ test: DataType<number, false>; }"`;

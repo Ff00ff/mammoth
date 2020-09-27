@@ -10,7 +10,7 @@ const foo = defineTable(`foo`, {
   value: integer(),
 });
 
-const toSnap = <T extends Query>(query: T): ResultSet<T> => {
+const toSnap = <T extends Query>(query: T): ResultSet<T, true> => {
   return undefined as any;
 };
 

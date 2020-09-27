@@ -7,19 +7,19 @@ import {
   Token,
   createQueryState,
 } from './tokens';
-import { GetReturning, ResultType } from './types';
+import type { GetReturning, ResultSet, ResultType } from './types';
 import { getColumnData, getTableData } from './data';
 
-import { Condition } from './condition';
-import { QueryExecutorFn } from './db';
-import { Table } from './table';
+import type { Condition } from './condition';
+import type { QueryExecutorFn } from './db';
+import type { Table } from './table';
 
 export const makeDeleteFrom = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
   table: T
 ) => {
   const tableData = getTableData(table);
 
-  return new DeleteQuery(queryExecutor, table, 'AFFECTED_COUNT', [
+  return new DeleteQuery<T>(queryExecutor, table, 'AFFECTED_COUNT', [
     new StringToken(`DELETE FROM`),
     new StringToken(tableData.name),
   ]);
@@ -28,7 +28,7 @@ export const makeDeleteFrom = (queryExecutor: QueryExecutorFn) => <T extends Tab
 // https://www.postgresql.org/docs/12/sql-delete.html
 export class DeleteQuery<
   T extends Table<any, any>,
-  Returning,
+  Returning = number,
   TableColumns = T extends Table<any, infer Columns> ? Columns : never
 > {
   private _deleteQueryBrand: any;
@@ -40,8 +40,8 @@ export class DeleteQuery<
     private readonly tokens: Token[]
   ) {}
 
-  then<Result = Returning extends number ? Returning : Returning[]>(
-    onFulfilled?: ((value: Result) => Result | PromiseLike<Result>) | undefined | null,
+  then(
+    onFulfilled?: ((value: Returning extends number ? number : ResultSet<DeleteQuery<T, Returning>, false>[]) => any | PromiseLike<any>) | undefined | null, 
     onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null
   ) {
     const queryState = createQueryState(this.tokens);
@@ -88,9 +88,9 @@ export class DeleteQuery<
     ]);
   }
 
-  returning<C1 extends keyof TableColumns>(
+  returning<C1 extends keyof (T extends Table<string, infer Columns> ? Columns : never)>(
     column1: C1
-  ): DeleteQuery<T, GetReturning<TableColumns, C1>>;
+  ): DeleteQuery<T, GetReturning<T extends Table<string, infer Columns> ? Columns : never, C1>>;
   returning<C1 extends keyof TableColumns, C2 extends keyof TableColumns>(
     column1: C1,
     column2: C2
@@ -305,7 +305,7 @@ export class DeleteQuery<
           }
         })
       ),
-    ]);
+    ]) as any;
   }
 
   /** @internal */

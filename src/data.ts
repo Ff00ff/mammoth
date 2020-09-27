@@ -1,10 +1,10 @@
 // We store data we need of tables on this internal structure. The reason we do this is to avoid
 
-import { Column } from "./column";
-import { Table } from "./table";
+// import type { Column } from "./column";
+// import type { Table } from "./table";
 
 // polluting the scope of the public API.
-export const internalTableData: Map<Table<any, any>, TableData> = new Map();
+export const internalTableData: Map<any, TableData> = new Map();
 export const internalColumnData: Map<any, ColumnData> = new Map();
 
 interface TableData {
@@ -12,7 +12,7 @@ interface TableData {
   originalName: string | undefined;
 }
 
-export const getTableData = (table: Table<any, any>) => {
+export const getTableData = (table: any) => {
   const tableData = internalTableData.get(table);
 
   if (!tableData) {
@@ -26,7 +26,7 @@ interface ColumnData {
   snakeCaseName: string;
 }
 
-export const getColumnData = (column: Column<any, any, any, any, any, any>) => {
+export const getColumnData = (column: any) => {
   const columnData = internalColumnData.get(column);
 
   if (!columnData) {

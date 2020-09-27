@@ -18,7 +18,7 @@ const bar = defineTable(`bar`, {
   fooId: uuid().references(foo, 'id'),
 });
 
-const toSnap = <T extends Query>(query: T): ResultSet<T> => {
+const toSnap = <T extends Query>(query: T): ResultSet<T, true> => {
   return undefined as any;
 };
 
@@ -55,4 +55,9 @@ const db = defineDb(() => Promise.resolve({ rows: [], affectedRowsCount: 0 }));
 
   // @dts-jest:snap should select aggregate with alias
   toSnap(db.select(foo.id, sum(foo.value).as(`total`)).from(foo));
+
+  db.select(foo.id).from(foo).then(result => {
+    // @dts-jest:snap should select and await result set
+    result;
+  })
 }

@@ -14,6 +14,7 @@ import { Condition } from './condition';
 import { QueryExecutorFn } from './db';
 import { Table } from './table';
 import { getTableData } from './data';
+import { ResultSet } from './types';
 
 type ToJoinType<
   JoinType,
@@ -91,7 +92,7 @@ export class SelectQuery<Columns extends { [column: string]: Selectable }> {
   constructor(private readonly queryExecutor: QueryExecutorFn, private readonly tokens: Token[]) {}
 
   then(
-    onFulfilled?: ((value: Columns[]) => Columns[] | PromiseLike<Columns[]>) | undefined | null,
+    onFulfilled?: ((value: SelectQuery<Columns>) => any | PromiseLike<any>) | undefined | null,
     onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null
   ) {
     const queryState = createQueryState(this.tokens);

@@ -1,5 +1,6 @@
-import { Query, ResultSet } from '../types';
 import { count, defineDb, defineTable, integer, sum, text, timestampWithTimeZone, uuid } from '..';
+
+import { toSnap } from './helpers/to-snap';
 
 /** @dts-jest enable:test-type */
 
@@ -17,10 +18,6 @@ const bar = defineTable(`bar`, {
   value: integer(),
   fooId: uuid().references(foo, 'id'),
 });
-
-const toSnap = <T extends Query>(query: T): ResultSet<T, true> => {
-  return undefined as any;
-};
 
 const db = defineDb(() => Promise.resolve({ rows: [], affectedRowsCount: 0 }));
 
@@ -56,7 +53,7 @@ const db = defineDb(() => Promise.resolve({ rows: [], affectedRowsCount: 0 }));
   // @dts-jest:snap should select aggregate with alias
   toSnap(db.select(foo.id, sum(foo.value).as(`total`)).from(foo));
 
-  db.select(foo.id).from(foo).then(result => {
+  db.select(foo.id, foo.value).from(foo).then(result => {
     // @dts-jest:snap should select and await result set
     result;
   })

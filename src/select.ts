@@ -11,10 +11,11 @@ import { Expression, NamedExpression } from './expression';
 
 import { Column } from './column';
 import { Condition } from './condition';
+import { Query } from './query';
 import { QueryExecutorFn } from './db';
+import { ResultSet } from './result-set';
 import { Table } from './table';
 import { getTableData } from './data';
-import { ResultSet } from './types';
 
 type ToJoinType<
   JoinType,
@@ -86,14 +87,19 @@ type GetSelectableName<S> = S extends Column<infer A2, string, any, boolean, boo
 type GetSelectable<C extends Selectable> = { [K in GetSelectableName<C>]: C };
 
 // https://www.postgresql.org/docs/12/sql-select.html
-export class SelectQuery<Columns extends { [column: string]: Selectable }> {
+export class SelectQuery<Columns extends { [column: string]: Selectable }> extends Query<Columns> {
   private _selectQueryBrand: any;
 
-  constructor(private readonly queryExecutor: QueryExecutorFn, private readonly tokens: Token[]) {}
+  constructor(private readonly queryExecutor: QueryExecutorFn, private readonly tokens: Token[]) {
+    super();
+  }
 
   then(
-    onFulfilled?: ((value: SelectQuery<Columns>) => any | PromiseLike<any>) | undefined | null,
-    onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null
+    onFulfilled?:
+      | ((value: ResultSet<SelectQuery<Columns>, false>[]) => any | PromiseLike<any>)
+      | undefined
+      | null,
+    onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null,
   ) {
     const queryState = createQueryState(this.tokens);
 
@@ -136,7 +142,7 @@ export class SelectQuery<Columns extends { [column: string]: Selectable }> {
   }
 
   leftOuterJoin<JoinTable extends Table<any, any>>(
-    table: JoinTable
+    table: JoinTable,
   ): SelectQuery<AddLeftJoin<Columns, JoinTable>> {
     const tableData = getTableData(table);
 
@@ -148,7 +154,7 @@ export class SelectQuery<Columns extends { [column: string]: Selectable }> {
   }
 
   leftJoin<JoinTable extends Table<any, any>>(
-    table: JoinTable
+    table: JoinTable,
   ): SelectQuery<AddLeftJoin<Columns, JoinTable>> {
     const tableData = getTableData(table);
 
@@ -160,7 +166,7 @@ export class SelectQuery<Columns extends { [column: string]: Selectable }> {
   }
 
   rightOuterJoin<JoinTable extends Table<any, any>>(
-    table: JoinTable
+    table: JoinTable,
   ): SelectQuery<AddRightJoin<Columns, JoinTable>> {
     const tableData = getTableData(table);
 
@@ -172,7 +178,7 @@ export class SelectQuery<Columns extends { [column: string]: Selectable }> {
   }
 
   rightJoin<JoinTable extends Table<any, any>>(
-    table: JoinTable
+    table: JoinTable,
   ): SelectQuery<AddRightJoin<Columns, JoinTable>> {
     const tableData = getTableData(table);
 
@@ -184,7 +190,7 @@ export class SelectQuery<Columns extends { [column: string]: Selectable }> {
   }
 
   fullOuterJoin<JoinTable extends Table<any, any>>(
-    table: JoinTable
+    table: JoinTable,
   ): SelectQuery<AddFullJoin<Columns>> {
     const tableData = getTableData(table);
 
@@ -254,7 +260,7 @@ export class SelectQuery<Columns extends { [column: string]: Selectable }> {
       new GroupToken([
         new SeparatorToken(
           ',',
-          columns.map((column) => new CollectionToken(column.toTokens()))
+          columns.map((column) => new CollectionToken(column.toTokens())),
         ),
       ]),
     ]);
@@ -282,7 +288,7 @@ export class SelectQuery<Columns extends { [column: string]: Selectable }> {
       new StringToken(`GROUP BY`),
       new SeparatorToken(
         ',',
-        expressions.map((expression) => new CollectionToken(expression.toTokens()))
+        expressions.map((expression) => new CollectionToken(expression.toTokens())),
       ),
     ]);
   }
@@ -294,7 +300,7 @@ export class SelectQuery<Columns extends { [column: string]: Selectable }> {
       new StringToken(`HAVING`),
       new SeparatorToken(
         `,`,
-        conditions.map((condition) => new CollectionToken(condition.toTokens()))
+        conditions.map((condition) => new CollectionToken(condition.toTokens())),
       ),
     ]);
   }
@@ -312,7 +318,7 @@ export class SelectQuery<Columns extends { [column: string]: Selectable }> {
       new StringToken(`ORDER BY`),
       new SeparatorToken(
         ',',
-        expressions.map((expression) => new CollectionToken(expression.toTokens()))
+        expressions.map((expression) => new CollectionToken(expression.toTokens())),
       ),
     ]);
   }
@@ -380,13 +386,13 @@ export interface SelectFn {
   <C1 extends Selectable, C2 extends Selectable, C3 extends Selectable>(
     c1: C1,
     c2: C2,
-    c3: C3
+    c3: C3,
   ): SelectQuery<GetSelectable<C1> & GetSelectable<C2> & GetSelectable<C3>>;
   <C1 extends Selectable, C2 extends Selectable, C3 extends Selectable, C4 extends Selectable>(
     c1: C1,
     c2: C2,
     c3: C3,
-    c4: C4
+    c4: C4,
   ): SelectQuery<GetSelectable<C1> & GetSelectable<C2> & GetSelectable<C3> & GetSelectable<C4>>;
   <
     C1 extends Selectable,
@@ -399,7 +405,7 @@ export interface SelectFn {
     c2: C2,
     c3: C3,
     c4: C4,
-    c5: C5
+    c5: C5,
   ): SelectQuery<
     GetSelectable<C1> &
       GetSelectable<C2> &
@@ -420,7 +426,7 @@ export interface SelectFn {
     c3: C3,
     c4: C4,
     c5: C5,
-    c6: C6
+    c6: C6,
   ): SelectQuery<
     GetSelectable<C1> &
       GetSelectable<C2> &
@@ -444,7 +450,7 @@ export interface SelectFn {
     c4: C4,
     c5: C5,
     c6: C6,
-    c7: C7
+    c7: C7,
   ): SelectQuery<
     GetSelectable<C1> &
       GetSelectable<C2> &
@@ -471,7 +477,7 @@ export interface SelectFn {
     c5: C5,
     c6: C6,
     c7: C7,
-    c8: C8
+    c8: C8,
   ): SelectQuery<
     GetSelectable<C1> &
       GetSelectable<C2> &
@@ -501,7 +507,7 @@ export interface SelectFn {
     c6: C6,
     c7: C7,
     c8: C8,
-    c9: C9
+    c9: C9,
   ): SelectQuery<
     GetSelectable<C1> &
       GetSelectable<C2> &
@@ -534,7 +540,7 @@ export interface SelectFn {
     c7: C7,
     c8: C8,
     c9: C9,
-    c10: C10
+    c10: C10,
   ): SelectQuery<
     GetSelectable<C1> &
       GetSelectable<C2> &
@@ -572,7 +578,7 @@ export const makeSelect = (queryExecutor: QueryExecutorFn, initialTokens?: Token
         }
 
         return tokens[0];
-      })
+      }),
     ),
   ]);
 };

@@ -1,3 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`update should delete and returning id (type) should match snapshot 1`] = `"number"`;
+exports[`insert should insert and await affect count (type) should match snapshot 1`] = `"number"`;
+
+exports[`insert should insert and returning count (type) should match snapshot 1`] = `"number"`;
+
+exports[`insert should insert-returning and await rows (type) should match snapshot 1`] = `"{ name: string; }[]"`;

@@ -1,5 +1,6 @@
-import { Query, ResultSet } from '../types';
 import { count, defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
+
+import { toSnap } from './helpers/to-snap';
 
 /** @dts-jest enable:test-type */
 
@@ -10,14 +11,20 @@ const foo = defineTable(`foo`, {
   value: integer(),
 });
 
-const toSnap = <T extends Query>(query: T): ResultSet<T, true> => {
-  return undefined as any;
-};
-
 const db = defineDb(() => Promise.resolve({ rows: [], affectedRowsCount: 0 }));
 
-// @dts-jest:group update
+// @dts-jest:group insert
 {
-  // @dts-jest:snap should delete and returning id
+  // @dts-jest:snap should insert and returning count
   toSnap(db.insertInto(foo).values({ name: `Test` }));
+
+  db.insertInto(foo).values({ name: `Test` }).then(result => {
+    // @dts-jest:snap should insert and await affect count
+    result;
+  })
+
+  db.insertInto(foo).values({ name: `Test` }).returning(`name`).then(result => {
+    // @dts-jest:snap should insert-returning and await rows
+    result;
+  })
 }

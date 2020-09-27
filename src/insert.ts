@@ -8,7 +8,7 @@ import {
   Token,
   createQueryState,
 } from './tokens';
-import { GetReturning, PickByValue, Query, ResultType } from './types';
+import { GetReturning, PickByValue, ResultType } from './types';
 import { SelectFn, makeSelect } from './select';
 import { getColumnData, getTableData } from './data';
 
@@ -16,16 +16,18 @@ import { Column } from './column';
 import { Condition } from './condition';
 import { DeleteQuery } from './delete';
 import { Expression } from './expression';
+import { Query } from './query';
 import { QueryExecutorFn } from './db';
+import { ResultSet } from './result-set';
 import { Table } from './table';
 import { UpdateQuery } from './update';
 
 // https://www.postgresql.org/docs/12/sql-insert.html
 export class InsertQuery<
   T extends Table<any, any>,
-  Returning,
+  Returning = number,
   TableColumns = T extends Table<any, infer Columns> ? Columns : never
-> {
+> extends Query<Returning> {
   private _insertQueryBrand: any;
 
   constructor(
@@ -33,10 +35,12 @@ export class InsertQuery<
     private readonly table: T,
     private readonly resultType: ResultType,
     private readonly tokens: Token[]
-  ) {}
+  ) {
+    super();
+  }
 
-  then<Result = Returning extends number ? Returning : Returning[]>(
-    onFulfilled?: ((value: Result) => Result | PromiseLike<Result>) | undefined | null,
+  then(
+    onFulfilled?: ((value: Returning extends number ? Returning : ResultSet<InsertQuery<T, Returning>, false>[]) => any | PromiseLike<any>) | undefined | null,
     onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null
   ) {
     const queryState = createQueryState(this.tokens);
@@ -269,7 +273,7 @@ export class InsertQuery<
           }
         })
       ),
-    ]);
+    ]) as any;
   }
 
   where(condition: Condition) {
@@ -304,8 +308,8 @@ export class InsertQuery<
                 any
               >
                 ? IsNotNull extends true
-                  ? DataType | Expression<DataType, IsNotNull> | Query
-                  : DataType | undefined | Expression<DataType, IsNotNull> | Query
+                  ? DataType | Expression<DataType, IsNotNull> | Query<any>
+                  : DataType | undefined | Expression<DataType, IsNotNull> | Query<any>
                 : never;
             }
           : never
@@ -383,8 +387,8 @@ export class InsertQuery<
                 any
               >
                 ? IsNotNull extends true
-                  ? DataType | Expression<DataType, IsNotNull> | Query
-                  : DataType | undefined | Expression<DataType, IsNotNull> | Query
+                  ? DataType | Expression<DataType, IsNotNull> | Query<any>
+                  : DataType | undefined | Expression<DataType, IsNotNull> | Query<any>
                 : never;
             }
           : never

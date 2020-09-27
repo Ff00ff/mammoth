@@ -1,9 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`update should insert into foo with a single required column (type) should match snapshot 1`] = `"InsertQuery<Table<\\"foo\\", { id: Column<\\"id\\", \\"foo\\", string, true, any, undefined>; createDate: Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>; name: Column<\\"name\\", \\"foo\\", string, true, false, undefined>; value: Column<\\"value\\", \\"foo\\", number, false, false, undefined>; }>, number, { id: Column<\\"id\\", \\"foo\\", string, true, any, undefined>; createDate: Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>; name: Column<\\"name\\", \\"foo\\", string, true, false, undefined>; value: Column<\\"value\\", \\"foo\\", number, false, false, undefined>; }>"`;
+exports[`update should update and await affected count (type) should match snapshot 1`] = `"number"`;
 
-exports[`update should update and returning id (type) should match snapshot 1`] = `"GetReturning<{ id: Column<\\"id\\", \\"foo\\", string, true, any, undefined>; createDate: Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>; name: Column<\\"name\\", \\"foo\\", string, true, false, undefined>; value: Column<\\"value\\", \\"foo\\", number, false, false, undefined>; }, \\"id\\">"`;
+exports[`update should update and returning id (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; }"`;
 
-exports[`update should update and returning two columns (type) should match snapshot 1`] = `"GetReturning<{ id: Column<\\"id\\", \\"foo\\", string, true, any, undefined>; createDate: Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>; name: Column<\\"name\\", \\"foo\\", string, true, false, undefined>; value: Column<\\"value\\", \\"foo\\", number, false, false, undefined>; }, \\"id\\"> & GetReturning<{ id: Column<\\"id\\", \\"foo\\", string, true, any, undefined>; createDate: Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>; name: Column<\\"name\\", \\"foo\\", string, true, false, undefined>; value: Column<\\"value\\", \\"foo\\", number, false, false, undefined>; }, \\"name\\">"`;
+exports[`update should update and returning two columns (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; name: GetDataType<string, true>; }"`;
 
 exports[`update should update without returning and return number (type) should match snapshot 1`] = `"number"`;
+
+exports[`update should update-returning and await rows (type) should match snapshot 1`] = `"{ name: string; }[]"`;

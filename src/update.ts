@@ -12,15 +12,17 @@ import { getColumnData, getTableData } from './data';
 import { Column } from './column';
 import { Condition } from './condition';
 import { Expression } from './expression';
+import { Query } from './query';
 import { QueryExecutorFn } from './db';
+import { ResultSet } from './result-set';
 import { Table } from './table';
 
 // https://www.postgresql.org/docs/12/sql-update.html
 export class UpdateQuery<
   T extends Table<any, any>,
-  Returning,
+  Returning = number,
   TableColumns = T extends Table<any, infer Columns> ? Columns : never
-> {
+> extends Query<Returning> {
   private _updateQueryBrand: any;
 
   constructor(
@@ -28,15 +30,15 @@ export class UpdateQuery<
     private readonly table: T,
     private readonly resultType: ResultType,
     private readonly tokens: Token[]
-  ) {}
+  ) {
+    super();
+  }
 
   then(
     onFulfilled?:
       | ((
-          value: Returning extends number ? Returning : Returning[]
-        ) => Returning extends number
-          ? Returning
-          : Returning[] | PromiseLike<Returning extends number ? Returning : Returning[]>)
+          value: Returning extends number ? Returning : ResultSet<UpdateQuery<T, Returning>, false>[]
+        ) => any | PromiseLike<any>)
       | undefined
       | null,
     onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null
@@ -297,7 +299,7 @@ export class UpdateQuery<
           }
         })
       ),
-    ]);
+    ]) as any;
   }
 
   /** @internal */

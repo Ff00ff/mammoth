@@ -1,5 +1,18 @@
-import { avg, group, max, min } from '../sql-functions';
-import { count, defineDb, defineTable, integer, sum, text, timestampWithTimeZone, uuid } from '..';
+import {
+  any,
+  avg,
+  count,
+  defineDb,
+  defineTable,
+  group,
+  integer,
+  max,
+  min,
+  sum,
+  text,
+  timestampWithTimeZone,
+  uuid,
+} from '..';
 
 import { toSnap } from './helpers';
 
@@ -92,6 +105,56 @@ describe(`select`, () => {
     `);
   });
 
+  it(`should select IN with array`, () => {
+    const query = db
+      .select(foo.id)
+      .from(foo)
+      .where(foo.name.in([`A`, `B`, `C`]));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "A",
+          "B",
+          "C",
+        ],
+        "text": "SELECT foo.id FROM foo WHERE foo.name IN ($1, $2, $3)",
+      }
+    `);
+  });
+
+  it(`should select NOT IN with subquery`, () => {
+    const query = db
+      .select(foo.id)
+      .from(foo)
+      .where(foo.id.notIn(db.select(foo.id).from(foo)));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo WHERE foo.id NOT IN (SELECT foo.id FROM foo)",
+      }
+    `);
+  });
+
+  it(`should select NOT IN with array`, () => {
+    const query = db
+      .select(foo.id)
+      .from(foo)
+      .where(foo.name.notIn([`A`, `B`, `C`]));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "A",
+          "B",
+          "C",
+        ],
+        "text": "SELECT foo.id FROM foo WHERE foo.name NOT IN ($1, $2, $3)",
+      }
+    `);
+  });
+
   it(`should convert column to snake case`, () => {
     const query = db.select(foo.createDate).from(foo);
 
@@ -128,8 +191,13 @@ describe(`select`, () => {
   it(`should explicitly group`, () => {
     const query = db.select(foo.id).from(foo).where(group(foo.value.isNull()));
 
-    expect(toSnap(query)).toMatchInlineSnapshot();
-  })
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo WHERE (foo.value IS NULL)",
+      }
+    `);
+  });
 
   it(`should select with in`, () => {
     const query = db.select(foo.id).where(foo.name.in([`A`, `B`, `C`]));
@@ -157,6 +225,30 @@ describe(`select`, () => {
     `);
   });
 
+  it(`should select with order by desc`, () => {
+    const query = db.select(foo.id).orderBy(foo.name.desc().nullsLast());
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id ORDER BY foo.name DESC NULLS LAST",
+      }
+    `);
+  });
+
+  it(`should select with concat`, () => {
+    const query = db.select(foo.name.concat(`!`)).from(foo);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "!",
+        ],
+        "text": "SELECT foo.name || $1 FROM foo",
+      }
+    `);
+  });
+
   it(`should select where is not null`, () => {
     const query = db.select(foo.id).where(foo.value.isNotNull());
 
@@ -172,7 +264,16 @@ describe(`select`, () => {
     const query = db
       .select(foo.id)
       .from(foo)
-      .where(foo.value.plus(1).multiply(2).minus(3).divide(4).modulo(5).between(-10).and(10));
+      .where(
+        foo.value
+          .plus(1)
+          .multiply(2)
+          .minus(3)
+          .divide(4)
+          .modulo(5)
+          .between(-10, 10)
+          .and(foo.value.betweenSymmetric(-20, 20)),
+      );
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
@@ -184,8 +285,10 @@ describe(`select`, () => {
           5,
           -10,
           10,
+          -20,
+          20,
         ],
-        "text": "SELECT foo.id FROM foo WHERE foo.value + $1 * $2 - $3 / $4 % $5 BETWEEN $6 AND $7",
+        "text": "SELECT foo.id FROM foo WHERE foo.value + $1 * $2 - $3 / $4 % $5 BETWEEN $6 AND $7 AND (foo.value BETWEEN SYMMETRIC $8 AND $9)",
       }
     `);
   });

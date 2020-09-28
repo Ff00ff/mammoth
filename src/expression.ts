@@ -21,6 +21,7 @@ export interface InternalExpression<Name, DataType, IsNotNull extends boolean> {
   nullsLast(): Expression<DataType, IsNotNull>;
 
   in(array: DataType[] | Expression<DataType, IsNotNull> | Query<any>): Condition;
+  notIn(value: DataType[] | Expression<DataType, IsNotNull> | Query<any>): Condition;
 
   plus(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
   minus(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
@@ -29,14 +30,12 @@ export interface InternalExpression<Name, DataType, IsNotNull extends boolean> {
   modulo(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
   concat(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
 
-  between(a: DataType): { and(b: DataType): Condition };
-  betweenSymmetric(a: DataType): { and(b: DataType): Condition };
+  between(a: DataType, b: DataType): Condition;
+  betweenSymmetric(a: DataType, b: DataType): Condition;
 
   isDistinctFrom(a: DataType): Condition;
 
   isNotDistinctFrom(a: DataType): Condition;
-
-  notIn(value: DataType[] | Expression<DataType, IsNotNull>): Condition;
 
   like(value: DataType): Condition;
 
@@ -135,6 +134,27 @@ export const makeExpression = <DataType>(tokens: Token[]): Expression<DataType, 
       }
     },
 
+    notIn(array) {
+      if (array && ('toTokens' in array || array instanceof Query)) {
+        return makeCondition([
+          ...tokens,
+          new StringToken(`NOT IN`),
+          new GroupToken(array.toTokens()),
+        ]);
+      } else {
+        return makeCondition([
+          ...tokens,
+          new StringToken(`NOT IN`),
+          new GroupToken([
+            new SeparatorToken(
+              ',',
+              array.map((item) => new ParameterToken(item)),
+            ),
+          ]),
+        ]);
+      }
+    },
+
     plus(value) {
       return makeExpression([...tokens, new StringToken(`+`), ...getDataTypeTokens(value)]);
     },
@@ -159,58 +179,36 @@ export const makeExpression = <DataType>(tokens: Token[]): Expression<DataType, 
       return makeExpression([...tokens, new StringToken(`||`), ...getDataTypeTokens(value)]);
     },
 
-    between(a) {
-      return {
-        and(b) {
-          return makeCondition([
-            ...tokens,
-            new StringToken(`BETWEEN`),
-            new ParameterToken(a),
-            new StringToken(`AND`),
-            new ParameterToken(b),
-          ]);
-        },
-      };
+    between(a, b) {
+      return makeCondition([
+        ...tokens,
+        new StringToken(`BETWEEN`),
+        new ParameterToken(a),
+        new StringToken(`AND`),
+        new ParameterToken(b),
+      ]);
     },
 
-    betweenSymmetric(a) {
-      return {
-        and(b) {
-          return makeCondition([
-            ...tokens,
-            new StringToken(`BETWEEN SYMMETRIC`),
-            new ParameterToken(a),
-            new StringToken(`AND`),
-            new ParameterToken(b),
-          ]);
-        },
-      };
+    betweenSymmetric(a, b) {
+      return makeCondition([
+        ...tokens,
+        new StringToken(`BETWEEN SYMMETRIC`),
+        new ParameterToken(a),
+        new StringToken(`AND`),
+        new ParameterToken(b),
+      ]);
     },
+
     isDistinctFrom(a) {
       return makeCondition([...tokens, new StringToken(`IS DISTINCT FROM`), new ParameterToken(a)]);
     },
+
     isNotDistinctFrom(a) {
       return makeCondition([
         ...tokens,
         new StringToken(`IS NOT DISTINCT FROM`),
         new ParameterToken(a),
       ]);
-    },
-
-    notIn(value) {
-      if ('toTokens' in value) {
-        return makeCondition([
-          ...tokens,
-          new StringToken(`NOT IN`),
-          new GroupToken(value.toTokens()),
-        ]);
-      } else {
-        return makeCondition([
-          ...tokens,
-          new StringToken(`NOT IN`),
-          new GroupToken(value.map((item) => new ParameterToken(item))),
-        ]);
-      }
     },
 
     like(value) {

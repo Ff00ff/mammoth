@@ -1,7 +1,7 @@
 {
   "name": "@ff00ff/mammoth",
   "license": "MIT",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.4",
   "main": "./.build/index.js",
   "types": "./.build/index.d.ts",
   "keywords": [
@@ -29,7 +29,8 @@
   "scripts": {
     "test": "jest",
     "prebuild": "rm -rf .build && rm -rf coverage",
-    "build": "tsc"
+    "build": "tsc",
+    "prepublishOnly": "npm run build && npm test"
   },
   "jest": {
     "moduleFileExtensions": [

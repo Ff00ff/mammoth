@@ -1,6 +1,6 @@
 ![Mammoth](https://s3-eu-west-1.amazonaws.com/mammoth-static.ff00ff.nl/mammoth-logo.png)
 
-# Mammoth: A type-safe Postgres query builder pur sang for TypeScript.
+# Mammoth: A type-safe Postgres query builder pur sang for TypeScript
 
 [![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fff00ff%2Fmammoth%2Fbadge%3Fref%3Dmaster&style=flat)](https://actions-badge.atrox.dev/ff00ff/mammoth/goto?ref=master)
 [![Coverage Status](https://coveralls.io/repos/github/Ff00ff/mammoth/badge.svg?branch=master)](https://coveralls.io/github/Ff00ff/mammoth?branch=master)

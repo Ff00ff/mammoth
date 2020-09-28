@@ -91,6 +91,26 @@ describe(`select`, () => {
     `);
   });
 
+  it(`should select where any`, () => {
+    const query = db
+      .select(foo.id)
+      .from(foo)
+      .where(foo.name.eq(any(['1', '2', '3'])));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          Array [
+            "1",
+            "2",
+            "3",
+          ],
+        ],
+        "text": "SELECT foo.id FROM foo WHERE foo.name = ANY ($1)",
+      }
+    `);
+  });
+
   it(`should select IN with subquery`, () => {
     const query = db
       .select(foo.id)

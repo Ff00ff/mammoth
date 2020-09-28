@@ -1,6 +1,11 @@
 import { Condition, makeCondition } from "./condition";
 import { Expression, NamedExpression, makeExpression, makeNamedExpression } from "./expression";
-import { GroupToken, StringToken } from "./tokens";
+import { GroupToken, ParameterToken, StringToken } from "./tokens";
+
+export const any = <T>(array: T[]) => makeExpression<T>([
+  new StringToken(`ANY`),
+  new GroupToken([new ParameterToken(array)]),
+])
 
 export const now = () => makeExpression<Date>([new StringToken(`NOW()`)]);
 

@@ -1,5 +1,3 @@
-> This is `mammoth@next` which just had a major revamp. I'm about to publish a blog post with some more info. This will move to master soon.
-
 ![Mammoth](https://s3-eu-west-1.amazonaws.com/mammoth-static.ff00ff.nl/mammoth-logo.png)
 
 # Mammoth: A type-safe Postgres query builder pur sang for TypeScript.
@@ -9,7 +7,7 @@
 [![MIT License](https://img.shields.io/github/license/ff00ff/mammoth.svg)](https://raw.githubusercontent.com/Ff00ff/mammoth/master/LICENSE)
 
 ```
-npm i @ff00ff/mammoth@1.0.0-rc.1
+npm i @ff00ff/mammoth@1.0.0-rc.4
 ```
 
 <br/>
@@ -119,7 +117,7 @@ const db = defineDb(async (query, parameters) => {
 });
 ```
 
-To
+You have to define all the tables to make sure Mammoth understands the type information. This should be close to the CREATE TABLE syntax.
 
 ```ts
 const foo = defineTable(`foo`, {
@@ -193,6 +191,8 @@ Below is a list of clauses per query and a short description on what we Mammoth 
 </details>
 
 ### Column data type
+
+This is a list of all the data types and it's companioning data type function.
 
 | Function                   | SQL data type               |
 | -------------------------- | --------------------------- |

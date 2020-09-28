@@ -12,7 +12,7 @@ import { Expression, NamedExpression } from './expression';
 import { Column } from './column';
 import { Condition } from './condition';
 import { Query } from './query';
-import { QueryExecutorFn } from './db';
+import { QueryExecutorFn } from './types';
 import { ResultSet } from './result-set';
 import { Table } from './table';
 import { getTableData } from './data';
@@ -87,7 +87,7 @@ type GetSelectableName<S> = S extends Column<infer A2, string, any, boolean, boo
 type GetSelectable<C extends Selectable> = { [K in GetSelectableName<C>]: C };
 
 // https://www.postgresql.org/docs/12/sql-select.html
-export class SelectQuery<Columns extends { [column: string]: Selectable }> extends Query<Columns> {
+export class SelectQuery<Columns extends { [column: string]: any }> extends Query<Columns> {
   private _selectQueryBrand: any;
 
   constructor(private readonly queryExecutor: QueryExecutorFn, private readonly tokens: Token[]) {
@@ -104,7 +104,7 @@ export class SelectQuery<Columns extends { [column: string]: Selectable }> exten
     const queryState = createQueryState(this.tokens);
 
     return this.queryExecutor(queryState.text.join(` `), queryState.parameters)
-      .then((result) => (onFulfilled ? onFulfilled(result.rows) : result))
+      .then((result) => (onFulfilled ? onFulfilled(result.rows as any) : result))
       .catch(onRejected);
   }
 

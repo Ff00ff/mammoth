@@ -8,7 +8,7 @@ import {
   Token,
   createQueryState,
 } from './tokens';
-import { GetReturning, PickByValue, ResultType } from './types';
+import { GetReturning, PickByValue, QueryExecutorFn, ResultType } from './types';
 import { SelectFn, makeSelect } from './select';
 import { getColumnData, getTableData } from './data';
 
@@ -17,7 +17,6 @@ import { Condition } from './condition';
 import { DeleteQuery } from './delete';
 import { Expression } from './expression';
 import { Query } from './query';
-import { QueryExecutorFn } from './db';
 import { ResultSet } from './result-set';
 import { Table } from './table';
 import { UpdateQuery } from './update';

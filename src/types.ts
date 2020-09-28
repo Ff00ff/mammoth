@@ -14,3 +14,8 @@ export type GetReturning<TableColumns, ColumnName extends keyof TableColumns> = 
 export class GetDataType<Type, IsNull> {
   private _!: Type & IsNull;
 }
+
+export type QueryExecutorFn = (
+  query: string,
+  parameters: any[]
+) => Promise<{ rows: any[]; affectedRowsCount: number }>;

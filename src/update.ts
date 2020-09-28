@@ -6,14 +6,13 @@ import {
   Token,
   createQueryState,
 } from './tokens';
-import { GetReturning, ResultType } from './types';
+import { GetReturning, QueryExecutorFn, ResultType } from './types';
 import { getColumnData, getTableData } from './data';
 
 import { Column } from './column';
 import { Condition } from './condition';
 import { Expression } from './expression';
 import { Query } from './query';
-import { QueryExecutorFn } from './db';
 import { ResultSet } from './result-set';
 import { Table } from './table';
 

@@ -1,7 +1,7 @@
 import { Condition, makeCondition } from "./condition";
 import { GroupToken, ParameterToken, SeparatorToken, StringToken, Token } from "./tokens";
 
-import { SelectQuery } from "./select";
+import { Query } from "./query";
 
 export interface NamedExpression<Name, DataType, IsNotNull extends boolean>
   extends InternalExpression<Name, DataType, IsNotNull> {
@@ -20,7 +20,7 @@ export interface InternalExpression<Name, DataType, IsNotNull extends boolean> {
   nullsFirst(): Expression<DataType, IsNotNull>;
   nullsLast(): Expression<DataType, IsNotNull>;
 
-  in(array: DataType[] | Expression<DataType, IsNotNull> | SelectQuery<any>): Condition;
+  in(array: DataType[] | Expression<DataType, IsNotNull> | Query<any>): Condition;
 
   plus(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
   minus(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
@@ -147,7 +147,7 @@ export const makeExpression = <DataType>(tokenFactory: (aliasBehaviour: 'INCLUDE
     in(array) {
       const tokens = tokenFactory('EXCLUDE');
 
-      if ('toTokens' in array) {
+      if (array && ('toTokens' in array || array instanceof Query)) {
         return makeCondition([...tokens, new StringToken(`IN`), new GroupToken(array.toTokens())]);
       } else {
         return makeCondition([

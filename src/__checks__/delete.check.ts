@@ -1,6 +1,11 @@
-import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
+import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '../../.build';
 
-import { toSnap } from './helpers/to-snap';
+import { Query } from '../../.build/query';
+import { ResultSet } from '../../.build/result-set';
+
+const toSnap = <T extends Query<any>>(query: T): ResultSet<T, true> => {
+  return undefined as any;
+};
 
 /** @dts-jest enable:test-type */
 

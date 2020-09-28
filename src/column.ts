@@ -1,7 +1,7 @@
 import { InternalExpression, makeExpression } from './expression';
 import { StringToken, Token } from './tokens';
 
-import { Table } from './table';
+// import type { Table } from './table';
 import { toSnakeCase } from './naming/snake-case';
 
 export interface ColumnDefinition<DataType, IsNotNull extends boolean, HasDefault extends boolean> {
@@ -18,8 +18,8 @@ export interface ColumnDefinition<DataType, IsNotNull extends boolean, HasDefaul
   check(): ColumnDefinition<DataType, IsNotNull, HasDefault>;
   unique(): ColumnDefinition<DataType, IsNotNull, HasDefault>;
   references<
-    T extends Table<any, any>,
-    ColumnName extends keyof (T extends Table<any, infer Columns> ? Columns : never)
+    T,
+    ColumnName extends string
   >(
     table: T,
     columnName: ColumnName

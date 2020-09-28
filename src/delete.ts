@@ -7,12 +7,11 @@ import {
   Token,
   createQueryState,
 } from './tokens';
-import type { GetReturning, ResultType } from './types';
+import type { GetReturning, QueryExecutorFn, ResultType } from './types';
 import { getColumnData, getTableData } from './data';
 
 import type { Condition } from './condition';
 import { Query } from './query';
-import type { QueryExecutorFn } from './db';
 import type { ResultSet } from './result-set';
 import type { Table } from './table';
 

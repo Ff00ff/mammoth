@@ -383,4 +383,22 @@ describe(`select`, () => {
       }
     `);
   });
+
+  it(`should select with right and or grouping`, () => {
+    const query = db
+      .select(foo.id)
+      .from(foo)
+      .where(foo.name.isNull().or(foo.name.eq(`Jane`).and(foo.name.eq(`Joe`))).or(foo.value.gt(600)));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "Jane",
+          "Joe",
+          600,
+        ],
+        "text": "SELECT foo.id FROM foo WHERE foo.name IS NULL OR (foo.name = $1 AND foo.name = $2) OR foo.value > $3",
+      }
+    `);
+  });
 });

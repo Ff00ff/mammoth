@@ -504,13 +504,13 @@ export interface InsertIntoResult<T extends Table<any, any>> {
                   any,
                   any,
                   any,
-                  infer IsNotNull,
+                  boolean,
                   infer HasDefault,
                   any
                 >
                   ? HasDefault extends true
                     ? false
-                    : IsNotNull
+                    : false
                   : never;
               },
               false

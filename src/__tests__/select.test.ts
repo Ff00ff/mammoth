@@ -1,3 +1,4 @@
+import { avg, group, max, min } from '../sql-functions';
 import { count, defineDb, defineTable, integer, sum, text, timestampWithTimeZone, uuid } from '..';
 
 import { toSnap } from './helpers';
@@ -112,6 +113,23 @@ describe(`select`, () => {
       }
     `);
   });
+
+  it(`should select min, max, avg`, () => {
+    const query = db.select(foo.id, min(foo.value), max(foo.value), avg(foo.value)).from(foo);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id, MIN (foo.value), MAX (foo.value), AVG (foo.value) FROM foo",
+      }
+    `);
+  });
+
+  it(`should explicitly group`, () => {
+    const query = db.select(foo.id).from(foo).where(group(foo.value.isNull()));
+
+    expect(toSnap(query)).toMatchInlineSnapshot();
+  })
 
   it(`should select with in`, () => {
     const query = db.select(foo.id).where(foo.name.in([`A`, `B`, `C`]));
@@ -388,7 +406,12 @@ describe(`select`, () => {
     const query = db
       .select(foo.id)
       .from(foo)
-      .where(foo.name.isNull().or(foo.name.eq(`Jane`).and(foo.name.eq(`Joe`))).or(foo.value.gt(600)));
+      .where(
+        foo.name
+          .isNull()
+          .or(foo.name.eq(`Jane`).and(foo.name.eq(`Joe`)))
+          .or(foo.value.gt(600)),
+      );
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {

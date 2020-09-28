@@ -51,8 +51,8 @@ export interface InternalExpression<Name, DataType, IsNotNull extends boolean> {
   lt(value: DataType | Expression<DataType, IsNotNull>): Condition;
   lte(value: DataType | Expression<DataType, IsNotNull>): Condition;
 
-  // /** @internal */
-  toTokens(): Token[];
+  /** @internal */
+  toTokens(includeAlias?: boolean): Token[];
 }
 
 // An expression is a combination of things which evaluates to one or more values
@@ -63,10 +63,10 @@ export type Expression<DataType, IsNotNull extends boolean> = NamedExpression<
 >;
 
 export const makeNamedExpression = <Name extends string, DataType, IsNotNull extends boolean>(
-  tokenFactory: (aliasBehaviour: 'INCLUDE' | 'EXCLUDE') => Token[]
-): NamedExpression<Name, DataType, IsNotNull> => makeExpression(tokenFactory) as any;
+  tokens: Token[]
+): NamedExpression<Name, DataType, IsNotNull> => makeExpression(tokens) as any;
 
-export const makeExpression = <DataType>(tokenFactory: (aliasBehaviour: 'INCLUDE' | 'EXCLUDE') => Token[]): Expression<DataType, true> => {
+export const makeExpression = <DataType>(tokens: Token[]): Expression<DataType, true> => {
   //
 
   const getDataTypeTokens = (value: DataType | Expression<DataType, true>) => {
@@ -84,69 +84,41 @@ export const makeExpression = <DataType>(tokenFactory: (aliasBehaviour: 'INCLUDE
 
   return {
     as(name) {
-      const tokens = tokenFactory('INCLUDE');
-
-      if (tokens.length > 1) {
-        return makeExpression((aliasBehaviour) => {
-          if (aliasBehaviour === `INCLUDE`) {
-            return [new GroupToken(tokens), new StringToken(`"${name}"`)];
-          }
-
-          return [...tokens];
-        });
+      if (tokens.length > 2) {
+        return makeExpression([new GroupToken(tokens), new StringToken(`"${name}"`)]);
       }
 
-      return makeExpression((aliasBehaviour) => {
-        if (aliasBehaviour === `INCLUDE`) {
-          return [...tokens, new StringToken(`"${name}"`)]
-        }
-
-        return [...tokens];
-      });
+      return makeExpression([...tokens, new StringToken(`"${name}"`)]);
     },
 
     isNull() {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([...tokens, new StringToken(`IS NULL`)]);
     },
 
     isNotNull(): Condition {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([...tokens, new StringToken(`IS NOT NULL`)]);
     },
 
     asc() {
-      const tokens = tokenFactory('EXCLUDE');
-
-      return makeExpression(() => [...tokens, new StringToken(`ASC`)]);
+      return makeExpression([...tokens, new StringToken(`ASC`)]);
     },
 
     desc() {
-      const tokens = tokenFactory('EXCLUDE');
-
-      return makeExpression(() => [...tokens, new StringToken(`DESC`)]);
+      return makeExpression([...tokens, new StringToken(`DESC`)]);
     },
 
     nullsFirst() {
-      const tokens = tokenFactory('EXCLUDE');
-
-      return makeExpression(() => [...tokens, new StringToken(`NULLS FIRST`)]);
+      return makeExpression([...tokens, new StringToken(`NULLS FIRST`)]);
     },
 
     nullsLast() {
-      const tokens = tokenFactory('EXCLUDE');
-
-      return makeExpression(() => [...tokens, new StringToken(`NULLS LAST`)]);
+      return makeExpression([...tokens, new StringToken(`NULLS LAST`)]);
     },
 
     // IN ($1, $2, $3)
     // IN foo.id
     // IN (SELECT * FROM test)
     in(array) {
-      const tokens = tokenFactory('EXCLUDE');
-
       if (array && ('toTokens' in array || array instanceof Query)) {
         return makeCondition([...tokens, new StringToken(`IN`), new GroupToken(array.toTokens())]);
       } else {
@@ -164,44 +136,30 @@ export const makeExpression = <DataType>(tokenFactory: (aliasBehaviour: 'INCLUDE
     },
 
     plus(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
-      return makeExpression(() => [...tokens, new StringToken(`+`), ...getDataTypeTokens(value)]);
+      return makeExpression([...tokens, new StringToken(`+`), ...getDataTypeTokens(value)]);
     },
 
     minus(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
-      return makeExpression(() => [...tokens, new StringToken(`-`), ...getDataTypeTokens(value)]);
+      return makeExpression([...tokens, new StringToken(`-`), ...getDataTypeTokens(value)]);
     },
 
     multiply(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
-      return makeExpression(() => [...tokens, new StringToken(`*`), ...getDataTypeTokens(value)]);
+      return makeExpression([...tokens, new StringToken(`*`), ...getDataTypeTokens(value)]);
     },
 
     divide(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
-      return makeExpression(() => [...tokens, new StringToken(`/`), ...getDataTypeTokens(value)]);
+      return makeExpression([...tokens, new StringToken(`/`), ...getDataTypeTokens(value)]);
     },
 
     modulo(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
-      return makeExpression(() => [...tokens, new StringToken(`%`), ...getDataTypeTokens(value)]);
+      return makeExpression([...tokens, new StringToken(`%`), ...getDataTypeTokens(value)]);
     },
 
     concat(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
-      return makeExpression(() => [...tokens, new StringToken(`||`), ...getDataTypeTokens(value)]);
+      return makeExpression([...tokens, new StringToken(`||`), ...getDataTypeTokens(value)]);
     },
 
     between(a) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return {
         and(b) {
           return makeCondition([
@@ -216,8 +174,6 @@ export const makeExpression = <DataType>(tokenFactory: (aliasBehaviour: 'INCLUDE
     },
 
     betweenSymmetric(a) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return {
         and(b) {
           return makeCondition([
@@ -231,13 +187,9 @@ export const makeExpression = <DataType>(tokenFactory: (aliasBehaviour: 'INCLUDE
       };
     },
     isDistinctFrom(a) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([...tokens, new StringToken(`IS DISTINCT FROM`), new ParameterToken(a)]);
     },
     isNotDistinctFrom(a) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([
         ...tokens,
         new StringToken(`IS NOT DISTINCT FROM`),
@@ -246,8 +198,6 @@ export const makeExpression = <DataType>(tokenFactory: (aliasBehaviour: 'INCLUDE
     },
 
     notIn(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
       if ('toTokens' in value) {
         return makeCondition([
           ...tokens,
@@ -264,56 +214,38 @@ export const makeExpression = <DataType>(tokenFactory: (aliasBehaviour: 'INCLUDE
     },
 
     like(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([...tokens, new StringToken(`LIKE`), new ParameterToken(value)]);
     },
 
     ilike(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([...tokens, new StringToken(`ILIKE`), new ParameterToken(value)]);
     },
 
     eq(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([...tokens, new StringToken(`=`), ...getDataTypeTokens(value)]);
     },
 
     ne(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([...tokens, new StringToken(`<>`), ...getDataTypeTokens(value)]);
     },
 
     gt(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([...tokens, new StringToken(`>`), ...getDataTypeTokens(value)]);
     },
 
     gte(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([...tokens, new StringToken(`>=`), ...getDataTypeTokens(value)]);
     },
 
     lt(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([...tokens, new StringToken(`<`), ...getDataTypeTokens(value)]);
     },
 
     lte(value) {
-      const tokens = tokenFactory('EXCLUDE');
-
       return makeCondition([...tokens, new StringToken(`<=`), ...getDataTypeTokens(value)]);
     },
 
     toTokens() {
-      const tokens = tokenFactory('INCLUDE');
-
       return tokens;
     },
   };

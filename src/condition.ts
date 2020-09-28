@@ -9,7 +9,7 @@ export interface Condition {
   not(condition: Condition): Condition;
 
   /** @internal */
-  toTokens(): Token[];
+  toTokens(includeAlias?: boolean): Token[];
 }
 
 export const makeCondition = (tokens: Token[]): Condition => {

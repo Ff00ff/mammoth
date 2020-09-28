@@ -1,3 +1,4 @@
+export * from './alias-token';
 export * from './collection-token';
 export * from './empty-token';
 export * from './group-token';

@@ -566,18 +566,13 @@ export const makeSelect = (queryExecutor: QueryExecutorFn, initialTokens?: Token
     new SeparatorToken(
       `,`,
       columns.map((column) => {
-        const tokens = column.toTokens();
+        const tokens = column.toTokens(true);
 
-        // TODO: this is just in case we select a query e.g. select(foo.id, select(foo.value).from(foo)).from(foo)
-        // as the subquery needs a group around it. If this has any weird side effects of adding a
-        // group around an expression which is not neccesary or even breaking we should consider
-        // letting the group happen in user land instead OR we could start inspecting the tokens but
-        // rather not start doing that.
-        if (tokens.length > 1) {
+        if (column instanceof Query) {
           return new GroupToken(tokens);
         }
 
-        return tokens[0];
+        return new CollectionToken(tokens);
       }),
     ),
   ]);

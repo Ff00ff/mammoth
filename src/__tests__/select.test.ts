@@ -1,15 +1,6 @@
-import {
-  count,
-  defineDb,
-  defineTable,
-  integer,
-  sum,
-  text,
-  timestampWithTimeZone,
-  uuid,
-} from "..";
+import { count, defineDb, defineTable, integer, sum, text, timestampWithTimeZone, uuid } from '..';
 
-import { toSnap } from "./helpers";
+import { toSnap } from './helpers';
 
 describe(`select`, () => {
   const foo = defineTable(`foo`, {
@@ -19,9 +10,13 @@ describe(`select`, () => {
     value: integer(),
   });
 
-  const db = defineDb(() =>
-    Promise.resolve({ rows: [], affectedRowsCount: 0 })
-  );
+  const bar = defineTable(`bar`, {
+    id: uuid().primaryKey().default(`gen_random_id()`),
+    fooId: uuid().notNull().references(foo, `id`),
+    name: text(),
+  });
+
+  const db = defineDb(() => Promise.resolve({ rows: [], affectedRowsCount: 0 }));
 
   it(`should select foo`, () => {
     const query = db.select(foo.id).from(foo);
@@ -67,7 +62,7 @@ describe(`select`, () => {
         "parameters": Array [
           1,
         ],
-        "text": "SELECT foo.id, ((foo.value + $1) \\"test\\") FROM foo",
+        "text": "SELECT foo.id, (foo.value + $1) \\"test\\" FROM foo",
       }
     `);
   });
@@ -113,7 +108,7 @@ describe(`select`, () => {
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "SELECT foo.id, ((SUM (foo.value)) \\"total\\") FROM foo",
+        "text": "SELECT foo.id, SUM (foo.value) \\"total\\" FROM foo",
       }
     `);
   });
@@ -159,16 +154,7 @@ describe(`select`, () => {
     const query = db
       .select(foo.id)
       .from(foo)
-      .where(
-        foo.value
-          .plus(1)
-          .multiply(2)
-          .minus(3)
-          .divide(4)
-          .modulo(5)
-          .between(-10)
-          .and(10)
-      );
+      .where(foo.value.plus(1).multiply(2).minus(3).divide(4).modulo(5).between(-10).and(10));
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
@@ -203,7 +189,197 @@ describe(`select`, () => {
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "SELECT (COUNT (foo.create_date \\"createDate\\")) FROM foo",
+        "text": "SELECT COUNT (foo.create_date) FROM foo",
+      }
+    `);
+  });
+
+  it(`should select aggregate with alias`, () => {
+    const query = db.select(count(foo.createDate).as(`test`)).from(foo);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT COUNT (foo.create_date) \\"test\\" FROM foo",
+      }
+    `);
+  });
+
+  it(`should select join`, () => {
+    const query = db.select(foo.id).from(foo).join(bar).on(foo.id.eq(bar.fooId));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo JOIN bar ON (foo.id = bar.foo_id)",
+      }
+    `);
+  });
+
+  it(`should select inner join`, () => {
+    const query = db.select(foo.id).from(foo).innerJoin(bar).on(foo.id.eq(bar.fooId));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo INNER JOIN bar ON (foo.id = bar.foo_id)",
+      }
+    `);
+  });
+
+  it(`should select left outer join`, () => {
+    const query = db.select(foo.id).from(foo).leftOuterJoin(bar).on(foo.id.eq(bar.fooId));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo LEFT OUTER JOIN bar ON (foo.id = bar.foo_id)",
+      }
+    `);
+  });
+
+  it(`should select left join`, () => {
+    const query = db.select(foo.id).from(foo).leftJoin(bar).on(foo.id.eq(bar.fooId));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo INNER JOIN bar ON (foo.id = bar.foo_id)",
+      }
+    `);
+  });
+
+  it(`should select right outer join`, () => {
+    const query = db.select(foo.id).from(foo).rightOuterJoin(bar).using(foo.id);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo RIGHT OUTER JOIN bar USING (foo.id)",
+      }
+    `);
+  });
+
+  it(`should select right join`, () => {
+    const query = db.select(foo.id).from(foo).rightJoin(bar).on(foo.id.eq(bar.fooId));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo RIGHT JOIN bar ON (foo.id = bar.foo_id)",
+      }
+    `);
+  });
+
+  it(`should select full outer join`, () => {
+    const query = db.select(foo.id).from(foo).fullOuterJoin(bar).on(foo.id.eq(bar.fooId));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo FULL OUTER JOIN bar ON (foo.id = bar.foo_id)",
+      }
+    `);
+  });
+
+  it(`should select full join`, () => {
+    const query = db.select(foo.id).from(foo).fullJoin(bar).on(foo.id.eq(bar.fooId));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo FULL JOIN bar ON (foo.id = bar.foo_id)",
+      }
+    `);
+  });
+
+  it(`should select cross join`, () => {
+    const query = db.select(foo.id).from(foo).crossJoin(bar);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo CROSS JOIN bar",
+      }
+    `);
+  });
+
+  it(`should select for update of table nowait`, () => {
+    const query = db.select(foo.id).from(foo).limit(1).forUpdate().of(foo).nowait();
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          1,
+        ],
+        "text": "SELECT foo.id FROM foo LIMIT $1 FOR UPDATE OF foo NOWAIT",
+      }
+    `);
+  });
+
+  it(`should select for no key update skip locked`, () => {
+    const query = db.select(foo.id).from(foo).limit(1).forNoKeyUpdate().skipLocked();
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          1,
+        ],
+        "text": "SELECT foo.id FROM foo LIMIT $1 FOR NO KEY UPDATE SKIP LOCKED",
+      }
+    `);
+  });
+
+  it(`should select for share`, () => {
+    const query = db.select(foo.id).from(foo).limit(1).forShare().skipLocked();
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          1,
+        ],
+        "text": "SELECT foo.id FROM foo LIMIT $1 FOR SHARE SKIP LOCKED",
+      }
+    `);
+  });
+
+  it(`should select for key share`, () => {
+    const query = db.select(foo.id).from(foo).limit(1).forKeyShare().skipLocked();
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          1,
+        ],
+        "text": "SELECT foo.id FROM foo LIMIT $1 FOR KEY SHARE SKIP LOCKED",
+      }
+    `);
+  });
+
+  it(`should select group by having count(*) > 1`, () => {
+    const query = db.select(foo.id).from(foo).groupBy(foo.name).having(count().gt(`1`));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "1",
+        ],
+        "text": "SELECT foo.id FROM foo GROUP BY foo.name HAVING COUNT(*) > $1",
+      }
+    `);
+  });
+
+  it(`should select limit-offset-fetch`, () => {
+    const query = db.select(foo.id).from(foo).limit(10).offset(10).fetch(5);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          10,
+          10,
+          5,
+        ],
+        "text": "SELECT foo.id FROM foo LIMIT $1 OFFSET $2 FETCH FIRST $3 ROWS ONLY",
       }
     `);
   });

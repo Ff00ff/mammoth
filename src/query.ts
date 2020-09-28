@@ -7,5 +7,5 @@ import { Token } from "./tokens";
 export abstract class Query<Returning> {
   private _queryBrand!: Returning;
   /** @internal */
-  abstract toTokens(): Token[];
+  abstract toTokens(includeAlias?: boolean): Token[];
 }

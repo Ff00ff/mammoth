@@ -18,4 +18,4 @@ export class GetDataType<Type, IsNull> {
 export type QueryExecutorFn = (
   query: string,
   parameters: any[]
-) => Promise<{ rows: any[]; affectedRowsCount: number }>;
+) => Promise<{ rows: any[]; affectedCount: number }>;

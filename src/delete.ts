@@ -59,7 +59,7 @@ export class DeleteQuery<
         onFulfilled
           ? onFulfilled(
               this.resultType === `AFFECTED_COUNT`
-                ? result.affectedRowsCount
+                ? result.affectedCount
                 : (result.rows as any),
             )
           : (result as any),

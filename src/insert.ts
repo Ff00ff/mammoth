@@ -48,7 +48,7 @@ export class InsertQuery<
       .then((result) =>
         onFulfilled
           ? onFulfilled(
-              this.resultType === `AFFECTED_COUNT` ? result.affectedRowsCount : (result.rows as any)
+              this.resultType === `AFFECTED_COUNT` ? result.affectedCount : (result.rows as any)
             )
           : result
       )

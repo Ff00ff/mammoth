@@ -17,7 +17,7 @@ const foo = defineTable(`foo`, {
 });
 
 
-const db = defineDb(() => Promise.resolve({ rows: [], affectedRowsCount: 0 }));
+const db = defineDb(() => Promise.resolve({ rows: [], affectedCount: 0 }));
 
 // @dts-jest:group delete
 {

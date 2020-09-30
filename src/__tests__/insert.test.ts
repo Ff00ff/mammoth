@@ -18,7 +18,7 @@ describe(`insert`, () => {
   });
 
   const db = defineDb(() =>
-    Promise.resolve({ rows: [], affectedRowsCount: 0 })
+    Promise.resolve({ rows: [], affectedCount: 0 })
   );
 
   it(`should insert foo on conflict do update set`, () => {

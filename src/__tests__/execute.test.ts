@@ -16,7 +16,7 @@ describe(`execute`, () => {
   });
 
   const db = defineDb(() =>
-    Promise.resolve({ rows: [{ a: `1` }, { b: `2` }], affectedRowsCount: 123 })
+    Promise.resolve({ rows: [{ a: `1` }, { b: `2` }], affectedCount: 123 })
   );
 
   it(`select should return rows`, async () => {

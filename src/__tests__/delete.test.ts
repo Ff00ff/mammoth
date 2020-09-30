@@ -25,8 +25,10 @@ describe(`delete`, () => {
     id: uuid().primaryKey().default(`gen_random_id()`),
   });
 
-  const db = defineDb(() =>
-    Promise.resolve({ rows: [], affectedRowsCount: 0 })
+  const db = defineDb({
+    foo,
+  }, () =>
+    Promise.resolve({ rows: [], affectedCount: 0 })
   );
 
   it(`should delete`, () => {

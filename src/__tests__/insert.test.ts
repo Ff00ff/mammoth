@@ -1,13 +1,6 @@
-import {
-  defineDb,
-  defineTable,
-  integer,
-  text,
-  timestampWithTimeZone,
-  uuid,
-} from "..";
+import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
 
-import { toSnap } from "./helpers";
+import { toSnap } from './helpers';
 
 describe(`insert`, () => {
   const foo = defineTable(`foo`, {
@@ -17,9 +10,7 @@ describe(`insert`, () => {
     value: integer(),
   });
 
-  const db = defineDb(() =>
-    Promise.resolve({ rows: [], affectedCount: 0 })
-  );
+  const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 
   it(`should insert foo on conflict do update set`, () => {
     const query = db
@@ -116,11 +107,7 @@ describe(`insert`, () => {
   });
 
   it(`insert into on conflict do nothing`, () => {
-    const query = db
-      .insertInto(foo)
-      .values({ name: `Test` })
-      .onConflict()
-      .doNothing();
+    const query = db.insertInto(foo).values({ name: `Test` }).onConflict().doNothing();
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {

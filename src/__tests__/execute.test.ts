@@ -1,11 +1,4 @@
-import {
-  defineDb,
-  defineTable,
-  integer,
-  text,
-  timestampWithTimeZone,
-  uuid,
-} from "..";
+import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
 
 describe(`execute`, () => {
   const foo = defineTable(`foo`, {
@@ -15,8 +8,8 @@ describe(`execute`, () => {
     value: integer(),
   });
 
-  const db = defineDb(() =>
-    Promise.resolve({ rows: [{ a: `1` }, { b: `2` }], affectedCount: 123 })
+  const db = defineDb({ foo }, () =>
+    Promise.resolve({ rows: [{ a: `1` }, { b: `2` }], affectedCount: 123 }),
   );
 
   it(`select should return rows`, async () => {

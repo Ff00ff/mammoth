@@ -30,7 +30,7 @@ describe(`select`, () => {
     name: text(),
   });
 
-  const db = defineDb(() => Promise.resolve({ rows: [], affectedCount: 0 }));
+  const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 
   it(`should select foo`, () => {
     const query = db.select(foo.id).from(foo);

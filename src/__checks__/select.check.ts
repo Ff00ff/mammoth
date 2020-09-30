@@ -1,4 +1,13 @@
-import { count, defineDb, defineTable, integer, sum, text, timestampWithTimeZone, uuid } from '../../.build';
+import {
+  count,
+  defineDb,
+  defineTable,
+  integer,
+  sum,
+  text,
+  timestampWithTimeZone,
+  uuid,
+} from '../../.build';
 
 import { Query } from '../../.build/query';
 import { ResultSet } from '../../.build/result-set';
@@ -24,7 +33,7 @@ const bar = defineTable(`bar`, {
   fooId: uuid().references(foo, 'id'),
 });
 
-const db = defineDb(() => Promise.resolve({ rows: [], affectedCount: 0 }));
+const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 
 // @dts-jest:group select
 {
@@ -58,8 +67,10 @@ const db = defineDb(() => Promise.resolve({ rows: [], affectedCount: 0 }));
   // @dts-jest:snap should select aggregate with alias
   toSnap(db.select(foo.id, sum(foo.value).as(`total`)).from(foo));
 
-  db.select(foo.id, foo.value).from(foo).then(result => {
-    // @dts-jest:snap should select and await result set
-    result;
-  })
+  db.select(foo.id, foo.value)
+    .from(foo)
+    .then((result) => {
+      // @dts-jest:snap should select and await result set
+      result;
+    });
 }

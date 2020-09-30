@@ -1,4 +1,12 @@
-import { count, defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '../../.build';
+import {
+  count,
+  defineDb,
+  defineTable,
+  integer,
+  text,
+  timestampWithTimeZone,
+  uuid,
+} from '../../.build';
 
 import { Query } from '../../.build/query';
 import { ResultSet } from '../../.build/result-set';
@@ -16,7 +24,7 @@ const foo = defineTable(`foo`, {
   value: integer(),
 });
 
-const db = defineDb(() => Promise.resolve({ rows: [], affectedCount: 0 }));
+const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 
 // @dts-jest:group update
 {
@@ -29,13 +37,18 @@ const db = defineDb(() => Promise.resolve({ rows: [], affectedCount: 0 }));
   // @dts-jest:snap should update without returning and return number
   toSnap(db.update(foo).set({ name: `Test`, value: 123 }));
 
-  db.update(foo).set({ name: `Test` }).then((result) => {
-    // @dts-jest:snap should update and await affected count
-    result;
-  });
+  db.update(foo)
+    .set({ name: `Test` })
+    .then((result) => {
+      // @dts-jest:snap should update and await affected count
+      result;
+    });
 
-  db.update(foo).set({ name: `Test` }).returning(`name`).then((result) => {
-    // @dts-jest:snap should update-returning and await rows
-    result;
-  });
+  db.update(foo)
+    .set({ name: `Test` })
+    .returning(`name`)
+    .then((result) => {
+      // @dts-jest:snap should update-returning and await rows
+      result;
+    });
 }

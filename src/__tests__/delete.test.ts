@@ -1,13 +1,6 @@
-import {
-  defineDb,
-  defineTable,
-  integer,
-  text,
-  timestampWithTimeZone,
-  uuid,
-} from "..";
+import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
 
-import { toSnap } from "./helpers";
+import { toSnap } from './helpers';
 
 describe(`delete`, () => {
   const foo = defineTable(`foo`, {
@@ -25,10 +18,11 @@ describe(`delete`, () => {
     id: uuid().primaryKey().default(`gen_random_id()`),
   });
 
-  const db = defineDb({
-    foo,
-  }, () =>
-    Promise.resolve({ rows: [], affectedCount: 0 })
+  const db = defineDb(
+    {
+      foo,
+    },
+    () => Promise.resolve({ rows: [], affectedCount: 0 }),
   );
 
   it(`should delete`, () => {

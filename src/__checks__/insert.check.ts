@@ -1,4 +1,12 @@
-import { count, defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '../../.build';
+import {
+  count,
+  defineDb,
+  defineTable,
+  integer,
+  text,
+  timestampWithTimeZone,
+  uuid,
+} from '../../.build';
 
 import { Query } from '../../.build/query';
 import { ResultSet } from '../../.build/result-set';
@@ -16,7 +24,7 @@ const foo = defineTable(`foo`, {
   value: integer(),
 });
 
-const db = defineDb(() => Promise.resolve({ rows: [], affectedCount: 0 }));
+const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 
 // @dts-jest:group insert check
 {
@@ -32,13 +40,18 @@ const db = defineDb(() => Promise.resolve({ rows: [], affectedCount: 0 }));
   // @dts-jest:fail:snap should not insert invalid type in known column
   toSnap(db.insertInto(foo).values({ name: 123 }));
 
-  db.insertInto(foo).values({ name: `Test` }).then(result => {
-    // @dts-jest:snap should insert and await affect count
-    result;
-  })
+  db.insertInto(foo)
+    .values({ name: `Test` })
+    .then((result) => {
+      // @dts-jest:snap should insert and await affect count
+      result;
+    });
 
-  db.insertInto(foo).values({ name: `Test` }).returning(`name`).then(result => {
-    // @dts-jest:snap should insert-returning and await rows
-    result;
-  })
+  db.insertInto(foo)
+    .values({ name: `Test` })
+    .returning(`name`)
+    .then((result) => {
+      // @dts-jest:snap should insert-returning and await rows
+      result;
+    });
 }

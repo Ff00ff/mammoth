@@ -28,7 +28,7 @@ export class UpdateQuery<
     private readonly queryExecutor: QueryExecutorFn,
     private readonly table: T,
     private readonly resultType: ResultType,
-    private readonly tokens: Token[]
+    private readonly tokens: Token[],
   ) {
     super();
   }
@@ -36,11 +36,13 @@ export class UpdateQuery<
   then(
     onFulfilled?:
       | ((
-          value: Returning extends number ? Returning : ResultSet<UpdateQuery<T, Returning>, false>[]
+          value: Returning extends number
+            ? Returning
+            : ResultSet<UpdateQuery<T, Returning>, false>[],
         ) => any | PromiseLike<any>)
       | undefined
       | null,
-    onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null
+    onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null,
   ) {
     const queryState = createQueryState(this.tokens);
 
@@ -48,9 +50,9 @@ export class UpdateQuery<
       .then((result) =>
         onFulfilled
           ? onFulfilled(
-              this.resultType === `AFFECTED_COUNT` ? result.affectedCount : (result.rows as any)
+              this.resultType === `AFFECTED_COUNT` ? result.affectedCount : (result.rows as any),
             )
-          : (result as any)
+          : (result as any),
       )
       .catch(onRejected);
   }
@@ -82,11 +84,11 @@ export class UpdateQuery<
   }
 
   returning<C1 extends keyof TableColumns>(
-    column1: C1
+    column1: C1,
   ): UpdateQuery<T, GetReturning<TableColumns, C1>>;
   returning<C1 extends keyof TableColumns, C2 extends keyof TableColumns>(
     column1: C1,
-    column2: C2
+    column2: C2,
   ): UpdateQuery<T, GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2>>;
   returning<
     C1 extends keyof TableColumns,
@@ -95,7 +97,7 @@ export class UpdateQuery<
   >(
     column1: C1,
     column2: C2,
-    column3: C3
+    column3: C3,
   ): UpdateQuery<
     T,
     GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2> & GetReturning<TableColumns, C3>
@@ -109,7 +111,7 @@ export class UpdateQuery<
     column1: C1,
     column2: C2,
     column3: C3,
-    column4: C4
+    column4: C4,
   ): UpdateQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -128,7 +130,7 @@ export class UpdateQuery<
     column2: C2,
     column3: C3,
     column4: C4,
-    column5: C5
+    column5: C5,
   ): UpdateQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -150,7 +152,7 @@ export class UpdateQuery<
     column3: C3,
     column4: C4,
     column5: C5,
-    column6: C6
+    column6: C6,
   ): UpdateQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -175,7 +177,7 @@ export class UpdateQuery<
     column4: C4,
     column5: C5,
     column6: C6,
-    column7: C7
+    column7: C7,
   ): UpdateQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -203,7 +205,7 @@ export class UpdateQuery<
     column5: C5,
     column6: C6,
     column7: C7,
-    column8: C8
+    column8: C8,
   ): UpdateQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -234,7 +236,7 @@ export class UpdateQuery<
     column6: C6,
     column7: C7,
     column8: C8,
-    column9: C9
+    column9: C9,
   ): UpdateQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -268,7 +270,7 @@ export class UpdateQuery<
     column7: C7,
     column8: C8,
     column9: C9,
-    column10: C10
+    column10: C10,
   ): UpdateQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -296,7 +298,7 @@ export class UpdateQuery<
           } else {
             return new StringToken(columnData.snakeCaseName);
           }
-        })
+        }),
       ),
     ]) as any;
   }
@@ -308,7 +310,7 @@ export class UpdateQuery<
 }
 
 export const makeUpdate = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
-  table: T
+  table: T,
 ) => {
   //
 
@@ -329,7 +331,7 @@ export const makeUpdate = (queryExecutor: QueryExecutorFn) => <T extends Table<a
                 : DataType | undefined | Expression<DataType | undefined, boolean>
               : never;
           }
-        : never
+        : never,
     ): UpdateQuery<T, number> {
       const tableData = getTableData(table);
       const keys = Object.keys(values);
@@ -351,7 +353,7 @@ export const makeUpdate = (queryExecutor: QueryExecutorFn) => <T extends Table<a
                 ? value.toTokens()
                 : new ParameterToken(value),
             ]);
-          })
+          }),
         ),
       ]);
     },

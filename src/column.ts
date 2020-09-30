@@ -1,6 +1,7 @@
 import { AliasToken, StringToken, Token } from './tokens';
 import { InternalExpression, makeExpression } from './expression';
 
+import { TableDefinition } from './table';
 // import type { Table } from './table';
 import { toSnakeCase } from './naming/snake-case';
 
@@ -13,16 +14,16 @@ export interface ColumnDefinition<DataType, IsNotNull extends boolean, HasDefaul
   // this is not neccesary in most of the cases we just assume a default expression will always set
   // a value. You can opt out of this by setting `IsAlwaysSettingAValue` to false.
   default<IsAlwaysSettingAValue extends boolean = true>(
-    defaultExpression: string
+    defaultExpression: string,
   ): ColumnDefinition<DataType, IsNotNull, IsAlwaysSettingAValue>;
   check(): ColumnDefinition<DataType, IsNotNull, HasDefault>;
   unique(): ColumnDefinition<DataType, IsNotNull, HasDefault>;
   references<
-    T,
-    ColumnName extends string
+    T extends TableDefinition<any>,
+    ColumnName extends T extends TableDefinition<infer Columns> ? keyof Columns : never
   >(
     table: T,
-    columnName: ColumnName
+    columnName: ColumnName,
   ): ColumnDefinition<DataType, IsNotNull, HasDefault>;
 }
 
@@ -31,7 +32,7 @@ export const makeColumnDefinition = <
   IsNotNull extends boolean,
   HasDefault extends boolean
 >(
-  dataType: string
+  dataType: string,
 ): ColumnDefinition<DataType, IsNotNull, HasDefault> => {
   return {
     notNull() {
@@ -71,7 +72,7 @@ export interface Column<
   _columnBrand: any;
 
   as<AliasName extends string>(
-    alias: AliasName
+    alias: AliasName,
   ): Column<AliasName, TableName, DataType, IsNotNull, HasDefault, JoinType>;
 
   /** @internal */
@@ -87,7 +88,7 @@ export const makeColumn = <
 >(
   columnName: ColumnName,
   tableName: TableName,
-  originalColumnName: string | undefined
+  originalColumnName: string | undefined,
 ): Column<ColumnName, TableName, DataType, IsNotNull, HasDefault, undefined> => {
   // TODO: either use some sort of AliasToken which we can later strip. Or pass some sort of option
   // to the token generation so we can choose if we want named or unnamed.
@@ -95,9 +96,10 @@ export const makeColumn = <
   return {
     _columnBrand: undefined,
 
-    ...makeExpression(originalColumnName
-      ? [new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`)]
-      : [new StringToken(`${tableName}.${snakeCaseColumnName}`)],
+    ...makeExpression(
+      originalColumnName
+        ? [new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`)]
+        : [new StringToken(`${tableName}.${snakeCaseColumnName}`)],
     ),
 
     as(alias) {
@@ -109,15 +111,21 @@ export const makeColumn = <
         const snakeCaseColumnName = toSnakeCase((columnName as unknown) as string);
 
         return originalColumnName
-          ? [new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`), new AliasToken(columnName as unknown as string)]
+          ? [
+              new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`),
+              new AliasToken((columnName as unknown) as string),
+            ]
           : snakeCaseColumnName === (columnName as unknown)
           ? [new StringToken(`${tableName}.${snakeCaseColumnName}`)]
-          : [new StringToken(`${tableName}.${snakeCaseColumnName}`), new AliasToken(columnName as unknown as string)];
+          : [
+              new StringToken(`${tableName}.${snakeCaseColumnName}`),
+              new AliasToken((columnName as unknown) as string),
+            ];
       }
 
       return originalColumnName
-          ? [new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`)]
-          : [new StringToken(`${tableName}.${snakeCaseColumnName}`)];
+        ? [new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`)]
+        : [new StringToken(`${tableName}.${snakeCaseColumnName}`)];
     },
   };
 };

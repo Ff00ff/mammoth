@@ -10,6 +10,7 @@ import {
 } from './tokens';
 import { GetReturning, PickByValue, QueryExecutorFn, ResultType } from './types';
 import { SelectFn, makeSelect } from './select';
+import { Table, TableDefinition } from './table';
 import { getColumnData, getTableData } from './data';
 
 import { Column } from './column';
@@ -18,7 +19,6 @@ import { DeleteQuery } from './delete';
 import { Expression } from './expression';
 import { Query } from './query';
 import { ResultSet } from './result-set';
-import { Table } from './table';
 import { UpdateQuery } from './update';
 
 // https://www.postgresql.org/docs/12/sql-insert.html
@@ -33,14 +33,21 @@ export class InsertQuery<
     private readonly queryExecutor: QueryExecutorFn,
     private readonly table: T,
     private readonly resultType: ResultType,
-    private readonly tokens: Token[]
+    private readonly tokens: Token[],
   ) {
     super();
   }
 
   then(
-    onFulfilled?: ((value: Returning extends number ? Returning : ResultSet<InsertQuery<T, Returning>, false>[]) => any | PromiseLike<any>) | undefined | null,
-    onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null
+    onFulfilled?:
+      | ((
+          value: Returning extends number
+            ? Returning
+            : ResultSet<InsertQuery<T, Returning>, false>[],
+        ) => any | PromiseLike<any>)
+      | undefined
+      | null,
+    onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null,
   ) {
     const queryState = createQueryState(this.tokens);
 
@@ -48,19 +55,19 @@ export class InsertQuery<
       .then((result) =>
         onFulfilled
           ? onFulfilled(
-              this.resultType === `AFFECTED_COUNT` ? result.affectedCount : (result.rows as any)
+              this.resultType === `AFFECTED_COUNT` ? result.affectedCount : (result.rows as any),
             )
-          : result
+          : result,
       )
       .catch(onRejected);
   }
 
   returning<C1 extends keyof TableColumns>(
-    column1: C1
+    column1: C1,
   ): InsertQuery<T, GetReturning<TableColumns, C1>>;
   returning<C1 extends keyof TableColumns, C2 extends keyof TableColumns>(
     column1: C1,
-    column2: C2
+    column2: C2,
   ): InsertQuery<T, GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2>>;
   returning<
     C1 extends keyof TableColumns,
@@ -69,7 +76,7 @@ export class InsertQuery<
   >(
     column1: C1,
     column2: C2,
-    column3: C3
+    column3: C3,
   ): InsertQuery<
     T,
     GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2> & GetReturning<TableColumns, C3>
@@ -83,7 +90,7 @@ export class InsertQuery<
     column1: C1,
     column2: C2,
     column3: C3,
-    column4: C4
+    column4: C4,
   ): InsertQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -102,7 +109,7 @@ export class InsertQuery<
     column2: C2,
     column3: C3,
     column4: C4,
-    column5: C5
+    column5: C5,
   ): InsertQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -124,7 +131,7 @@ export class InsertQuery<
     column3: C3,
     column4: C4,
     column5: C5,
-    column6: C6
+    column6: C6,
   ): InsertQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -149,7 +156,7 @@ export class InsertQuery<
     column4: C4,
     column5: C5,
     column6: C6,
-    column7: C7
+    column7: C7,
   ): InsertQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -177,7 +184,7 @@ export class InsertQuery<
     column5: C5,
     column6: C6,
     column7: C7,
-    column8: C8
+    column8: C8,
   ): InsertQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -208,7 +215,7 @@ export class InsertQuery<
     column6: C6,
     column7: C7,
     column8: C8,
-    column9: C9
+    column9: C9,
   ): InsertQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -242,7 +249,7 @@ export class InsertQuery<
     column7: C7,
     column8: C8,
     column9: C9,
-    column10: C10
+    column10: C10,
   ): InsertQuery<
     T,
     GetReturning<TableColumns, C1> &
@@ -270,7 +277,7 @@ export class InsertQuery<
           } else {
             return new StringToken(columnData.snakeCaseName);
           }
-        })
+        }),
       ),
     ]) as any;
   }
@@ -311,7 +318,7 @@ export class InsertQuery<
                   : DataType | undefined | Expression<DataType, IsNotNull> | Query<any>
                 : never;
             }
-          : never
+          : never,
       ) {
         return new InsertQuery(self.queryExecutor, self.table, self.resultType, [
           ...self.tokens,
@@ -344,7 +351,7 @@ export class InsertQuery<
                   new ParameterToken(value),
                 ]);
               }
-            })
+            }),
           ),
         ]);
       },
@@ -367,7 +374,7 @@ export class InsertQuery<
                   const columnData = getColumnData(column);
 
                   return new StringToken(columnData.snakeCaseName);
-                })
+                }),
               )
             : new EmptyToken(),
           new StringToken(`DO NOTHING`),
@@ -390,7 +397,7 @@ export class InsertQuery<
                   : DataType | undefined | Expression<DataType, IsNotNull> | Query<any>
                 : never;
             }
-          : never
+          : never,
       ) {
         return new InsertQuery(self.queryExecutor, self.table, self.resultType, [
           ...self.tokens,
@@ -402,7 +409,7 @@ export class InsertQuery<
                   const columnData = getColumnData(column);
 
                   return new StringToken(columnData.snakeCaseName);
-                })
+                }),
               )
             : new EmptyToken(),
           new StringToken(`DO UPDATE SET`),
@@ -432,7 +439,7 @@ export class InsertQuery<
                   new ParameterToken(value),
                 ]);
               }
-            })
+            }),
           ),
         ]);
       },
@@ -449,11 +456,11 @@ export interface InsertIntoResult<T extends Table<any, any>> {
   select: SelectFn;
 
   deleteFrom<DeleteTable extends Table<any, any>>(
-    deleteTable: DeleteTable
+    deleteTable: DeleteTable,
   ): DeleteQuery<DeleteTable, number>;
 
   update<UpdateTable extends Table<any, any>>(
-    updateTable: UpdateTable
+    updateTable: UpdateTable,
   ): {
     set(
       values: UpdateTable extends Table<any, infer Columns>
@@ -471,7 +478,7 @@ export interface InsertIntoResult<T extends Table<any, any>> {
                 : DataType | undefined | Expression<DataType | undefined, boolean>
               : never;
           }
-        : never
+        : never,
     ): UpdateQuery<UpdateTable, number>;
   };
 
@@ -518,14 +525,14 @@ export interface InsertIntoResult<T extends Table<any, any>> {
               ? DataType | undefined
               : never;
           }
-      : never
+      : never,
   ): InsertQuery<T, number>;
 }
 
 export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
   table: T,
-  columnNames?: T extends Table<any, infer Columns> ? (keyof Columns)[] : never
-): InsertIntoResult<T> => {
+  columnNames?: T extends Table<any, infer Columns> ? (keyof Columns)[] : never,
+): T extends TableDefinition<any> ? never : InsertIntoResult<T> => {
   const insertTableData = getTableData(table);
   return {
     select: makeSelect(queryExecutor, [
@@ -538,7 +545,7 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
             const columnData = getColumnData((table as any)[columnName]);
 
             return new StringToken(columnData.snakeCaseName);
-          }) || []
+          }) || [],
         ),
       ]),
     ]),
@@ -557,7 +564,7 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
               const columnData = getColumnData((table as any)[columnName]);
 
               return new StringToken(columnData.snakeCaseName);
-            })
+            }),
           ),
         ]),
         new StringToken(`DELETE FROM`),
@@ -583,7 +590,7 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
                     : DataType | undefined | Expression<DataType | undefined, boolean>
                   : never;
               }
-            : never
+            : never,
         ): UpdateQuery<T, number> {
           const updateTableData = getTableData(updateTable);
           const keys = Object.keys(values);
@@ -598,7 +605,7 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
                   const columnData = getColumnData((table as any)[columnName]);
 
                   return new StringToken(columnData.snakeCaseName);
-                })
+                }),
               ),
             ]),
             new StringToken(`UPDATE`),
@@ -617,7 +624,7 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
                     ? value.toTokens()
                     : new ParameterToken(value),
                 ]);
-              })
+              }),
             ),
           ]);
         },
@@ -680,7 +687,7 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
                 ? DataType | undefined
                 : never;
             }
-        : never
+        : never,
     ): InsertQuery<T, number> {
       return new InsertQuery(queryExecutor, table, 'AFFECTED_COUNT', [
         new StringToken(`INSERT INTO`),
@@ -693,7 +700,7 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
               const columnData = getColumnData(column);
 
               return new StringToken(columnData.snakeCaseName);
-            })
+            }),
           ),
         ]),
         new StringToken(`VALUES`),
@@ -713,10 +720,10 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
               } else {
                 return new ParameterToken(value);
               }
-            })
+            }),
           ),
         ]),
       ]);
     },
-  } as InsertIntoResult<T>;
+  } as any;
 };

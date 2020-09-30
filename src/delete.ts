@@ -8,22 +8,22 @@ import {
   createQueryState,
 } from './tokens';
 import type { GetReturning, QueryExecutorFn, ResultType } from './types';
+import type { Table, TableDefinition } from './table';
 import { getColumnData, getTableData } from './data';
 
 import type { Condition } from './condition';
 import { Query } from './query';
 import type { ResultSet } from './result-set';
-import type { Table } from './table';
 
 export const makeDeleteFrom = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
   table: T,
-) => {
+): T extends TableDefinition<any> ? never : DeleteQuery<T> => {
   const tableData = getTableData(table);
 
   return new DeleteQuery<T>(queryExecutor, table, 'AFFECTED_COUNT', [
     new StringToken(`DELETE FROM`),
     new StringToken(tableData.name),
-  ]);
+  ]) as any;
 };
 
 // https://www.postgresql.org/docs/12/sql-delete.html
@@ -58,9 +58,7 @@ export class DeleteQuery<
       .then((result) =>
         onFulfilled
           ? onFulfilled(
-              this.resultType === `AFFECTED_COUNT`
-                ? result.affectedCount
-                : (result.rows as any),
+              this.resultType === `AFFECTED_COUNT` ? result.affectedCount : (result.rows as any),
             )
           : (result as any),
       )

@@ -1,7 +1,7 @@
 import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
 
 describe(`execute`, () => {
-  const foo = defineTable(`foo`, {
+  const foo = defineTable({
     id: uuid().primaryKey().default(`gen_random_id()`),
     createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
@@ -13,7 +13,7 @@ describe(`execute`, () => {
   );
 
   it(`select should return rows`, async () => {
-    const rows = await db.select(foo.id).from(foo);
+    const rows = await db.select(db.foo.id).from(db.foo);
 
     expect(rows).toMatchInlineSnapshot(`
       Array [
@@ -28,13 +28,13 @@ describe(`execute`, () => {
   });
 
   it(`update should return count`, async () => {
-    const count = await db.update(foo).set({ name: `Test` });
+    const count = await db.update(db.foo).set({ name: `Test` });
 
     expect(count).toMatchInlineSnapshot(`123`);
   });
 
   it(`update with returning should return rows`, async () => {
-    const rows = await db.update(foo).set({ name: `Test` }).returning(`id`);
+    const rows = await db.update(db.foo).set({ name: `Test` }).returning(`id`);
 
     expect(rows).toMatchInlineSnapshot(`
       Array [
@@ -49,13 +49,13 @@ describe(`execute`, () => {
   });
 
   it(`delete should return count`, async () => {
-    const count = await db.deleteFrom(foo);
+    const count = await db.deleteFrom(db.foo);
 
     expect(count).toMatchInlineSnapshot(`123`);
   });
 
   it(`delete with returning should return rows`, async () => {
-    const rows = await db.deleteFrom(foo).returning(`id`);
+    const rows = await db.deleteFrom(db.foo).returning(`id`);
 
     expect(rows).toMatchInlineSnapshot(`
       Array [
@@ -70,13 +70,13 @@ describe(`execute`, () => {
   });
 
   it(`insert should return count`, async () => {
-    const count = await db.insertInto(foo).defaultValues();
+    const count = await db.insertInto(db.foo).defaultValues();
 
     expect(count).toMatchInlineSnapshot(`123`);
   });
 
   it(`insert with returning should return rows`, async () => {
-    const rows = await db.insertInto(foo).defaultValues().returning(`id`);
+    const rows = await db.insertInto(db.foo).defaultValues().returning(`id`);
 
     expect(rows).toMatchInlineSnapshot(`
       Array [

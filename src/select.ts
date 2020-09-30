@@ -8,13 +8,13 @@ import {
   createQueryState,
 } from './tokens';
 import { Expression, NamedExpression } from './expression';
+import { Table, TableDefinition } from './table';
 
 import { Column } from './column';
 import { Condition } from './condition';
 import { Query } from './query';
 import { QueryExecutorFn } from './types';
 import { ResultSet } from './result-set';
-import { Table } from './table';
 import { getTableData } from './data';
 
 type ToJoinType<
@@ -109,7 +109,9 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
   }
 
   // [ FROM from_item [, ...] ]
-  from<T extends Table<any, any>>(fromItem: T): SelectQuery<Columns> {
+  from<T extends Table<any, any>>(
+    fromItem: T,
+  ): T extends TableDefinition<any> ? never : SelectQuery<Columns> {
     const tableData = getTableData(fromItem);
 
     return new SelectQuery(this.queryExecutor, [
@@ -118,7 +120,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
       tableData.originalName
         ? new StringToken(`${tableData.originalName} "${tableData.name}"`)
         : new StringToken(tableData.name),
-    ]);
+    ]) as any;
   }
 
   join(table: Table<any, any>): SelectQuery<Columns> {

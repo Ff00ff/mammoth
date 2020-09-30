@@ -3,14 +3,14 @@ import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } fro
 import { toSnap } from './helpers';
 
 describe(`update`, () => {
-  const foo = defineTable(`foo`, {
+  const foo = defineTable({
     id: uuid().primaryKey().default(`gen_random_id()`),
     createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
     value: integer(),
   });
 
-  const bar = defineTable(`bar`, {
+  const bar = defineTable({
     id: uuid().primaryKey().default(`gen_random_id()`),
     fooId: uuid().notNull().references(foo, `id`),
     name: text(),
@@ -20,9 +20,9 @@ describe(`update`, () => {
 
   it(`should update foo`, () => {
     const query = db
-      .update(foo)
+      .update(db.foo)
       .set({ name: `Test` })
-      .where(foo.value.isNull())
+      .where(db.foo.value.isNull())
       .returning(`id`, `createDate`);
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
@@ -37,10 +37,10 @@ describe(`update`, () => {
 
   it(`should update-from foo`, () => {
     const query = db
-      .update(foo)
+      .update(db.foo)
       .set({ name: `Test` })
-      .from(bar)
-      .where(bar.fooId.eq(foo.id).and(bar.name.isNotNull()));
+      .from(db.bar)
+      .where(db.bar.fooId.eq(db.foo.id).and(db.bar.name.isNotNull()));
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
@@ -53,7 +53,7 @@ describe(`update`, () => {
   });
 
   it(`should update where current of foo`, () => {
-    const query = db.update(foo).set({ name: `Test` }).whereCurrentOf(`cursor1`);
+    const query = db.update(db.foo).set({ name: `Test` }).whereCurrentOf(`cursor1`);
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {

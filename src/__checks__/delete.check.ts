@@ -9,7 +9,7 @@ const toSnap = <T extends Query<any>>(query: T): ResultSet<T, true> => {
 
 /** @dts-jest enable:test-type */
 
-const foo = defineTable(`foo`, {
+const foo = defineTable({
   id: uuid().primaryKey().default(`gen_random_id()`),
   createDate: timestampWithTimeZone().notNull().default(`now()`),
   name: text().notNull(),
@@ -21,14 +21,14 @@ const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 
 // @dts-jest:group delete
 {
   // @dts-jest:snap should delete and returning id
-  toSnap(db.deleteFrom(foo).returning(`id`));
+  toSnap(db.deleteFrom(db.foo).returning(`id`));
 
-  db.deleteFrom(foo).then((result) => {
+  db.deleteFrom(db.foo).then((result) => {
     // @dts-jest:snap should delete and await affected row count
     result;
   });
 
-  db.deleteFrom(foo)
+  db.deleteFrom(db.foo)
     .returning(`id`)
     .then((result) => {
       // @dts-jest:snap should delete and await rows

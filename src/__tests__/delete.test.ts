@@ -3,33 +3,35 @@ import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } fro
 import { toSnap } from './helpers';
 
 describe(`delete`, () => {
-  const foo = defineTable(`foo`, {
+  const foo = defineTable({
     id: uuid().primaryKey().default(`gen_random_id()`),
     createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
     value: integer(),
   });
 
-  const bar = defineTable(`bar`, {
+  const bar = defineTable({
     id: uuid().primaryKey().default(`gen_random_id()`),
   });
 
-  const baz = defineTable(`baz`, {
+  const baz = defineTable({
     id: uuid().primaryKey().default(`gen_random_id()`),
   });
 
   const db = defineDb(
     {
       foo,
+      bar,
+      baz,
     },
     () => Promise.resolve({ rows: [], affectedCount: 0 }),
   );
 
   it(`should delete`, () => {
     const query = db
-      .deleteFrom(foo)
-      .using(bar, baz)
-      .where(foo.id.ne(bar.id))
+      .deleteFrom(db.foo)
+      .using(db.bar, db.baz)
+      .where(db.foo.id.ne(db.bar.id))
       .returning(`id`, `name`, `createDate`);
 
     expect(toSnap(query)).toMatchInlineSnapshot(`

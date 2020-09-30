@@ -18,14 +18,14 @@ const toSnap = <T extends Query<any>>(query: T): ResultSet<T, true> => {
 
 /** @dts-jest enable:test-type */
 
-const foo = defineTable(`foo`, {
+const foo = defineTable({
   id: uuid().primaryKey().default(`gen_random_id()`),
   createDate: timestampWithTimeZone().notNull().default(`now()`),
   name: text().notNull(),
   value: integer(),
 });
 
-const bar = defineTable(`bar`, {
+const bar = defineTable({
   id: uuid().primaryKey().default(`gen_random_id()`),
   startDate: timestampWithTimeZone().notNull().default(`now()`),
   endDate: timestampWithTimeZone().notNull().default(`now()`),
@@ -33,42 +33,42 @@ const bar = defineTable(`bar`, {
   fooId: uuid().references(foo, 'id'),
 });
 
-const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
+const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 
 // @dts-jest:group select
 {
   // @dts-jest:snap should return null and not null properties
-  toSnap(db.select(foo.id, foo.createDate, foo.value).from(foo));
+  toSnap(db.select(db.foo.id, db.foo.createDate, db.foo.value).from(db.foo));
 
   // @dts-jest:snap should return nullable properties of left joined columns
-  toSnap(db.select(foo.id, bar.endDate, bar.value).from(foo).leftJoin(bar));
+  toSnap(db.select(db.foo.id, db.bar.endDate, db.bar.value).from(db.foo).leftJoin(db.bar));
 
   // @dts-jest:snap should return nullable properties of left side properties when right joining
-  toSnap(db.select(foo.name, bar.startDate, bar.value).from(foo).rightJoin(bar));
+  toSnap(db.select(db.foo.name, db.bar.startDate, db.bar.value).from(db.foo).rightJoin(db.bar));
 
   // @dts-jest:snap should return renamed properties because of alias
-  toSnap(db.select(foo.name.as(`fooName`), foo.value.as(`fooValue`)).from(foo));
+  toSnap(db.select(db.foo.name.as(`fooName`), db.foo.value.as(`fooValue`)).from(db.foo));
 
   // @dts-jest:snap should return nullable properties of all sides because of full join
-  toSnap(db.select(foo.name, bar.startDate, bar.value).from(foo).fullJoin(bar));
+  toSnap(db.select(db.foo.name, db.bar.startDate, db.bar.value).from(db.foo).fullJoin(db.bar));
 
   // @dts-jest:snap should select expression
-  toSnap(db.select(foo.value.plus(1)).from(foo));
+  toSnap(db.select(db.foo.value.plus(1)).from(db.foo));
 
   // @dts-jest:snap should select named expression
-  toSnap(db.select(foo.value.plus(1).as(`test`)).from(foo));
+  toSnap(db.select(db.foo.value.plus(1).as(`test`)).from(db.foo));
 
   // @dts-jest:snap should select aggregate subquery
-  toSnap(db.select(foo.id, db.select(count()).from(foo)).from(foo));
+  toSnap(db.select(db.foo.id, db.select(count()).from(db.foo)).from(db.foo));
 
   // @dts-jest:snap should select null column in subquery
-  toSnap(db.select(foo.id, db.select(foo.value).from(foo)).from(foo));
+  toSnap(db.select(db.foo.id, db.select(db.foo.value).from(db.foo)).from(db.foo));
 
   // @dts-jest:snap should select aggregate with alias
-  toSnap(db.select(foo.id, sum(foo.value).as(`total`)).from(foo));
+  toSnap(db.select(db.foo.id, sum(db.foo.value).as(`total`)).from(db.foo));
 
-  db.select(foo.id, foo.value)
-    .from(foo)
+  db.select(db.foo.id, db.foo.value)
+    .from(db.foo)
     .then((result) => {
       // @dts-jest:snap should select and await result set
       result;

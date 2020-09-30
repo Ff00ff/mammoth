@@ -3,7 +3,7 @@ import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } fro
 import { toSnap } from './helpers';
 
 describe(`insert`, () => {
-  const foo = defineTable(`foo`, {
+  const foo = defineTable({
     id: uuid().primaryKey().default(`gen_random_id()`),
     createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
@@ -14,7 +14,7 @@ describe(`insert`, () => {
 
   it(`should insert foo on conflict do update set`, () => {
     const query = db
-      .insertInto(foo)
+      .insertInto(db.foo)
       .values({
         name: `Test`,
       })
@@ -35,7 +35,7 @@ describe(`insert`, () => {
   });
 
   it(`should insert with default values`, () => {
-    const query = db.insertInto(foo).defaultValues();
+    const query = db.insertInto(db.foo).defaultValues();
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
@@ -46,7 +46,7 @@ describe(`insert`, () => {
   });
 
   it(`should insert with returning`, () => {
-    const query = db.insertInto(foo).values({ name: `Test` }).returning(`id`);
+    const query = db.insertInto(db.foo).values({ name: `Test` }).returning(`id`);
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
@@ -60,9 +60,9 @@ describe(`insert`, () => {
 
   it(`should insert into select`, () => {
     const query = db
-      .insertInto(foo, [`name`, `value`, `createDate`])
-      .select(foo.id, foo.name, foo.createDate)
-      .from(foo);
+      .insertInto(db.foo, [`name`, `value`, `createDate`])
+      .select(db.foo.id, db.foo.name, db.foo.createDate)
+      .from(db.foo);
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
@@ -74,8 +74,8 @@ describe(`insert`, () => {
 
   it(`should insert update returning`, () => {
     const query = db
-      .insertInto(foo, [`name`, `value`, `createDate`])
-      .update(foo)
+      .insertInto(db.foo, [`name`, `value`, `createDate`])
+      .update(db.foo)
       .set({ value: 123 })
       .returning(`name`, `value`, `createDate`);
 
@@ -91,9 +91,9 @@ describe(`insert`, () => {
 
   it(`should insert delete returning`, () => {
     const query = db
-      .insertInto(foo, [`name`, `value`, `createDate`])
-      .deleteFrom(foo)
-      .where(foo.value.lt(123))
+      .insertInto(db.foo, [`name`, `value`, `createDate`])
+      .deleteFrom(db.foo)
+      .where(db.foo.value.lt(123))
       .returning(`name`, `value`, `createDate`);
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
@@ -107,7 +107,7 @@ describe(`insert`, () => {
   });
 
   it(`insert into on conflict do nothing`, () => {
-    const query = db.insertInto(foo).values({ name: `Test` }).onConflict().doNothing();
+    const query = db.insertInto(db.foo).values({ name: `Test` }).onConflict().doNothing();
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {

@@ -5,7 +5,11 @@ import { internalColumnData, internalTableData } from './data';
 
 import { toSnakeCase } from './naming/snake-case';
 
-export type Table<TableName, Columns> = InternalTable<TableName, Columns> & Columns;
+export class TableDefinition<Columns> {
+  private _tableDefinitionBrand: any;
+}
+
+export type Table<TableName, Columns> = Columns & InternalTable<TableName, Columns>;
 
 interface InternalTable<TableName, Columns> {
   // Because we use the column's table name to determine whether the data type should be nullable
@@ -29,7 +33,7 @@ interface InternalTable<TableName, Columns> {
   >;
 }
 
-const makeTable = <
+export const makeTable = <
   TableName extends string,
   TableDefinition extends { [column: string]: ColumnDefinition<any, any, any> }
 >(
@@ -82,24 +86,8 @@ const makeTable = <
   return table;
 };
 
-export const defineTable = <
-  T extends { [column: string]: ColumnDefinition<any, any, any> },
-  TableName extends string
->(
-  tableName: TableName,
-  tableDefinition: T,
-): Table<
-  TableName,
-  {
-    [K in keyof T]: Column<
-      K,
-      TableName,
-      T[K] extends ColumnDefinition<infer DataType, any, any> ? DataType : never,
-      T[K] extends ColumnDefinition<any, infer IsNotNull, any> ? IsNotNull : never,
-      T[K] extends ColumnDefinition<any, any, infer HasDefault> ? HasDefault : never,
-      undefined
-    >;
-  }
-> => {
-  return makeTable(tableName, undefined, tableDefinition) as any;
+export const defineTable = <Columns extends { [column: string]: ColumnDefinition<any, any, any> }>(
+  tableDefinition: Columns,
+): TableDefinition<Columns> => {
+  return tableDefinition as any;
 };

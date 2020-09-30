@@ -125,6 +125,20 @@ describe(`select`, () => {
     `);
   });
 
+  it(`should select in with delete subquery`, () => {
+    const query = db
+      .select(foo.id)
+      .from(foo)
+      .where(foo.id.in(db.deleteFrom(foo).returning(`id`)));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo WHERE foo.id IN (DELETE FROM foo RETURNING id)",
+      }
+    `);
+  });
+
   it(`should select IN with array`, () => {
     const query = db
       .select(foo.id)

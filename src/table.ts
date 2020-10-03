@@ -43,9 +43,11 @@ export const makeTable = <
     (tableDefinition as unknown) as object,
   ) as (keyof TableDefinition)[];
 
+  const escapedTableName = tableName.match(/[A-Z]/) ? `"${tableName}"` : tableName;
+
   const columns = columnNames.reduce(
     (map, columnName) => {
-      const column = new Column(columnName as string, tableName, undefined) as any;
+      const column = new Column(columnName as string, escapedTableName, undefined) as any;
       internalColumnData.set(column, {
         snakeCaseName: toSnakeCase(columnName as string),
       });

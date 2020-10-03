@@ -61,6 +61,18 @@ describe(`select`, () => {
     `);
   });
 
+  it(`should select as camel case table`, () => {
+    const test = db.foo.as(`testMe`);
+    const query = db.select(test.id).from(test);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT \\"testMe\\".id FROM foo \\"testMe\\"",
+      }
+    `);
+  });
+
   it(`should alias a column`, () => {
     const query = db.select(db.foo.id.as(`fooId`)).from(db.foo);
 

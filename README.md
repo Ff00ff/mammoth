@@ -16,11 +16,11 @@ Mammoth is a type-safe query builder. It only supports Postgres which we conside
 
 ```ts
 const rows = await db
-  .select(foo.id, bar.name)
-  .from(foo)
-  .leftJoin(bar)
-  .on(foo.barId.eq(bar.id))
-  .where(foo.id.eq(`1`));
+  .select(db.foo.id, db.bar.name)
+  .from(db.foo)
+  .leftJoin(db.bar)
+  .on(db.foo.barId.eq(db.bar.id))
+  .where(db.foo.id.eq(`1`));
 ```
 
 The above query produces the following SQL:
@@ -43,7 +43,7 @@ More importantly, the resulting type of rows is `{ id: string; name: string | un
   <summary>Basic update</summary>
 
 ```ts
-const updateCount = await db.update(foo).set({ name: `Test` }).where(foo.value.gt(0));
+const updateCount = await db.update(db.foo).set({ name: `Test` }).where(db.foo.value.gt(0));
 ```
 
 ```sql
@@ -61,7 +61,7 @@ WHERE
 
 ```ts
 const rows = await db
-  .insertInto(foo)
+  .insertInto(db.foo)
   .values({
     name: `Test`,
     value: 123,
@@ -88,10 +88,32 @@ RETURNING
 
 ```ts
 const affectedCount = await db
-  .insertInto(foo, ['name'])
-  .select(bar.name)
-  .from(bar)
-  .where(bar.name.isNotNull());
+  .insertInto(db.foo, ['name'])
+  .select(db.bar.name)
+  .from(db.bar)
+  .where(db.bar.name.isNotNull());
+```
+
+```sql
+INSERT INTO foo (name)
+SELECT
+  bar.name
+FROM bar
+WHERE
+  bar.name IS NOT NULL
+```
+
+</details>
+
+<details>
+  <summary>Select with aggregate</summary>
+
+```ts
+db.select(count()).from(db.foo);
+```
+
+```sql
+SELECT COUNT(*) FROM foo
 ```
 
 </details>
@@ -106,21 +128,22 @@ Mammoth is a query builder pur sang so it doesn't include a database driver. You
 
 ```ts
 import { defineDb } from '@ff00ff/mammoth';
+import { foo, bar } from './tables';
 
-const db = defineDb(async (query, parameters) => {
+const db = defineDb({ foo, bar }, async (query, parameters) => {
   const result = await pool.query(query, parameters);
 
   return {
-    affectedRowCount: result.rowCount,
+    affectedCount: result.rowCount,
     rows: result.rows,
   };
 });
 ```
 
-You have to define all the tables to make sure Mammoth understands the type information. This should be close to the CREATE TABLE syntax.
+In the `defineDb` call you pass all your tables so they can be access through the db instance. You have to define all the tables to make sure Mammoth understands the type information. This should be close to the CREATE TABLE syntax.
 
 ```ts
-const foo = defineTable(`foo`, {
+const foo = defineTable({
   id: uuid().primaryKey().default(`gen_random_id()`),
   createDate: timestampWithTimeZone().notNull().default(`now()`),
   name: text().notNull(),

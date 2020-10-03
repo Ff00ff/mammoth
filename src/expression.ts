@@ -1,74 +1,14 @@
-import { Condition, makeCondition } from "./condition";
-import { GroupToken, ParameterToken, SeparatorToken, StringToken, Token } from "./tokens";
+import { Condition, makeCondition } from './condition';
+import { GroupToken, ParameterToken, SeparatorToken, StringToken, Token } from './tokens';
 
-import { Query } from "./query";
+import { Query } from './query';
 
-export interface NamedExpression<Name, DataType, IsNotNull extends boolean>
-  extends InternalExpression<Name, DataType, IsNotNull> {
-  as<NewName extends string>(name: NewName): NamedExpression<NewName, DataType, IsNotNull>;
-}
+export class Expression<DataType, IsNotNull extends boolean, Name extends string = '?column?'> {
+  private _expressionBrand: any;
 
-// extends Expression<DataType, IsNotNull>
-export interface InternalExpression<Name, DataType, IsNotNull extends boolean> {
-  //
+  constructor(private readonly tokens: Token[]) {}
 
-  isNull(): Condition;
-  isNotNull(): Condition;
-
-  asc(): Expression<DataType, IsNotNull>;
-  desc(): Expression<DataType, IsNotNull>;
-  nullsFirst(): Expression<DataType, IsNotNull>;
-  nullsLast(): Expression<DataType, IsNotNull>;
-
-  in(array: DataType[] | Expression<DataType, IsNotNull> | Query<any>): Condition;
-  notIn(value: DataType[] | Expression<DataType, IsNotNull> | Query<any>): Condition;
-
-  plus(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
-  minus(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
-  multiply(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
-  divide(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
-  modulo(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
-  concat(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull>;
-
-  between(a: DataType, b: DataType): Condition;
-  betweenSymmetric(a: DataType, b: DataType): Condition;
-
-  isDistinctFrom(a: DataType): Condition;
-
-  isNotDistinctFrom(a: DataType): Condition;
-
-  like(value: DataType): Condition;
-
-  ilike(value: DataType): Condition;
-
-  eq(value: DataType | Expression<DataType, IsNotNull>): Condition;
-
-  ne(value: DataType | Expression<DataType, IsNotNull>): Condition;
-  gt(value: DataType | Expression<DataType, IsNotNull>): Condition;
-  gte(value: DataType | Expression<DataType, IsNotNull>): Condition;
-
-  lt(value: DataType | Expression<DataType, IsNotNull>): Condition;
-  lte(value: DataType | Expression<DataType, IsNotNull>): Condition;
-
-  /** @internal */
-  toTokens(includeAlias?: boolean): Token[];
-}
-
-// An expression is a combination of things which evaluates to one or more values
-export type Expression<DataType, IsNotNull extends boolean> = NamedExpression<
-  '?column?',
-  DataType,
-  IsNotNull
->;
-
-export const makeNamedExpression = <Name extends string, DataType, IsNotNull extends boolean>(
-  tokens: Token[]
-): NamedExpression<Name, DataType, IsNotNull> => makeExpression(tokens) as any;
-
-export const makeExpression = <DataType>(tokens: Token[]): Expression<DataType, true> => {
-  //
-
-  const getDataTypeTokens = (value: DataType | Expression<DataType, true>) => {
+  private getDataTypeTokens(value: DataType | Expression<DataType, true>) {
     if (
       value &&
       typeof value === `object` &&
@@ -79,172 +19,186 @@ export const makeExpression = <DataType>(tokens: Token[]): Expression<DataType, 
     }
 
     return [new ParameterToken(value)];
-  };
+  }
 
-  return {
-    as(name) {
-      if (tokens.length > 2) {
-        return makeExpression([new GroupToken(tokens), new StringToken(`"${name}"`)]);
-      }
-
-      return makeExpression([...tokens, new StringToken(`"${name}"`)]);
-    },
-
-    isNull() {
-      return makeCondition([...tokens, new StringToken(`IS NULL`)]);
-    },
-
-    isNotNull(): Condition {
-      return makeCondition([...tokens, new StringToken(`IS NOT NULL`)]);
-    },
-
-    asc() {
-      return makeExpression([...tokens, new StringToken(`ASC`)]);
-    },
-
-    desc() {
-      return makeExpression([...tokens, new StringToken(`DESC`)]);
-    },
-
-    nullsFirst() {
-      return makeExpression([...tokens, new StringToken(`NULLS FIRST`)]);
-    },
-
-    nullsLast() {
-      return makeExpression([...tokens, new StringToken(`NULLS LAST`)]);
-    },
-
-    // IN ($1, $2, $3)
-    // IN foo.id
-    // IN (SELECT * FROM test)
-    in(array) {
-      if (array && ('toTokens' in array || array instanceof Query)) {
-        return makeCondition([...tokens, new StringToken(`IN`), new GroupToken(array.toTokens())]);
-      } else {
-        return makeCondition([
-          ...tokens,
-          new StringToken(`IN`),
-          new GroupToken([
-            new SeparatorToken(
-              ',',
-              array.map((item) => new ParameterToken(item))
-            ),
-          ]),
-        ]);
-      }
-    },
-
-    notIn(array) {
-      if (array && ('toTokens' in array || array instanceof Query)) {
-        return makeCondition([
-          ...tokens,
-          new StringToken(`NOT IN`),
-          new GroupToken(array.toTokens()),
-        ]);
-      } else {
-        return makeCondition([
-          ...tokens,
-          new StringToken(`NOT IN`),
-          new GroupToken([
-            new SeparatorToken(
-              ',',
-              array.map((item) => new ParameterToken(item)),
-            ),
-          ]),
-        ]);
-      }
-    },
-
-    plus(value) {
-      return makeExpression([...tokens, new StringToken(`+`), ...getDataTypeTokens(value)]);
-    },
-
-    minus(value) {
-      return makeExpression([...tokens, new StringToken(`-`), ...getDataTypeTokens(value)]);
-    },
-
-    multiply(value) {
-      return makeExpression([...tokens, new StringToken(`*`), ...getDataTypeTokens(value)]);
-    },
-
-    divide(value) {
-      return makeExpression([...tokens, new StringToken(`/`), ...getDataTypeTokens(value)]);
-    },
-
-    modulo(value) {
-      return makeExpression([...tokens, new StringToken(`%`), ...getDataTypeTokens(value)]);
-    },
-
-    concat(value) {
-      return makeExpression([...tokens, new StringToken(`||`), ...getDataTypeTokens(value)]);
-    },
-
-    between(a, b) {
-      return makeCondition([
-        ...tokens,
-        new StringToken(`BETWEEN`),
-        new ParameterToken(a),
-        new StringToken(`AND`),
-        new ParameterToken(b),
+  as<AliasName extends string>(name: AliasName) {
+    if (this.tokens.length > 2) {
+      return new Expression<DataType, IsNotNull, AliasName>([
+        new GroupToken(this.tokens),
+        new StringToken(`"${name}"`),
       ]);
-    },
+    }
 
-    betweenSymmetric(a, b) {
+    return new Expression<DataType, IsNotNull, AliasName>([
+      ...this.tokens,
+      new StringToken(`"${name}"`),
+    ]);
+  }
+
+  isNull() {
+    return makeCondition([...this.tokens, new StringToken(`IS NULL`)]);
+  }
+
+  isNotNull() {
+    return makeCondition([...this.tokens, new StringToken(`IS NOT NULL`)]);
+  }
+
+  asc() {
+    return new Expression([...this.tokens, new StringToken(`ASC`)]);
+  }
+
+  desc() {
+    return new Expression([...this.tokens, new StringToken(`DESC`)]);
+  }
+
+  nullsFirst() {
+    return new Expression([...this.tokens, new StringToken(`NULLS FIRST`)]);
+  }
+
+  nullsLast() {
+    return new Expression([...this.tokens, new StringToken(`NULLS LAST`)]);
+  }
+
+  in(array: DataType[] | Expression<DataType, IsNotNull> | Query<any>) {
+    if (array && ('toTokens' in array || array instanceof Query)) {
       return makeCondition([
-        ...tokens,
-        new StringToken(`BETWEEN SYMMETRIC`),
-        new ParameterToken(a),
-        new StringToken(`AND`),
-        new ParameterToken(b),
+        ...this.tokens,
+        new StringToken(`IN`),
+        new GroupToken(array.toTokens()),
       ]);
-    },
-
-    isDistinctFrom(a) {
-      return makeCondition([...tokens, new StringToken(`IS DISTINCT FROM`), new ParameterToken(a)]);
-    },
-
-    isNotDistinctFrom(a) {
+    } else {
       return makeCondition([
-        ...tokens,
-        new StringToken(`IS NOT DISTINCT FROM`),
-        new ParameterToken(a),
+        ...this.tokens,
+        new StringToken(`IN`),
+        new GroupToken([
+          new SeparatorToken(
+            ',',
+            array.map((item) => new ParameterToken(item)),
+          ),
+        ]),
       ]);
-    },
+    }
+  }
 
-    like(value) {
-      return makeCondition([...tokens, new StringToken(`LIKE`), new ParameterToken(value)]);
-    },
+  notIn(array: DataType[] | Expression<DataType, IsNotNull> | Query<any>) {
+    if (array && ('toTokens' in array || array instanceof Query)) {
+      return makeCondition([
+        ...this.tokens,
+        new StringToken(`NOT IN`),
+        new GroupToken(array.toTokens()),
+      ]);
+    } else {
+      return makeCondition([
+        ...this.tokens,
+        new StringToken(`NOT IN`),
+        new GroupToken([
+          new SeparatorToken(
+            ',',
+            array.map((item) => new ParameterToken(item)),
+          ),
+        ]),
+      ]);
+    }
+  }
 
-    ilike(value) {
-      return makeCondition([...tokens, new StringToken(`ILIKE`), new ParameterToken(value)]);
-    },
+  plus(value: DataType | Expression<DataType, IsNotNull>): Expression<DataType, IsNotNull> {
+    return new Expression([...this.tokens, new StringToken(`+`), ...this.getDataTypeTokens(value)]);
+  }
 
-    eq(value) {
-      return makeCondition([...tokens, new StringToken(`=`), ...getDataTypeTokens(value)]);
-    },
+  minus(value: DataType | Expression<DataType, IsNotNull>) {
+    return new Expression([...this.tokens, new StringToken(`-`), ...this.getDataTypeTokens(value)]);
+  }
 
-    ne(value) {
-      return makeCondition([...tokens, new StringToken(`<>`), ...getDataTypeTokens(value)]);
-    },
+  multiply(value: DataType | Expression<DataType, IsNotNull>) {
+    return new Expression([...this.tokens, new StringToken(`*`), ...this.getDataTypeTokens(value)]);
+  }
 
-    gt(value) {
-      return makeCondition([...tokens, new StringToken(`>`), ...getDataTypeTokens(value)]);
-    },
+  divide(value: DataType | Expression<DataType, IsNotNull>) {
+    return new Expression([...this.tokens, new StringToken(`/`), ...this.getDataTypeTokens(value)]);
+  }
 
-    gte(value) {
-      return makeCondition([...tokens, new StringToken(`>=`), ...getDataTypeTokens(value)]);
-    },
+  modulo(value: DataType | Expression<DataType, IsNotNull>) {
+    return new Expression([...this.tokens, new StringToken(`%`), ...this.getDataTypeTokens(value)]);
+  }
 
-    lt(value) {
-      return makeCondition([...tokens, new StringToken(`<`), ...getDataTypeTokens(value)]);
-    },
+  concat(value: DataType | Expression<DataType, IsNotNull>) {
+    return new Expression([
+      ...this.tokens,
+      new StringToken(`||`),
+      ...this.getDataTypeTokens(value),
+    ]);
+  }
 
-    lte(value) {
-      return makeCondition([...tokens, new StringToken(`<=`), ...getDataTypeTokens(value)]);
-    },
+  between(a: DataType, b: DataType) {
+    return makeCondition([
+      ...this.tokens,
+      new StringToken(`BETWEEN`),
+      new ParameterToken(a),
+      new StringToken(`AND`),
+      new ParameterToken(b),
+    ]);
+  }
 
-    toTokens() {
-      return tokens;
-    },
-  };
-};
+  betweenSymmetric(a: DataType, b: DataType) {
+    return makeCondition([
+      ...this.tokens,
+      new StringToken(`BETWEEN SYMMETRIC`),
+      new ParameterToken(a),
+      new StringToken(`AND`),
+      new ParameterToken(b),
+    ]);
+  }
+
+  isDistinctFrom(a: DataType) {
+    return makeCondition([
+      ...this.tokens,
+      new StringToken(`IS DISTINCT FROM`),
+      new ParameterToken(a),
+    ]);
+  }
+
+  isNotDistinctFrom(a: DataType) {
+    return makeCondition([
+      ...this.tokens,
+      new StringToken(`IS NOT DISTINCT FROM`),
+      new ParameterToken(a),
+    ]);
+  }
+
+  like(value: DataType) {
+    return makeCondition([...this.tokens, new StringToken(`LIKE`), new ParameterToken(value)]);
+  }
+
+  ilike(value: DataType) {
+    return makeCondition([...this.tokens, new StringToken(`ILIKE`), new ParameterToken(value)]);
+  }
+
+  eq(value: DataType | Expression<DataType, IsNotNull>) {
+    return makeCondition([...this.tokens, new StringToken(`=`), ...this.getDataTypeTokens(value)]);
+  }
+
+  ne(value: DataType | Expression<DataType, IsNotNull>) {
+    return makeCondition([...this.tokens, new StringToken(`<>`), ...this.getDataTypeTokens(value)]);
+  }
+
+  gt(value: DataType | Expression<DataType, IsNotNull>) {
+    return makeCondition([...this.tokens, new StringToken(`>`), ...this.getDataTypeTokens(value)]);
+  }
+
+  gte(value: DataType | Expression<DataType, IsNotNull>) {
+    return makeCondition([...this.tokens, new StringToken(`>=`), ...this.getDataTypeTokens(value)]);
+  }
+
+  lt(value: DataType | Expression<DataType, IsNotNull>) {
+    return makeCondition([...this.tokens, new StringToken(`<`), ...this.getDataTypeTokens(value)]);
+  }
+
+  lte(value: DataType | Expression<DataType, IsNotNull>) {
+    return makeCondition([...this.tokens, new StringToken(`<=`), ...this.getDataTypeTokens(value)]);
+  }
+
+  /** @internal */
+  toTokens(includeAlias?: boolean) {
+    return this.tokens;
+  }
+}

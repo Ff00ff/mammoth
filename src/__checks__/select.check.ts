@@ -37,6 +37,9 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
 
 // @dts-jest:group select
 {
+  // @dts-jest:fail:snap should not pollute column scope
+  db.foo.id._columnBrand;
+
   // @dts-jest:snap should return null and not null properties
   toSnap(db.select(db.foo.id, db.foo.createDate, db.foo.value).from(db.foo));
 

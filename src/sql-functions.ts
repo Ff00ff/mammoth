@@ -1,28 +1,27 @@
 import { Condition, makeCondition } from './condition';
-import { Expression, NamedExpression, makeExpression, makeNamedExpression } from './expression';
 import { GroupToken, ParameterToken, StringToken } from './tokens';
 
+import { Expression } from './expression';
+
 export const any = <T>(array: T[]) =>
-  makeExpression<T>([new StringToken(`ANY`), new GroupToken([new ParameterToken(array)])]);
+  new Expression<T, true>([new StringToken(`ANY`), new GroupToken([new ParameterToken(array)])]);
 
-export const now = () => makeExpression<Date>([new StringToken(`NOW()`)]);
+export const now = () => new Expression<Date, true>([new StringToken(`NOW()`)]);
 
-export const count = (
-  expression?: Expression<any, any>,
-): NamedExpression<'count', string, true> => {
+export const count = (expression?: Expression<any, any>): Expression<string, true, 'count'> => {
   if (!expression) {
-    return makeNamedExpression([new StringToken(`COUNT(*)`)]);
+    return new Expression([new StringToken(`COUNT(*)`)]);
   }
 
   const tokens = expression.toTokens(false);
 
-  return makeNamedExpression([new StringToken(`COUNT`), new GroupToken(tokens)]);
+  return new Expression([new StringToken(`COUNT`), new GroupToken(tokens)]);
 };
 
 export const min = <DataType, IsNotNull extends boolean>(
   expression: Expression<DataType, IsNotNull>,
 ) =>
-  makeNamedExpression<'min', DataType, IsNotNull>([
+  new Expression<DataType, IsNotNull, 'min'>([
     new StringToken(`MIN`),
     new GroupToken(expression.toTokens()),
   ]);
@@ -30,7 +29,7 @@ export const min = <DataType, IsNotNull extends boolean>(
 export const max = <DataType, IsNotNull extends boolean>(
   expression: Expression<DataType, IsNotNull>,
 ) =>
-  makeNamedExpression<'max', DataType, IsNotNull>([
+  new Expression<DataType, IsNotNull, 'max'>([
     new StringToken(`MAX`),
     new GroupToken(expression.toTokens()),
   ]);
@@ -38,7 +37,7 @@ export const max = <DataType, IsNotNull extends boolean>(
 export const avg = <DataType, IsNotNull extends boolean>(
   expression: Expression<DataType, IsNotNull>,
 ) =>
-  makeNamedExpression<'avg', DataType, true>([
+  new Expression<DataType, true, 'avg'>([
     new StringToken(`AVG`),
     new GroupToken(expression.toTokens()),
   ]);
@@ -46,7 +45,7 @@ export const avg = <DataType, IsNotNull extends boolean>(
 export const sum = <DataType, IsNotNull extends boolean>(
   expression: Expression<DataType, IsNotNull>,
 ) =>
-  makeNamedExpression<'sum', DataType, IsNotNull>([
+  new Expression<DataType, IsNotNull, 'sum'>([
     new StringToken(`SUM`),
     new GroupToken(expression.toTokens()),
   ]);

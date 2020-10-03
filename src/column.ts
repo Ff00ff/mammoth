@@ -1,8 +1,14 @@
-import { AliasToken, StringToken, Token } from './tokens';
-import { InternalExpression, makeExpression } from './expression';
+import {
+  AliasToken,
+  GroupToken,
+  ParameterToken,
+  SeparatorToken,
+  StringToken,
+  Token,
+} from './tokens';
 
+import { Expression } from './expression';
 import { TableDefinition } from './table';
-// import type { Table } from './table';
 import { toSnakeCase } from './naming/snake-case';
 
 export interface ColumnDefinition<DataType, IsNotNull extends boolean, HasDefault extends boolean> {
@@ -61,71 +67,54 @@ export const makeColumnDefinition = <
   };
 };
 
-export interface Column<
+export class Column<
   Name,
   TableName,
   DataType,
   IsNotNull extends boolean,
   HasDefault extends boolean,
   JoinType
-> extends InternalExpression<Name, DataType, IsNotNull> {
-  _columnBrand: any;
+> extends Expression<DataType, IsNotNull, Name extends string ? Name : never> {
+  private _columnBrand: any;
+
+  constructor(
+    private readonly columnName: Name,
+    private readonly tableName: TableName,
+    private readonly originalColumnName: string | undefined,
+  ) {
+    super(
+      originalColumnName
+        ? [new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`)]
+        : [new StringToken(`${tableName}.${toSnakeCase((columnName as unknown) as string)}`)],
+    );
+  }
 
   as<AliasName extends string>(
     alias: AliasName,
-  ): Column<AliasName, TableName, DataType, IsNotNull, HasDefault, JoinType>;
+  ): Column<AliasName, TableName, DataType, IsNotNull, HasDefault, JoinType> {
+    return new Column(alias, this.tableName, (this.columnName as unknown) as string);
+  }
 
   /** @internal */
-  toTokens(includeAlias?: boolean): Token[];
+  toTokens(includeAlias?: boolean): Token[] {
+    const snakeCaseColumnName = toSnakeCase((this.columnName as unknown) as string);
+
+    if (includeAlias) {
+      return this.originalColumnName
+        ? [
+            new StringToken(`${this.tableName}.${toSnakeCase(this.originalColumnName)}`),
+            new AliasToken((this.columnName as unknown) as string),
+          ]
+        : snakeCaseColumnName === (this.columnName as unknown)
+        ? [new StringToken(`${this.tableName}.${snakeCaseColumnName}`)]
+        : [
+            new StringToken(`${this.tableName}.${snakeCaseColumnName}`),
+            new AliasToken((this.columnName as unknown) as string),
+          ];
+    }
+
+    return this.originalColumnName
+      ? [new StringToken(`${this.tableName}.${toSnakeCase(this.originalColumnName)}`)]
+      : [new StringToken(`${this.tableName}.${snakeCaseColumnName}`)];
+  }
 }
-
-export const makeColumn = <
-  ColumnName,
-  TableName,
-  DataType,
-  IsNotNull extends boolean,
-  HasDefault extends boolean
->(
-  columnName: ColumnName,
-  tableName: TableName,
-  originalColumnName: string | undefined,
-): Column<ColumnName, TableName, DataType, IsNotNull, HasDefault, undefined> => {
-  // TODO: either use some sort of AliasToken which we can later strip. Or pass some sort of option
-  // to the token generation so we can choose if we want named or unnamed.
-  const snakeCaseColumnName = toSnakeCase((columnName as unknown) as string);
-  return {
-    _columnBrand: undefined,
-
-    ...makeExpression(
-      originalColumnName
-        ? [new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`)]
-        : [new StringToken(`${tableName}.${snakeCaseColumnName}`)],
-    ),
-
-    as(alias) {
-      return makeColumn(alias, tableName, (columnName as unknown) as string);
-    },
-
-    toTokens(includeAlias = false) {
-      if (includeAlias) {
-        const snakeCaseColumnName = toSnakeCase((columnName as unknown) as string);
-
-        return originalColumnName
-          ? [
-              new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`),
-              new AliasToken((columnName as unknown) as string),
-            ]
-          : snakeCaseColumnName === (columnName as unknown)
-          ? [new StringToken(`${tableName}.${snakeCaseColumnName}`)]
-          : [
-              new StringToken(`${tableName}.${snakeCaseColumnName}`),
-              new AliasToken((columnName as unknown) as string),
-            ];
-      }
-
-      return originalColumnName
-        ? [new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`)]
-        : [new StringToken(`${tableName}.${snakeCaseColumnName}`)];
-    },
-  };
-};

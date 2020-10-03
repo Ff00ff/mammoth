@@ -1,6 +1,4 @@
-// type InternalTab<TableDefinitionName> = Nominal<TableDefinitionName>;
-
-import { Column, ColumnDefinition, makeColumn } from './column';
+import { Column, ColumnDefinition } from './column';
 import { internalColumnData, internalTableData } from './data';
 
 import { toSnakeCase } from './naming/snake-case';
@@ -47,7 +45,7 @@ export const makeTable = <
 
   const columns = columnNames.reduce(
     (map, columnName) => {
-      const column = makeColumn(columnName as string, tableName, undefined) as any;
+      const column = new Column(columnName as string, tableName, undefined) as any;
       internalColumnData.set(column, {
         snakeCaseName: toSnakeCase(columnName as string),
       });

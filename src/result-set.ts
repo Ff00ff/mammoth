@@ -1,8 +1,8 @@
 import type { Column } from './column';
 import { DeleteQuery } from './delete';
+import type { Expression } from './expression';
 import { InsertQuery } from './insert';
-import type { NamedExpression } from './expression';
-import { Query } from "./query";
+import { Query } from './query';
 import { SelectQuery } from './select';
 import { UpdateQuery } from './update';
 
@@ -20,102 +20,150 @@ export type ResultSet<T extends Query<any>, Test extends boolean> = T extends Se
   infer Returning
 >
   ? {
-    [K in keyof Returning]: Returning[K] extends Column<
-      any,
-      any,
-      infer D,
-      infer N,
-      any,
-      infer JoinType
-    >
-      ? Extract<JoinType, 'left-join'> extends never
-        ? Extract<JoinType, 'left-side-of-right-join'> extends never
-          ? Extract<JoinType, 'full-join'> extends never
-            ? N extends true
-              ? Test extends true ? GetDataType<D, true> : ResultSetDataType<D, true>
-              : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-            : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-          : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-        : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-      : Returning[K] extends NamedExpression<any, infer D, infer IsNotNull>
-      ? Test extends true ? GetDataType<D, IsNotNull> : ResultSetDataType<D, IsNotNull>
-      : Returning[K] extends Query<{}>
-      ? ResultSet<Returning[K], Test>[keyof ResultSet<Returning[K], Test>]
-      : never;
-  }
+      [K in keyof Returning]: Returning[K] extends Column<
+        any,
+        any,
+        infer D,
+        infer N,
+        any,
+        infer JoinType
+      >
+        ? Extract<JoinType, 'left-join'> extends never
+          ? Extract<JoinType, 'left-side-of-right-join'> extends never
+            ? Extract<JoinType, 'full-join'> extends never
+              ? N extends true
+                ? Test extends true
+                  ? GetDataType<D, true>
+                  : ResultSetDataType<D, true>
+                : Test extends true
+                ? GetDataType<D, false>
+                : ResultSetDataType<D, false>
+              : Test extends true
+              ? GetDataType<D, false>
+              : ResultSetDataType<D, false>
+            : Test extends true
+            ? GetDataType<D, false>
+            : ResultSetDataType<D, false>
+          : Test extends true
+          ? GetDataType<D, false>
+          : ResultSetDataType<D, false>
+        : Returning[K] extends Expression<infer D, infer IsNotNull, any>
+        ? Test extends true
+          ? GetDataType<D, IsNotNull>
+          : ResultSetDataType<D, IsNotNull>
+        : Returning[K] extends Query<{}>
+        ? ResultSet<Returning[K], Test>[keyof ResultSet<Returning[K], Test>]
+        : never;
+    }
   : T extends DeleteQuery<any, infer Returning>
   ? {
-    [K in keyof Returning]: Returning[K] extends Column<
-      any,
-      any,
-      infer D,
-      infer N,
-      any,
-      infer JoinType
-    >
-      ? Extract<JoinType, 'left-join'> extends never
-        ? Extract<JoinType, 'left-side-of-right-join'> extends never
-          ? Extract<JoinType, 'full-join'> extends never
-            ? N extends true
-              ? Test extends true ? GetDataType<D, true> : ResultSetDataType<D, true>
-              : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-            : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-          : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-        : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-      : Returning[K] extends NamedExpression<any, infer D, infer IsNotNull>
-      ? Test extends true ? GetDataType<D, IsNotNull> : ResultSetDataType<D, IsNotNull>
-      : Returning[K] extends Query<{}>
-      ? ResultSet<Returning[K], Test>[keyof ResultSet<Returning[K], Test>]
-      : never;
-  }
+      [K in keyof Returning]: Returning[K] extends Column<
+        any,
+        any,
+        infer D,
+        infer N,
+        any,
+        infer JoinType
+      >
+        ? Extract<JoinType, 'left-join'> extends never
+          ? Extract<JoinType, 'left-side-of-right-join'> extends never
+            ? Extract<JoinType, 'full-join'> extends never
+              ? N extends true
+                ? Test extends true
+                  ? GetDataType<D, true>
+                  : ResultSetDataType<D, true>
+                : Test extends true
+                ? GetDataType<D, false>
+                : ResultSetDataType<D, false>
+              : Test extends true
+              ? GetDataType<D, false>
+              : ResultSetDataType<D, false>
+            : Test extends true
+            ? GetDataType<D, false>
+            : ResultSetDataType<D, false>
+          : Test extends true
+          ? GetDataType<D, false>
+          : ResultSetDataType<D, false>
+        : Returning[K] extends Expression<infer D, infer IsNotNull, any>
+        ? Test extends true
+          ? GetDataType<D, IsNotNull>
+          : ResultSetDataType<D, IsNotNull>
+        : Returning[K] extends Query<{}>
+        ? ResultSet<Returning[K], Test>[keyof ResultSet<Returning[K], Test>]
+        : never;
+    }
   : T extends UpdateQuery<any, infer Returning>
   ? {
-    [K in keyof Returning]: Returning[K] extends Column<
-      any,
-      any,
-      infer D,
-      infer N,
-      any,
-      infer JoinType
-    >
-      ? Extract<JoinType, 'left-join'> extends never
-        ? Extract<JoinType, 'left-side-of-right-join'> extends never
-          ? Extract<JoinType, 'full-join'> extends never
-            ? N extends true
-              ? Test extends true ? GetDataType<D, true> : ResultSetDataType<D, true>
-              : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-            : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-          : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-        : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-      : Returning[K] extends NamedExpression<any, infer D, infer IsNotNull>
-      ? Test extends true ? GetDataType<D, IsNotNull> : ResultSetDataType<D, IsNotNull>
-      : Returning[K] extends Query<{}>
-      ? ResultSet<Returning[K], Test>[keyof ResultSet<Returning[K], Test>]
-      : never;
-  }
+      [K in keyof Returning]: Returning[K] extends Column<
+        any,
+        any,
+        infer D,
+        infer N,
+        any,
+        infer JoinType
+      >
+        ? Extract<JoinType, 'left-join'> extends never
+          ? Extract<JoinType, 'left-side-of-right-join'> extends never
+            ? Extract<JoinType, 'full-join'> extends never
+              ? N extends true
+                ? Test extends true
+                  ? GetDataType<D, true>
+                  : ResultSetDataType<D, true>
+                : Test extends true
+                ? GetDataType<D, false>
+                : ResultSetDataType<D, false>
+              : Test extends true
+              ? GetDataType<D, false>
+              : ResultSetDataType<D, false>
+            : Test extends true
+            ? GetDataType<D, false>
+            : ResultSetDataType<D, false>
+          : Test extends true
+          ? GetDataType<D, false>
+          : ResultSetDataType<D, false>
+        : Returning[K] extends Expression<infer D, infer IsNotNull, any>
+        ? Test extends true
+          ? GetDataType<D, IsNotNull>
+          : ResultSetDataType<D, IsNotNull>
+        : Returning[K] extends Query<{}>
+        ? ResultSet<Returning[K], Test>[keyof ResultSet<Returning[K], Test>]
+        : never;
+    }
   : T extends InsertQuery<any, infer Returning>
   ? {
-    [K in keyof Returning]: Returning[K] extends Column<
-      any,
-      any,
-      infer D,
-      infer N,
-      any,
-      infer JoinType
-    >
-      ? Extract<JoinType, 'left-join'> extends never
-        ? Extract<JoinType, 'left-side-of-right-join'> extends never
-          ? Extract<JoinType, 'full-join'> extends never
-            ? N extends true
-              ? Test extends true ? GetDataType<D, true> : ResultSetDataType<D, true>
-              : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-            : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-          : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-        : Test extends true ? GetDataType<D, false> : ResultSetDataType<D, false>
-      : Returning[K] extends NamedExpression<any, infer D, infer IsNotNull>
-      ? Test extends true ? GetDataType<D, IsNotNull> : ResultSetDataType<D, IsNotNull>
-      : Returning[K] extends Query<{}>
-      ? ResultSet<Returning[K], Test>[keyof ResultSet<Returning[K], Test>]
-      : never;
-  }
+      [K in keyof Returning]: Returning[K] extends Column<
+        any,
+        any,
+        infer D,
+        infer N,
+        any,
+        infer JoinType
+      >
+        ? Extract<JoinType, 'left-join'> extends never
+          ? Extract<JoinType, 'left-side-of-right-join'> extends never
+            ? Extract<JoinType, 'full-join'> extends never
+              ? N extends true
+                ? Test extends true
+                  ? GetDataType<D, true>
+                  : ResultSetDataType<D, true>
+                : Test extends true
+                ? GetDataType<D, false>
+                : ResultSetDataType<D, false>
+              : Test extends true
+              ? GetDataType<D, false>
+              : ResultSetDataType<D, false>
+            : Test extends true
+            ? GetDataType<D, false>
+            : ResultSetDataType<D, false>
+          : Test extends true
+          ? GetDataType<D, false>
+          : ResultSetDataType<D, false>
+        : Returning[K] extends Expression<infer D, infer IsNotNull, any>
+        ? Test extends true
+          ? GetDataType<D, IsNotNull>
+          : ResultSetDataType<D, IsNotNull>
+        : Returning[K] extends Query<{}>
+        ? ResultSet<Returning[K], Test>[keyof ResultSet<Returning[K], Test>]
+        : never;
+    }
   : never;

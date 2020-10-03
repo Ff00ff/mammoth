@@ -7,11 +7,11 @@ import {
   Token,
   createQueryState,
 } from './tokens';
-import { Expression, NamedExpression } from './expression';
 import { Table, TableDefinition } from './table';
 
 import { Column } from './column';
 import { Condition } from './condition';
+import { Expression } from './expression';
 import { Query } from './query';
 import { QueryExecutorFn } from './types';
 import { ResultSet } from './result-set';
@@ -78,7 +78,7 @@ type AddFullJoin<Columns> = {
 
 type GetSelectableName<S> = S extends Column<infer A2, string, any, boolean, boolean, any>
   ? A2
-  : S extends NamedExpression<infer A1, any, boolean>
+  : S extends Expression<any, boolean, infer A1>
   ? A1
   : S extends SelectQuery<infer Columns>
   ? keyof Columns // This only works if the query has one select clause
@@ -376,7 +376,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
 }
 
 type Selectable =
-  | NamedExpression<any, any, any>
+  | Expression<any, any, any>
   | SelectQuery<any>
   | Column<any, any, any, boolean, boolean, any>;
 

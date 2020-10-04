@@ -1,7 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`select should not pollute column scope (type) should match snapshot 1`] = `"Property '_columnBrand' is private and only accessible within class 'Column<Name, TableName, DataType, IsNotNull, HasDefault, JoinType>'."`;
-
 exports[`select should return null and not null properties (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; createDate: GetDataType<Date, true>; value: GetDataType<number, false>; }"`;
 
 exports[`select should return nullable properties of all sides because of full join (type) should match snapshot 1`] = `"{ name: GetDataType<string, false>; startDate: GetDataType<Date, false>; value: GetDataType<number, false>; }"`;

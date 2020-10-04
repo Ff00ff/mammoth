@@ -4,7 +4,7 @@ import { toSnap } from './helpers';
 
 describe(`insert`, () => {
   const foo = defineTable({
-    id: uuid().primaryKey().default(`gen_random_id()`),
+    id: uuid().primaryKey().default(`gen_random_uuid()`),
     createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
     value: integer(),

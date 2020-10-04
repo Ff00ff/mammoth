@@ -15,7 +15,6 @@ import { Expression } from './expression';
 import { Query } from './query';
 import { QueryExecutorFn } from './types';
 import { ResultSet } from './result-set';
-import { getTableData } from './data';
 
 type ToJoinType<
   JoinType,
@@ -90,7 +89,16 @@ type GetSelectable<C extends Selectable> = { [K in GetSelectableName<C>]: C };
 export class SelectQuery<Columns extends { [column: string]: any }> extends Query<Columns> {
   private _selectQueryBrand: any;
 
-  constructor(private readonly queryExecutor: QueryExecutorFn, private readonly tokens: Token[]) {
+  /** @internal */
+  getReturningKeys() {
+    return this.returningKeys;
+  }
+
+  constructor(
+    private readonly queryExecutor: QueryExecutorFn,
+    private readonly returningKeys: string[],
+    private readonly tokens: Token[],
+  ) {
     super();
   }
 
@@ -108,138 +116,121 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
       .catch(onRejected);
   }
 
+  private newSelectQuery(tokens: Token[]): SelectQuery<Columns> {
+    return new SelectQuery(this.queryExecutor, this.returningKeys, tokens);
+  }
+
   // [ FROM from_item [, ...] ]
   from<T extends Table<any, any>>(
     fromItem: T,
   ): T extends TableDefinition<any> ? never : SelectQuery<Columns> {
-    const tableData = getTableData(fromItem);
+    const table = fromItem as Table<any, any>;
 
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`FROM`),
-      tableData.originalName
-        ? new StringToken(`${tableData.originalName} "${tableData.name}"`)
-        : new StringToken(tableData.name),
+      table.getOriginalName()
+        ? new StringToken(`${table.getOriginalName()} "${table.getName()}"`)
+        : new StringToken(table.getName()),
     ]) as any;
   }
 
   join(table: Table<any, any>): SelectQuery<Columns> {
-    const tableData = getTableData(table);
-
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`JOIN`),
-      new StringToken(tableData.name),
+      new StringToken(table.getName()),
     ]);
   }
 
   innerJoin(table: Table<any, any>): SelectQuery<Columns> {
-    const tableData = getTableData(table);
-
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`INNER JOIN`),
-      new StringToken(tableData.name),
+      new StringToken(table.getName()),
     ]);
   }
 
   leftOuterJoin<JoinTable extends Table<any, any>>(
     table: JoinTable,
   ): SelectQuery<AddLeftJoin<Columns, JoinTable>> {
-    const tableData = getTableData(table);
-
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`LEFT OUTER JOIN`),
-      new StringToken(tableData.name),
+      new StringToken((table as Table<any, any>).getName()),
     ]);
   }
 
   leftJoin<JoinTable extends Table<any, any>>(
     table: JoinTable,
   ): SelectQuery<AddLeftJoin<Columns, JoinTable>> {
-    const tableData = getTableData(table);
-
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`INNER JOIN`),
-      new StringToken(tableData.name),
+      new StringToken((table as Table<any, any>).getName()),
     ]);
   }
 
   rightOuterJoin<JoinTable extends Table<any, any>>(
     table: JoinTable,
   ): SelectQuery<AddRightJoin<Columns, JoinTable>> {
-    const tableData = getTableData(table);
-
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`RIGHT OUTER JOIN`),
-      new StringToken(tableData.name),
+      new StringToken((table as Table<any, any>).getName()),
     ]);
   }
 
   rightJoin<JoinTable extends Table<any, any>>(
     table: JoinTable,
   ): SelectQuery<AddRightJoin<Columns, JoinTable>> {
-    const tableData = getTableData(table);
-
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`RIGHT JOIN`),
-      new StringToken(tableData.name),
+      new StringToken((table as Table<any, any>).getName()),
     ]);
   }
 
   fullOuterJoin<JoinTable extends Table<any, any>>(
     table: JoinTable,
   ): SelectQuery<AddFullJoin<Columns>> {
-    const tableData = getTableData(table);
-
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`FULL OUTER JOIN`),
-      new StringToken(tableData.name),
+      new StringToken((table as Table<any, any>).getName()),
     ]);
   }
   fullJoin<JoinTable extends Table<any, any>>(table: JoinTable): SelectQuery<AddFullJoin<Columns>> {
-    const tableData = getTableData(table);
-
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`FULL JOIN`),
-      new StringToken(tableData.name),
+      new StringToken((table as Table<any, any>).getName()),
     ]);
   }
 
   // This doesn't go with an ON or USING afterwards
   crossJoin(table: Table<any, any>): SelectQuery<Columns> {
-    const tableData = getTableData(table);
-
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`CROSS JOIN`),
-      new StringToken(tableData.name),
+      new StringToken((table as Table<any, any>).getName()),
     ]);
   }
 
   forUpdate(): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [...this.tokens, new StringToken(`FOR UPDATE`)]);
+    return this.newSelectQuery([...this.tokens, new StringToken(`FOR UPDATE`)]);
   }
 
   forNoKeyUpdate(): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [
-      ...this.tokens,
-      new StringToken(`FOR NO KEY UPDATE`),
-    ]);
+    return this.newSelectQuery([...this.tokens, new StringToken(`FOR NO KEY UPDATE`)]);
   }
 
   forShare(): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [...this.tokens, new StringToken(`FOR SHARE`)]);
+    return this.newSelectQuery([...this.tokens, new StringToken(`FOR SHARE`)]);
   }
 
   forKeyShare(): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [...this.tokens, new StringToken(`FOR KEY SHARE`)]);
+    return this.newSelectQuery([...this.tokens, new StringToken(`FOR KEY SHARE`)]);
   }
 
   /** @internal */
@@ -248,7 +239,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
   }
 
   on(joinCondition: Condition): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`ON`),
       new GroupToken(joinCondition.toTokens()),
@@ -256,7 +247,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
   }
 
   using(...columns: Column<any, any, any, any, any, any>[]): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`USING`),
       new GroupToken([
@@ -270,11 +261,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
 
   // [ WHERE condition ]
   where(condition: Condition): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [
-      ...this.tokens,
-      new StringToken(`WHERE`),
-      ...condition.toTokens(),
-    ]);
+    return this.newSelectQuery([...this.tokens, new StringToken(`WHERE`), ...condition.toTokens()]);
   }
 
   // [ GROUP BY grouping_element [, ...] ]
@@ -284,8 +271,8 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
   // ROLLUP ( { expression | ( expression [, ...] ) } [, ...] )
   // CUBE ( { expression | ( expression [, ...] ) } [, ...] )
   // GROUPING SETS ( grouping_element [, ...] )
-  groupBy(...expressions: Expression<any, any>[]): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [
+  groupBy(...expressions: Expression<any, any, any>[]): SelectQuery<Columns> {
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`GROUP BY`),
       new SeparatorToken(
@@ -297,7 +284,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
 
   // [ HAVING condition [, ...] ]
   having(...conditions: Condition[]): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`HAVING`),
       new SeparatorToken(
@@ -314,8 +301,8 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
 
   // [ { UNION | INTERSECT | EXCEPT } [ ALL | DISTINCT ] select ]
   // [ ORDER BY expression [ ASC | DESC | USING operator ] [ NULLS { FIRST | LAST } ] [, ...] ]
-  orderBy(...expressions: Expression<any, any>[]): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [
+  orderBy(...expressions: Expression<any, any, any>[]): SelectQuery<Columns> {
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`ORDER BY`),
       new SeparatorToken(
@@ -328,9 +315,9 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
   // [ LIMIT { count | ALL } ]
   limit(limit: number | 'ALL'): SelectQuery<Columns> {
     if (limit === `ALL`) {
-      return new SelectQuery(this.queryExecutor, [...this.tokens, new StringToken(`LIMIT ALL`)]);
+      return this.newSelectQuery([...this.tokens, new StringToken(`LIMIT ALL`)]);
     } else {
-      return new SelectQuery(this.queryExecutor, [
+      return this.newSelectQuery([
         ...this.tokens,
         new StringToken(`LIMIT`),
         new ParameterToken(limit),
@@ -340,7 +327,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
 
   // [ OFFSET start [ ROW | ROWS ] ]
   offset(start: number): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`OFFSET`),
       new ParameterToken(start),
@@ -348,7 +335,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
   }
 
   fetch(count: number): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`FETCH FIRST`),
       new ParameterToken(count),
@@ -357,21 +344,19 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
   }
 
   of(table: Table<any, any>): SelectQuery<Columns> {
-    const tableData = getTableData(table);
-
-    return new SelectQuery(this.queryExecutor, [
+    return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`OF`),
-      new StringToken(tableData.name),
+      new StringToken(table.getName()),
     ]);
   }
 
   nowait(): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [...this.tokens, new StringToken(`NOWAIT`)]);
+    return this.newSelectQuery([...this.tokens, new StringToken(`NOWAIT`)]);
   }
 
   skipLocked(): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, [...this.tokens, new StringToken(`SKIP LOCKED`)]);
+    return this.newSelectQuery([...this.tokens, new StringToken(`SKIP LOCKED`)]);
   }
 }
 
@@ -562,7 +547,14 @@ export const makeSelect = (queryExecutor: QueryExecutorFn, initialTokens?: Token
 >(
   ...columns: T[]
 ) => {
-  return new SelectQuery(queryExecutor, [
+  const returningKeys = columns.map((column) => {
+    if (column instanceof Query) {
+      return column.getReturningKeys()[0];
+    }
+    return (column as any).getName();
+  });
+
+  return new SelectQuery(queryExecutor, returningKeys, [
     ...(initialTokens || []),
     new StringToken(`SELECT`),
     new SeparatorToken(

@@ -4,14 +4,14 @@ import { toSnap } from './helpers';
 
 describe(`update`, () => {
   const foo = defineTable({
-    id: uuid().primaryKey().default(`gen_random_id()`),
+    id: uuid().primaryKey().default(`gen_random_uuid()`),
     createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
     value: integer(),
   });
 
   const bar = defineTable({
-    id: uuid().primaryKey().default(`gen_random_id()`),
+    id: uuid().primaryKey().default(`gen_random_uuid()`),
     fooId: uuid().notNull().references(foo, `id`),
     name: text(),
   });

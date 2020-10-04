@@ -4,18 +4,18 @@ import { toSnap } from './helpers';
 
 describe(`delete`, () => {
   const foo = defineTable({
-    id: uuid().primaryKey().default(`gen_random_id()`),
+    id: uuid().primaryKey().default(`gen_random_uuid()`),
     createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
     value: integer(),
   });
 
   const bar = defineTable({
-    id: uuid().primaryKey().default(`gen_random_id()`),
+    id: uuid().primaryKey().default(`gen_random_uuid()`),
   });
 
   const baz = defineTable({
-    id: uuid().primaryKey().default(`gen_random_id()`),
+    id: uuid().primaryKey().default(`gen_random_uuid()`),
   });
 
   const db = defineDb(

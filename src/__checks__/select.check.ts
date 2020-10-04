@@ -19,14 +19,14 @@ const toSnap = <T extends Query<any>>(query: T): ResultSet<T, true> => {
 /** @dts-jest enable:test-type */
 
 const foo = defineTable({
-  id: uuid().primaryKey().default(`gen_random_id()`),
+  id: uuid().primaryKey().default(`gen_random_uuid()`),
   createDate: timestampWithTimeZone().notNull().default(`now()`),
   name: text().notNull(),
   value: integer(),
 });
 
 const bar = defineTable({
-  id: uuid().primaryKey().default(`gen_random_id()`),
+  id: uuid().primaryKey().default(`gen_random_uuid()`),
   startDate: timestampWithTimeZone().notNull().default(`now()`),
   endDate: timestampWithTimeZone().notNull().default(`now()`),
   value: integer(),
@@ -37,9 +37,6 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
 
 // @dts-jest:group select
 {
-  // @dts-jest:fail:snap should not pollute column scope
-  db.foo.id._columnBrand;
-
   // @dts-jest:snap should return null and not null properties
   toSnap(db.select(db.foo.id, db.foo.createDate, db.foo.value).from(db.foo));
 
@@ -69,6 +66,8 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
 
   // @dts-jest:snap should select aggregate with alias
   toSnap(db.select(db.foo.id, sum(db.foo.value).as(`total`)).from(db.foo));
+
+  //
 
   db.select(db.foo.id, db.foo.value)
     .from(db.foo)

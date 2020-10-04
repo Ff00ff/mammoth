@@ -2,7 +2,7 @@ import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } fro
 
 describe(`execute`, () => {
   const foo = defineTable({
-    id: uuid().primaryKey().default(`gen_random_id()`),
+    id: uuid().primaryKey().default(`gen_random_uuid()`),
     createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
     value: integer(),

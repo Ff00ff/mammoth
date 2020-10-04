@@ -9,8 +9,8 @@ import {
 } from './tokens';
 import type { GetReturning, QueryExecutorFn, ResultType } from './types';
 import type { Table, TableDefinition } from './table';
-import { getColumnData, getTableData } from './data';
 
+import { Column } from './column';
 import type { Condition } from './condition';
 import { Query } from './query';
 import type { ResultSet } from './result-set';
@@ -18,11 +18,9 @@ import type { ResultSet } from './result-set';
 export const makeDeleteFrom = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
   table: T,
 ): T extends TableDefinition<any> ? never : DeleteQuery<T> => {
-  const tableData = getTableData(table);
-
-  return new DeleteQuery<T>(queryExecutor, table, 'AFFECTED_COUNT', [
+  return new DeleteQuery<T>(queryExecutor, [], table, 'AFFECTED_COUNT', [
     new StringToken(`DELETE FROM`),
-    new StringToken(tableData.name),
+    new StringToken((table as Table<any, any>).getName()),
   ]) as any;
 };
 
@@ -34,8 +32,14 @@ export class DeleteQuery<
 > extends Query<Returning> {
   private _deleteQueryBrand: any;
 
+  /** @internal */
+  getReturningKeys() {
+    return this.returningKeys;
+  }
+
   constructor(
     private readonly queryExecutor: QueryExecutorFn,
+    private readonly returningKeys: string[],
     private readonly table: T,
     private readonly resultType: ResultType,
     private readonly tokens: Token[],
@@ -66,22 +70,20 @@ export class DeleteQuery<
   }
 
   using(...fromItems: Table<any, any>[]): DeleteQuery<T, Returning> {
-    return new DeleteQuery(this.queryExecutor, this.table, this.resultType, [
+    return new DeleteQuery(this.queryExecutor, [], this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`USING`),
       new SeparatorToken(
         `,`,
         fromItems.map((fromItem) => {
-          const tableData = getTableData(fromItem);
-
-          return new StringToken(tableData.name);
+          return new StringToken(fromItem.getName());
         }),
       ),
     ]);
   }
 
   where(condition: Condition): DeleteQuery<T, Returning> {
-    return new DeleteQuery(this.queryExecutor, this.table, this.resultType, [
+    return new DeleteQuery(this.queryExecutor, [], this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE`),
       ...condition.toTokens(),
@@ -89,7 +91,7 @@ export class DeleteQuery<
   }
 
   whereCurrentOf(cursorName: string): DeleteQuery<T, Returning> {
-    return new DeleteQuery(this.queryExecutor, this.table, this.resultType, [
+    return new DeleteQuery(this.queryExecutor, [], this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE CURRENT OF`),
       new ParameterToken(cursorName),
@@ -297,19 +299,19 @@ export class DeleteQuery<
       GetReturning<TableColumns, C9> &
       GetReturning<TableColumns, C10>
   >;
-  returning(...columns: any[]) {
-    return new DeleteQuery(this.queryExecutor, this.table, 'ROWS', [
+  returning(...columnNames: any[]) {
+    return new DeleteQuery(this.queryExecutor, columnNames, this.table, 'ROWS', [
       ...this.tokens,
       new StringToken(`RETURNING`),
       new SeparatorToken(
         `,`,
-        columns.map((alias) => {
-          const columnData = getColumnData((this.table as any)[alias]);
+        columnNames.map((alias) => {
+          const column = (this.table as any)[alias] as Column<any, any, any, any, any, any>;
 
-          if (alias !== columnData.snakeCaseName) {
-            return new StringToken(`${columnData.snakeCaseName} "${alias}"`);
+          if (alias !== column.getSnakeCaseName()) {
+            return new StringToken(`${column.getSnakeCaseName()} "${alias}"`);
           } else {
-            return new StringToken(columnData.snakeCaseName);
+            return new StringToken(column.getSnakeCaseName());
           }
         }),
       ),

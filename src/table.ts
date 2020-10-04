@@ -1,7 +1,5 @@
 import { Column, ColumnDefinition } from './column';
-import { internalColumnData, internalTableData } from './data';
-
-import { toSnakeCase } from './naming/snake-case';
+import { toSnakeCase, wrapQuotes } from './naming/snake-case';
 
 export class TableDefinition<Columns> {
   private _tableDefinitionBrand: any;
@@ -10,6 +8,12 @@ export class TableDefinition<Columns> {
 export type Table<TableName, Columns> = Columns & InternalTable<TableName, Columns>;
 
 interface InternalTable<TableName, Columns> {
+  /** @internal */
+  getName(): string;
+
+  /** @internal */
+  getOriginalName(): string;
+
   // Because we use the column's table name to determine whether the data type should be nullable
   // when joining, we change the column's table name to the alias.
   as<T>(
@@ -43,32 +47,31 @@ export const makeTable = <
     (tableDefinition as unknown) as object,
   ) as (keyof TableDefinition)[];
 
-  const escapedTableName = tableName.match(/[A-Z]/) ? `"${tableName}"` : tableName;
-
   const columns = columnNames.reduce(
     (map, columnName) => {
-      const column = new Column(columnName as string, escapedTableName, undefined) as any;
-      internalColumnData.set(column, {
-        snakeCaseName: toSnakeCase(columnName as string),
-      });
+      const column = new Column(columnName as string, wrapQuotes(tableName), undefined) as any;
       map[columnName] = column;
       return map;
     },
     {} as Table<
       TableName,
       {
-        [K in keyof TableDefinition]: Column<
-          K,
-          TableName,
-          TableDefinition[K] extends ColumnDefinition<infer DataType, any, any> ? DataType : never,
-          TableDefinition[K] extends ColumnDefinition<any, infer IsNotNull, any>
-            ? IsNotNull
-            : never,
-          TableDefinition[K] extends ColumnDefinition<any, any, infer HasDefault>
-            ? HasDefault
-            : never,
-          undefined
-        >;
+        [K in keyof TableDefinition]: K extends string
+          ? Column<
+              K,
+              TableName,
+              TableDefinition[K] extends ColumnDefinition<infer DataType, any, any>
+                ? DataType
+                : never,
+              TableDefinition[K] extends ColumnDefinition<any, infer IsNotNull, any>
+                ? IsNotNull
+                : never,
+              TableDefinition[K] extends ColumnDefinition<any, any, infer HasDefault>
+                ? HasDefault
+                : never,
+              undefined
+            >
+          : never;
       }
     >,
   );
@@ -78,11 +81,13 @@ export const makeTable = <
     as<T extends string>(alias: T) {
       return makeTable(alias, tableName, tableDefinition) as any;
     },
+    getName() {
+      return tableName;
+    },
+    getOriginalName() {
+      return originalTableName;
+    },
   };
-  internalTableData.set(table, {
-    name: tableName,
-    originalName: originalTableName,
-  });
   return table;
 };
 

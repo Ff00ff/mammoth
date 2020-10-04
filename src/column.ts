@@ -68,14 +68,24 @@ export const makeColumnDefinition = <
 };
 
 export class Column<
-  Name,
+  Name extends string,
   TableName,
   DataType,
   IsNotNull extends boolean,
   HasDefault extends boolean,
   JoinType
-> extends Expression<DataType, IsNotNull, Name extends string ? Name : never> {
+> extends Expression<DataType, IsNotNull, Name> {
   private _columnBrand: any;
+
+  /** @internal */
+  getSnakeCaseName() {
+    return toSnakeCase(this.columnName);
+  }
+
+  /** @internal */
+  getName() {
+    return this.columnName;
+  }
 
   constructor(
     private readonly columnName: Name,
@@ -86,6 +96,7 @@ export class Column<
       originalColumnName
         ? [new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`)]
         : [new StringToken(`${tableName}.${toSnakeCase((columnName as unknown) as string)}`)],
+      columnName as any,
     );
   }
 

@@ -10,7 +10,7 @@ const toSnap = <T extends Query<any>>(query: T): ResultSet<T, true> => {
 /** @dts-jest enable:test-type */
 
 const foo = defineTable({
-  id: uuid().primaryKey().default(`gen_random_id()`),
+  id: uuid().primaryKey().default(`gen_random_uuid()`),
   createDate: timestampWithTimeZone().notNull().default(`now()`),
   name: text().notNull(),
   value: integer(),

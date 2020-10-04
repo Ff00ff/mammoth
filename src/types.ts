@@ -11,11 +11,11 @@ export type GetReturning<TableColumns, ColumnName extends keyof TableColumns> = 
   [K in ColumnName]: TableColumns[K];
 };
 
-export class GetDataType<Type, IsNull> {
+export class GetDataType<Type, IsNull extends boolean> {
   private _!: Type & IsNull;
 }
 
 export type QueryExecutorFn = (
   query: string,
-  parameters: any[]
+  parameters: any[],
 ) => Promise<{ rows: any[]; affectedCount: number }>;

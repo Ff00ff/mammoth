@@ -1,14 +1,15 @@
 import type { Column } from './column';
 import { DeleteQuery } from './delete';
 import type { Expression } from './expression';
+import { GetDataType } from './types';
 import { InsertQuery } from './insert';
 import { Query } from './query';
 import { SelectQuery } from './select';
 import { UpdateQuery } from './update';
 
-export class GetDataType<Type, IsNull> {
-  private _!: Type & IsNull;
-}
+// export class GetDataType<Type, IsNull> {
+//   private _!: Type & IsNull;
+// }
 
 export type ResultSetDataType<Type, IsNotNull> = IsNotNull extends true ? Type : Type | undefined;
 

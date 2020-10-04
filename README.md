@@ -118,6 +118,45 @@ SELECT COUNT(*) FROM foo
 
 </details>
 
+<details>
+  <summary>With (CTE) query</summary>
+
+```ts
+db.with(
+  `regionalSales`,
+  () =>
+    db
+      .select(db.orderLog.region, sum(db.orderLog.amount).as(`totalSales`))
+      .from(db.orderLog)
+      .groupBy(db.orderLog.region),
+  `topRegions`,
+  ({ regionalSales }) =>
+    db
+      .select(regionalSales.region)
+      .from(regionalSales)
+      .where(
+        regionalSales.totalSales.gt(
+          db.select(sum(regionalSales.totalSales).divide(10)).from(regionalSales),
+        ),
+      ),
+  ({ topRegions }) =>
+    db
+      .select(
+        db.orderLog.region,
+        db.orderLog.product,
+        sum(db.orderLog.quantity).as(`productUnits`),
+        sum(db.orderLog.amount).as(`productSales`),
+      )
+      .from(db.orderLog)
+      .where(db.orderLog.region.in(db.select(topRegions.region).from(topRegions)))
+      .groupBy(db.orderLog.region, db.orderLog.product),
+);
+```
+
+```sql
+WITH "regionalSales" AS (SELECT order_log.region, SUM (order_log.amount) "totalSales" FROM order_log GROUP BY order_log.region), "topRegions" AS (SELECT "regionalSales".region FROM "regionalSales" WHERE "regionalSales"."totalSales" > (SELECT SUM ("regionalSales"."totalSales") / $1 FROM "regionalSales")) SELECT order_log.region, order_log.product, SUM (order_log.quantity) "productUnits", SUM (order_log.amount) "productSales" FROM order_log WHERE order_log.region IN (SELECT "topRegions".region FROM "topRegions") GROUP BY order_log.region, order_log.product
+```
+
 ---
 
 <br/>
@@ -144,7 +183,7 @@ In the `defineDb` call you pass all your tables so they can be access through th
 
 ```ts
 const foo = defineTable({
-  id: uuid().primaryKey().default(`gen_random_id()`),
+  id: uuid().primaryKey().default(`gen_random_uuid()`),
   createDate: timestampWithTimeZone().notNull().default(`now()`),
   name: text().notNull(),
   value: integer(),
@@ -160,7 +199,7 @@ Below is a list of clauses per query and a short description on what we Mammoth 
 <details>
   <summary>SELECT</summary>
 
-- [ WITH [ RECURSIVE ] with_query [, ...] ] — Not supported yet
+- [ WITH [ RECURSIVE ] with_query [, ...] ] — Partial support. Recursive not supported yet.
 - SELECT [ ALL | DISTINCT [ ON ( expression [, ...] ) ] ] — Mostly supported. Distinct not yet.
 - [ \* | expression [ [ AS ] output_name ] [, ...] ] — mostly supported. Selecting certain expressions like update queries, insert and delete queries are not supported yet. Select queries are though.
 - [ FROM from_item [, ...] ] — partially supported. Only 1 table is currently supported in the from.
@@ -180,7 +219,7 @@ Below is a list of clauses per query and a short description on what we Mammoth 
 <details>
   <summary>UPDATE</summary>
 
-- [ WITH [ RECURSIVE ] with_query [, ...] ] — not supported yet.
+- [ WITH [ RECURSIVE ] with_query [, ...] ] — Partial support. Recursive not supported yet.
 - UPDATE [ ONLY ] table_name [ * ] [ [ AS ] alias ] — supported
 - SET { column_name = { expression | DEFAULT } | — supported, but expression concept is very broad and might be incomplete
 - ( column_name [, ...] ) = [ ROW ] ( { expression | DEFAULT } [, ...] ) | — supported, but expression concept is very broad and might be incomplete in some cases
@@ -195,7 +234,7 @@ Below is a list of clauses per query and a short description on what we Mammoth 
 <details>
   <summary>DELETE</summary>
 
-- [ WITH [ RECURSIVE ] with_query [, ...] ] — not supported yet
+- [ WITH [ RECURSIVE ] with_query [, ...] ] — Partial support. Recursive not supported yet.
 - DELETE FROM [ ONLY ] table_name [ * ] [ [ AS ] alias ] — supported
 - [ USING from_item [, ...] ] — supported
 - [ WHERE condition | WHERE CURRENT OF cursor_name ] — supported, but the condition concept is very broad and might be incomplete
@@ -205,7 +244,7 @@ Below is a list of clauses per query and a short description on what we Mammoth 
 <details>
   <summary>INSERT</summary>
 
-- [ WITH [ RECURSIVE ] with_query [, ...] ] — not supported
+- [ WITH [ RECURSIVE ] with_query [, ...] ] — Partial support. Recursive not supported yet.
 - INSERT INTO table_name [ AS alias ] [ ( column_name [, ...] ) ] — supported
 - [ OVERRIDING { SYSTEM | USER } VALUE ] — not supported
 - { DEFAULT VALUES | VALUES ( { expression | DEFAULT } [, ...] ) [, ...] | query } - supported, but expression is a broad concept and may not be complete

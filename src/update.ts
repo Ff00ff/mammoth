@@ -7,7 +7,6 @@ import {
   createQueryState,
 } from './tokens';
 import { GetReturning, QueryExecutorFn, ResultType } from './types';
-import { getColumnData, getTableData } from './data';
 
 import { Column } from './column';
 import { Condition } from './condition';
@@ -24,8 +23,14 @@ export class UpdateQuery<
 > extends Query<Returning> {
   private _updateQueryBrand: any;
 
+  /** @internal */
+  getReturningKeys() {
+    return this.returningKeys;
+  }
+
   constructor(
     private readonly queryExecutor: QueryExecutorFn,
+    private readonly returningKeys: string[],
     private readonly table: T,
     private readonly resultType: ResultType,
     private readonly tokens: Token[],
@@ -58,7 +63,7 @@ export class UpdateQuery<
   }
 
   where(condition: Condition): UpdateQuery<T, Returning> {
-    return new UpdateQuery(this.queryExecutor, this.table, this.resultType, [
+    return new UpdateQuery(this.queryExecutor, this.returningKeys, this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE`),
       ...condition.toTokens(),
@@ -66,7 +71,7 @@ export class UpdateQuery<
   }
 
   whereCurrentOf(cursorName: string) {
-    return new UpdateQuery(this.queryExecutor, this.table, this.resultType, [
+    return new UpdateQuery(this.queryExecutor, this.returningKeys, this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE CURRENT OF`),
       new ParameterToken(cursorName),
@@ -74,12 +79,10 @@ export class UpdateQuery<
   }
 
   from(fromItem: Table<any, any>): UpdateQuery<T, Returning> {
-    const tableData = getTableData(fromItem);
-
-    return new UpdateQuery(this.queryExecutor, this.table, this.resultType, [
+    return new UpdateQuery(this.queryExecutor, this.returningKeys, this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`FROM`),
-      new StringToken(tableData.name),
+      new StringToken(fromItem.getName()),
     ]);
   }
 
@@ -284,19 +287,19 @@ export class UpdateQuery<
       GetReturning<TableColumns, C9> &
       GetReturning<TableColumns, C10>
   >;
-  returning(...columns: any[]) {
-    return new UpdateQuery(this.queryExecutor, this.table, 'ROWS', [
+  returning(...columnNames: any[]) {
+    return new UpdateQuery(this.queryExecutor, columnNames, this.table, 'ROWS', [
       ...this.tokens,
       new StringToken(`RETURNING`),
       new SeparatorToken(
         `,`,
-        columns.map((alias) => {
-          const columnData = getColumnData((this.table as any)[alias]);
+        columnNames.map((alias) => {
+          const column = (this.table as any)[alias] as Column<any, any, any, any, any, any>;
 
-          if (alias !== columnData.snakeCaseName) {
-            return new StringToken(`${columnData.snakeCaseName} "${alias}"`);
+          if (alias !== column.getSnakeCaseName()) {
+            return new StringToken(`${column.getSnakeCaseName()} "${alias}"`);
           } else {
-            return new StringToken(columnData.snakeCaseName);
+            return new StringToken(column.getSnakeCaseName());
           }
         }),
       ),
@@ -327,27 +330,26 @@ export const makeUpdate = (queryExecutor: QueryExecutorFn) => <T extends Table<a
               any
             >
               ? IsNotNull extends true
-                ? DataType | Expression<DataType, boolean>
-                : DataType | undefined | Expression<DataType | undefined, boolean>
+                ? DataType | Expression<DataType, boolean, any>
+                : DataType | undefined | Expression<DataType | undefined, boolean, any>
               : never;
           }
         : never,
     ): UpdateQuery<T, number> {
-      const tableData = getTableData(table);
       const keys = Object.keys(values);
 
-      return new UpdateQuery(queryExecutor, table, 'AFFECTED_COUNT', [
+      return new UpdateQuery(queryExecutor, [], table, 'AFFECTED_COUNT', [
         new StringToken(`UPDATE`),
-        new StringToken(tableData.name),
+        new StringToken((table as Table<any, any>).getName()),
         new StringToken(`SET`),
         new SeparatorToken(
           `,`,
           keys.map((key) => {
-            const columnData = getColumnData((table as any)[key]);
+            const column = (table as any)[key] as Column<any, any, any, any, any, any>;
             const value = (values as any)[key];
 
             return new CollectionToken([
-              new StringToken(columnData.snakeCaseName),
+              new StringToken(column.getSnakeCaseName()),
               new StringToken(`=`),
               value && typeof value === `object` && 'toTokens' in value
                 ? value.toTokens()

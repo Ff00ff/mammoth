@@ -11,7 +11,6 @@ import {
 import { GetReturning, PickByValue, QueryExecutorFn, ResultType } from './types';
 import { SelectFn, makeSelect } from './select';
 import { Table, TableDefinition } from './table';
-import { getColumnData, getTableData } from './data';
 
 import { Column } from './column';
 import { Condition } from './condition';
@@ -29,8 +28,14 @@ export class InsertQuery<
 > extends Query<Returning> {
   private _insertQueryBrand: any;
 
+  /** @internal */
+  getReturningKeys() {
+    return this.returningKeys;
+  }
+
   constructor(
     private readonly queryExecutor: QueryExecutorFn,
+    private readonly returningKeys: string[],
     private readonly table: T,
     private readonly resultType: ResultType,
     private readonly tokens: Token[],
@@ -263,19 +268,19 @@ export class InsertQuery<
       GetReturning<TableColumns, C9> &
       GetReturning<TableColumns, C10>
   >;
-  returning(...columns: any[]) {
-    return new InsertQuery(this.queryExecutor, this.table, 'ROWS', [
+  returning(...columnNames: any[]) {
+    return new InsertQuery(this.queryExecutor, columnNames, this.table, 'ROWS', [
       ...this.tokens,
       new StringToken(`RETURNING`),
       new SeparatorToken(
         `,`,
-        columns.map((alias) => {
-          const columnData = getColumnData((this.table as any)[alias]);
+        columnNames.map((alias) => {
+          const column = (this.table as any)[alias] as Column<any, any, any, any, any, any>;
 
-          if (alias !== columnData.snakeCaseName) {
-            return new StringToken(`${columnData.snakeCaseName} "${alias}"`);
+          if (alias !== column.getSnakeCaseName()) {
+            return new StringToken(`${column.getSnakeCaseName()} "${alias}"`);
           } else {
-            return new StringToken(columnData.snakeCaseName);
+            return new StringToken(column.getSnakeCaseName());
           }
         }),
       ),
@@ -283,7 +288,7 @@ export class InsertQuery<
   }
 
   where(condition: Condition) {
-    return new InsertQuery(this.queryExecutor, this.table, this.resultType, [
+    return new InsertQuery(this.queryExecutor, this.returningKeys, this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE`),
       ...condition.toTokens(),
@@ -294,12 +299,18 @@ export class InsertQuery<
     const self = this;
     return {
       doNothing() {
-        return new InsertQuery(self.queryExecutor, self.table, self.resultType, [
-          ...self.tokens,
-          new StringToken(`ON CONFLICT ON CONSTRAINT`),
-          new ParameterToken(constraintName),
-          new StringToken(`DO NOTHING`),
-        ]);
+        return new InsertQuery(
+          self.queryExecutor,
+          self.returningKeys,
+          self.table,
+          self.resultType,
+          [
+            ...self.tokens,
+            new StringToken(`ON CONFLICT ON CONSTRAINT`),
+            new ParameterToken(constraintName),
+            new StringToken(`DO NOTHING`),
+          ],
+        );
       },
 
       doUpdateSet(
@@ -314,46 +325,58 @@ export class InsertQuery<
                 any
               >
                 ? IsNotNull extends true
-                  ? DataType | Expression<DataType, IsNotNull> | Query<any>
-                  : DataType | undefined | Expression<DataType, IsNotNull> | Query<any>
+                  ? DataType | Expression<DataType, IsNotNull, any> | Query<any>
+                  : DataType | undefined | Expression<DataType, IsNotNull, any> | Query<any>
                 : never;
             }
           : never,
       ) {
-        return new InsertQuery(self.queryExecutor, self.table, self.resultType, [
-          ...self.tokens,
-          new StringToken(`ON CONFLICT ON CONSTRAINT`),
-          new ParameterToken(constraintName),
-          new StringToken(`DO UPDATE SET`),
-          new SeparatorToken(
-            `,`,
-            Object.keys(values).map((columnName) => {
-              const column = (self.table as any)[columnName];
-              const value = (values as any)[columnName];
-              const columnData = getColumnData(column);
+        return new InsertQuery(
+          self.queryExecutor,
+          self.returningKeys,
+          self.table,
+          self.resultType,
+          [
+            ...self.tokens,
+            new StringToken(`ON CONFLICT ON CONSTRAINT`),
+            new ParameterToken(constraintName),
+            new StringToken(`DO UPDATE SET`),
+            new SeparatorToken(
+              `,`,
+              Object.keys(values).map((columnName) => {
+                const column = (self.table as any)[columnName] as Column<
+                  any,
+                  any,
+                  any,
+                  any,
+                  any,
+                  any
+                >;
+                const value = (values as any)[columnName];
 
-              if (
-                value &&
-                typeof value === `object` &&
-                'toTokens' in value &&
-                typeof value.toTokens === `function`
-              ) {
-                return new CollectionToken([
-                  new StringToken(columnData.snakeCaseName),
-                  new StringToken(`=`),
-                  // TODO: should we add a group here-o?
-                  ...value.toTokens(),
-                ]);
-              } else {
-                return new CollectionToken([
-                  new StringToken(columnData.snakeCaseName),
-                  new StringToken(`=`),
-                  new ParameterToken(value),
-                ]);
-              }
-            }),
-          ),
-        ]);
+                if (
+                  value &&
+                  typeof value === `object` &&
+                  'toTokens' in value &&
+                  typeof value.toTokens === `function`
+                ) {
+                  return new CollectionToken([
+                    new StringToken(column.getSnakeCaseName()),
+                    new StringToken(`=`),
+                    // TODO: should we add a group here-o?
+                    ...value.toTokens(),
+                  ]);
+                } else {
+                  return new CollectionToken([
+                    new StringToken(column.getSnakeCaseName()),
+                    new StringToken(`=`),
+                    new ParameterToken(value),
+                  ]);
+                }
+              }),
+            ),
+          ],
+        );
       },
     };
   }
@@ -364,21 +387,33 @@ export class InsertQuery<
     const self = this;
     return {
       doNothing() {
-        return new InsertQuery(self.queryExecutor, self.table, self.resultType, [
-          ...self.tokens,
-          new StringToken(`ON CONFLICT`),
-          columnNames.length > 0
-            ? new GroupToken(
-                columnNames.map((columnName) => {
-                  const column = (self.table as any)[columnName];
-                  const columnData = getColumnData(column);
+        return new InsertQuery(
+          self.queryExecutor,
+          self.returningKeys,
+          self.table,
+          self.resultType,
+          [
+            ...self.tokens,
+            new StringToken(`ON CONFLICT`),
+            columnNames.length > 0
+              ? new GroupToken(
+                  columnNames.map((columnName) => {
+                    const column = (self.table as any)[columnName] as Column<
+                      any,
+                      any,
+                      any,
+                      any,
+                      any,
+                      any
+                    >;
 
-                  return new StringToken(columnData.snakeCaseName);
-                }),
-              )
-            : new EmptyToken(),
-          new StringToken(`DO NOTHING`),
-        ]);
+                    return new StringToken(column.getSnakeCaseName());
+                  }),
+                )
+              : new EmptyToken(),
+            new StringToken(`DO NOTHING`),
+          ],
+        );
       },
 
       doUpdateSet(
@@ -393,55 +428,72 @@ export class InsertQuery<
                 any
               >
                 ? IsNotNull extends true
-                  ? DataType | Expression<DataType, IsNotNull> | Query<any>
-                  : DataType | undefined | Expression<DataType, IsNotNull> | Query<any>
+                  ? DataType | Expression<DataType, IsNotNull, any> | Query<any>
+                  : DataType | undefined | Expression<DataType, IsNotNull, any> | Query<any>
                 : never;
             }
           : never,
       ) {
-        return new InsertQuery(self.queryExecutor, self.table, self.resultType, [
-          ...self.tokens,
-          new StringToken(`ON CONFLICT`),
-          columnNames.length > 0
-            ? new GroupToken(
-                columnNames.map((columnName) => {
-                  const column = (self.table as any)[columnName];
-                  const columnData = getColumnData(column);
+        return new InsertQuery(
+          self.queryExecutor,
+          self.returningKeys,
+          self.table,
+          self.resultType,
+          [
+            ...self.tokens,
+            new StringToken(`ON CONFLICT`),
+            columnNames.length > 0
+              ? new GroupToken(
+                  columnNames.map((columnName) => {
+                    const column = (self.table as any)[columnName] as Column<
+                      any,
+                      any,
+                      any,
+                      any,
+                      any,
+                      any
+                    >;
+                    return new StringToken(column.getSnakeCaseName());
+                  }),
+                )
+              : new EmptyToken(),
+            new StringToken(`DO UPDATE SET`),
+            new SeparatorToken(
+              `,`,
+              Object.keys(values).map((columnName) => {
+                const column = (self.table as any)[columnName] as Column<
+                  any,
+                  any,
+                  any,
+                  any,
+                  any,
+                  any
+                >;
+                const value = (values as any)[columnName];
 
-                  return new StringToken(columnData.snakeCaseName);
-                }),
-              )
-            : new EmptyToken(),
-          new StringToken(`DO UPDATE SET`),
-          new SeparatorToken(
-            `,`,
-            Object.keys(values).map((columnName) => {
-              const column = (self.table as any)[columnName];
-              const value = (values as any)[columnName];
-              const columnData = getColumnData(column);
-
-              if (
-                value &&
-                typeof value === `object` &&
-                'toTokens' in value &&
-                typeof value.toTokens === `function`
-              ) {
-                return new CollectionToken([
-                  new StringToken(columnData.snakeCaseName),
-                  new StringToken(`=`),
-                  // TODO: should we add a group here-o?
-                  ...value.toTokens(),
-                ]);
-              } else {
-                return new CollectionToken([
-                  new StringToken(columnData.snakeCaseName),
-                  new StringToken(`=`),
-                  new ParameterToken(value),
-                ]);
-              }
-            }),
-          ),
-        ]);
+                if (
+                  value &&
+                  typeof value === `object` &&
+                  'toTokens' in value &&
+                  typeof value.toTokens === `function`
+                ) {
+                  return new CollectionToken([
+                    new StringToken(column.getSnakeCaseName()),
+                    new StringToken(`=`),
+                    // TODO: should we add a group here-o?
+                    ...value.toTokens(),
+                  ]);
+                } else {
+                  return new CollectionToken([
+                    new StringToken(column.getSnakeCaseName()),
+                    new StringToken(`=`),
+                    new ParameterToken(value),
+                  ]);
+                }
+              }),
+            ),
+          ],
+        );
       },
     };
   }
@@ -474,8 +526,8 @@ export interface InsertIntoResult<T extends Table<any, any>> {
               any
             >
               ? IsNotNull extends true
-                ? DataType | Expression<DataType, boolean>
-                : DataType | undefined | Expression<DataType | undefined, boolean>
+                ? DataType | Expression<DataType, boolean, any>
+                : DataType | undefined | Expression<DataType | undefined, boolean, any>
               : never;
           }
         : never,
@@ -533,43 +585,45 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
   table: T,
   columnNames?: T extends Table<any, infer Columns> ? (keyof Columns)[] : never,
 ): T extends TableDefinition<any> ? never : InsertIntoResult<T> => {
-  const insertTableData = getTableData(table);
   return {
     select: makeSelect(queryExecutor, [
       new StringToken(`INSERT INTO`),
-      new StringToken(insertTableData.name),
+      new StringToken((table as Table<any, any>).getName()),
       new GroupToken([
         new SeparatorToken(
           `,`,
           columnNames?.map((columnName) => {
-            const columnData = getColumnData((table as any)[columnName]);
+            const column = (table as any)[columnName] as Column<any, any, any, any, any, any>;
 
-            return new StringToken(columnData.snakeCaseName);
+            return new StringToken(column.getSnakeCaseName());
           }) || [],
         ),
       ]),
     ]),
 
     deleteFrom<DeleteTable extends Table<any, any>>(deleteTable: DeleteTable) {
-      const deleteTableData = getTableData(deleteTable);
-      const insertTableData = getTableData(table);
+      return new DeleteQuery<DeleteTable, number>(
+        queryExecutor,
+        [],
+        deleteTable,
+        'AFFECTED_COUNT',
+        [
+          new StringToken(`INSERT INTO`),
+          new StringToken((table as Table<any, any>).getName()),
+          new GroupToken([
+            new SeparatorToken(
+              `,`,
+              columnNames!.map((columnName) => {
+                const column = (table as any)[columnName] as Column<any, any, any, any, any, any>;
 
-      return new DeleteQuery<DeleteTable, number>(queryExecutor, deleteTable, 'AFFECTED_COUNT', [
-        new StringToken(`INSERT INTO`),
-        new StringToken(insertTableData.name),
-        new GroupToken([
-          new SeparatorToken(
-            `,`,
-            columnNames!.map((columnName) => {
-              const columnData = getColumnData((table as any)[columnName]);
-
-              return new StringToken(columnData.snakeCaseName);
-            }),
-          ),
-        ]),
-        new StringToken(`DELETE FROM`),
-        new StringToken(deleteTableData.name),
-      ]);
+                return new StringToken(column.getSnakeCaseName());
+              }),
+            ),
+          ]),
+          new StringToken(`DELETE FROM`),
+          new StringToken((deleteTable as Table<any, any>).getName()),
+        ],
+      );
     },
 
     update<UpdateTable extends Table<any, any>>(updateTable: UpdateTable) {
@@ -586,39 +640,38 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
                   any
                 >
                   ? IsNotNull extends true
-                    ? DataType | Expression<DataType, boolean>
-                    : DataType | undefined | Expression<DataType | undefined, boolean>
+                    ? DataType | Expression<DataType, boolean, any>
+                    : DataType | undefined | Expression<DataType | undefined, boolean, any>
                   : never;
               }
             : never,
         ): UpdateQuery<T, number> {
-          const updateTableData = getTableData(updateTable);
           const keys = Object.keys(values);
 
-          return new UpdateQuery(queryExecutor, table, 'AFFECTED_COUNT', [
+          return new UpdateQuery(queryExecutor, [], table, 'AFFECTED_COUNT', [
             new StringToken(`INSERT INTO`),
-            new StringToken(insertTableData.name),
+            new StringToken((table as Table<any, any>).getName()),
             new GroupToken([
               new SeparatorToken(
                 `,`,
                 columnNames!.map((columnName) => {
-                  const columnData = getColumnData((table as any)[columnName]);
+                  const column = (table as any)[columnName] as Column<any, any, any, any, any, any>;
 
-                  return new StringToken(columnData.snakeCaseName);
+                  return new StringToken(column.getSnakeCaseName());
                 }),
               ),
             ]),
             new StringToken(`UPDATE`),
-            new StringToken(updateTableData.name),
+            new StringToken((updateTable as Table<any, any>).getName()),
             new StringToken(`SET`),
             new SeparatorToken(
               `,`,
               keys.map((key) => {
-                const columnData = getColumnData((table as any)[key]);
+                const column = (table as any)[key] as Column<any, any, any, any, any, any>;
                 const value = (values as any)[key];
 
                 return new CollectionToken([
-                  new StringToken(columnData.snakeCaseName),
+                  new StringToken(column.getSnakeCaseName()),
                   new StringToken(`=`),
                   value && typeof value === `object` && 'toTokens' in value
                     ? value.toTokens()
@@ -632,9 +685,9 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
     },
 
     defaultValues() {
-      return new InsertQuery(queryExecutor, table, 'AFFECTED_COUNT', [
+      return new InsertQuery(queryExecutor, [], table, 'AFFECTED_COUNT', [
         new StringToken(`INSERT INTO`),
-        new StringToken(insertTableData.name),
+        new StringToken((table as Table<any, any>).getName()),
         new StringToken(`DEFAULT VALUES`),
       ]);
     },
@@ -689,17 +742,16 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
             }
         : never,
     ): InsertQuery<T, number> {
-      return new InsertQuery(queryExecutor, table, 'AFFECTED_COUNT', [
+      return new InsertQuery(queryExecutor, [], table, 'AFFECTED_COUNT', [
         new StringToken(`INSERT INTO`),
-        new StringToken(insertTableData.name),
+        new StringToken((table as Table<any, any>).getName()),
         new GroupToken([
           new SeparatorToken(
             `,`,
             Object.keys(values).map((columnName) => {
-              const column = (table as any)[columnName];
-              const columnData = getColumnData(column);
+              const column = (table as any)[columnName] as Column<any, any, any, any, any, any>;
 
-              return new StringToken(columnData.snakeCaseName);
+              return new StringToken(column.getSnakeCaseName());
             }),
           ),
         ]),

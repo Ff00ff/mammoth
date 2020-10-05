@@ -128,28 +128,36 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     );
   }
 
-  multiply(value: DataType | Expression<DataType, IsNotNull, any>) {
+  multiply(
+    value: DataType | Expression<DataType, IsNotNull, any>,
+  ): Expression<DataType, IsNotNull, '?column?'> {
     return new Expression(
       [...this.tokens, new StringToken(`*`), ...this.getDataTypeTokens(value)],
       `?column?`,
     );
   }
 
-  divide(value: DataType | Expression<DataType, IsNotNull, any>) {
+  divide(
+    value: DataType | Expression<DataType, IsNotNull, any>,
+  ): Expression<DataType, IsNotNull, '?column?'> {
     return new Expression(
       [...this.tokens, new StringToken(`/`), ...this.getDataTypeTokens(value)],
       `?column?`,
     );
   }
 
-  modulo(value: DataType | Expression<DataType, IsNotNull, any>) {
+  modulo(
+    value: DataType | Expression<DataType, IsNotNull, any>,
+  ): Expression<DataType, IsNotNull, '?column?'> {
     return new Expression(
       [...this.tokens, new StringToken(`%`), ...this.getDataTypeTokens(value)],
       `?column?`,
     );
   }
 
-  concat(value: DataType | Expression<DataType, IsNotNull, any>) {
+  concat(
+    value: DataType | Expression<DataType, IsNotNull, any>,
+  ): Expression<DataType, IsNotNull, '?column?'> {
     return new Expression(
       [...this.tokens, new StringToken(`||`), ...this.getDataTypeTokens(value)],
       `?column?`,

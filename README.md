@@ -157,6 +157,8 @@ db.with(
 WITH "regionalSales" AS (SELECT order_log.region, SUM (order_log.amount) "totalSales" FROM order_log GROUP BY order_log.region), "topRegions" AS (SELECT "regionalSales".region FROM "regionalSales" WHERE "regionalSales"."totalSales" > (SELECT SUM ("regionalSales"."totalSales") / $1 FROM "regionalSales")) SELECT order_log.region, order_log.product, SUM (order_log.quantity) "productUnits", SUM (order_log.amount) "productSales" FROM order_log WHERE order_log.region IN (SELECT "topRegions".region FROM "topRegions") GROUP BY order_log.region, order_log.product
 ```
 
+</details>
+
 ---
 
 <br/>

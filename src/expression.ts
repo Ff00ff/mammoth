@@ -30,7 +30,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     return [new ParameterToken(value)];
   }
 
-  as<AliasName extends string>(name: AliasName) {
+  as<AliasName extends string>(name: AliasName): Expression<DataType, IsNotNull, AliasName> {
     if (this.tokens.length > 2) {
       return new Expression<DataType, IsNotNull, AliasName>(
         [new GroupToken(this.tokens), new StringToken(`"${name}"`)],
@@ -44,31 +44,31 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     );
   }
 
-  isNull() {
+  isNull(): Condition {
     return makeCondition([...this.tokens, new StringToken(`IS NULL`)]);
   }
 
-  isNotNull() {
+  isNotNull(): Condition {
     return makeCondition([...this.tokens, new StringToken(`IS NOT NULL`)]);
   }
 
-  asc() {
+  asc(): Expression<DataType, IsNotNull, '?column?'> {
     return new Expression([...this.tokens, new StringToken(`ASC`)], `?column?`);
   }
 
-  desc() {
+  desc(): Expression<DataType, IsNotNull, '?column?'> {
     return new Expression([...this.tokens, new StringToken(`DESC`)], `?column?`);
   }
 
-  nullsFirst() {
+  nullsFirst(): Expression<DataType, IsNotNull, '?column?'> {
     return new Expression([...this.tokens, new StringToken(`NULLS FIRST`)], `?column?`);
   }
 
-  nullsLast() {
+  nullsLast(): Expression<DataType, IsNotNull, '?column?'> {
     return new Expression([...this.tokens, new StringToken(`NULLS LAST`)], `?column?`);
   }
 
-  in(array: DataType[] | Expression<DataType, IsNotNull, any> | Query<any>) {
+  in(array: DataType[] | Expression<DataType, IsNotNull, any> | Query<any>): Condition {
     if (array && ('toTokens' in array || array instanceof Query)) {
       return makeCondition([
         ...this.tokens,
@@ -89,7 +89,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     }
   }
 
-  notIn(array: DataType[] | Expression<DataType, IsNotNull, any> | Query<any>) {
+  notIn(array: DataType[] | Expression<DataType, IsNotNull, any> | Query<any>): Condition {
     if (array && ('toTokens' in array || array instanceof Query)) {
       return makeCondition([
         ...this.tokens,
@@ -164,7 +164,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     );
   }
 
-  between(a: DataType, b: DataType) {
+  between(a: DataType, b: DataType): Condition {
     return makeCondition([
       ...this.tokens,
       new StringToken(`BETWEEN`),
@@ -174,7 +174,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     ]);
   }
 
-  betweenSymmetric(a: DataType, b: DataType) {
+  betweenSymmetric(a: DataType, b: DataType): Condition {
     return makeCondition([
       ...this.tokens,
       new StringToken(`BETWEEN SYMMETRIC`),
@@ -184,7 +184,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     ]);
   }
 
-  isDistinctFrom(a: DataType) {
+  isDistinctFrom(a: DataType): Condition {
     return makeCondition([
       ...this.tokens,
       new StringToken(`IS DISTINCT FROM`),
@@ -192,7 +192,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     ]);
   }
 
-  isNotDistinctFrom(a: DataType) {
+  isNotDistinctFrom(a: DataType): Condition {
     return makeCondition([
       ...this.tokens,
       new StringToken(`IS NOT DISTINCT FROM`),
@@ -200,11 +200,11 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     ]);
   }
 
-  like(value: DataType) {
+  like(value: DataType): Condition {
     return makeCondition([...this.tokens, new StringToken(`LIKE`), new ParameterToken(value)]);
   }
 
-  ilike(value: DataType) {
+  ilike(value: DataType): Condition {
     return makeCondition([...this.tokens, new StringToken(`ILIKE`), new ParameterToken(value)]);
   }
 
@@ -220,15 +220,15 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     return makeCondition([...this.tokens, new StringToken(`>`), ...this.getDataTypeTokens(value)]);
   }
 
-  gte(value: DataType | Expression<DataType, IsNotNull, any> | Query<any>) {
+  gte(value: DataType | Expression<DataType, IsNotNull, any> | Query<any>): Condition {
     return makeCondition([...this.tokens, new StringToken(`>=`), ...this.getDataTypeTokens(value)]);
   }
 
-  lt(value: DataType | Expression<DataType, IsNotNull, any> | Query<any>) {
+  lt(value: DataType | Expression<DataType, IsNotNull, any> | Query<any>): Condition {
     return makeCondition([...this.tokens, new StringToken(`<`), ...this.getDataTypeTokens(value)]);
   }
 
-  lte(value: DataType | Expression<DataType, IsNotNull, any> | Query<any>) {
+  lte(value: DataType | Expression<DataType, IsNotNull, any> | Query<any>): Condition {
     return makeCondition([...this.tokens, new StringToken(`<=`), ...this.getDataTypeTokens(value)]);
   }
 

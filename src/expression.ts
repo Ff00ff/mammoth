@@ -212,7 +212,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     return makeCondition([...this.tokens, new StringToken(`=`), ...this.getDataTypeTokens(value)]);
   }
 
-  ne(value: DataType | Expression<DataType, IsNotNull, any> | Query<any>) {
+  ne(value: DataType | Expression<DataType, IsNotNull, any> | Query<any>): Condition {
     return makeCondition([...this.tokens, new StringToken(`<>`), ...this.getDataTypeTokens(value)]);
   }
 

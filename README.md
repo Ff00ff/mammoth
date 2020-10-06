@@ -106,7 +106,7 @@ WHERE
 </details>
 
 <details>
-  <summary>Select with aggregate</summary>
+  <summary>Select with count(*)</summary>
 
 ```ts
 db.select(count()).from(db.foo);
@@ -114,6 +114,19 @@ db.select(count()).from(db.foo);
 
 ```sql
 SELECT COUNT(*) FROM foo
+```
+
+</details>
+
+<details>
+  <summary>Select with aggregate expression</summary>
+
+```ts
+db.select(arrayAgg(db.foo.name.orderBy(db.foo.name.desc()))).from(db.foo);
+```
+
+```sql
+SELECT array_agg(foo.name ORDER BY foo.name DESC) "arrayAgg" FROM foo
 ```
 
 </details>

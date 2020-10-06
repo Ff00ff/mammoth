@@ -1,7 +1,7 @@
 {
   "name": "@ff00ff/mammoth",
   "license": "MIT",
-  "version": "1.0.0-rc.5",
+  "version": "1.0.0-rc.6",
   "main": "./.build/index.js",
   "types": "./.build/index.d.ts",
   "keywords": [

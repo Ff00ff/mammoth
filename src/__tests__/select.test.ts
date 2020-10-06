@@ -1,13 +1,20 @@
 import {
   any,
+  arrayAgg,
   avg,
+  bitAnd,
+  bitOr,
+  boolAnd,
+  boolOr,
   count,
   defineDb,
   defineTable,
+  every,
   group,
   integer,
   max,
   min,
+  stringAgg,
   sum,
   text,
   timestampWithTimeZone,
@@ -377,6 +384,44 @@ describe(`select`, () => {
       Object {
         "parameters": Array [],
         "text": "SELECT COUNT (foo.create_date) FROM foo",
+      }
+    `);
+  });
+
+  it(`should select arrayAgg`, () => {
+    const query = db
+      .select(arrayAgg(db.foo.name.orderBy(db.foo.name.desc())))
+      .from(db.foo)
+      .having(arrayAgg(db.foo.name).isNotNull());
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT array_agg (foo.name ORDER BY foo.name DESC) \\"arrayAgg\\" FROM foo HAVING array_agg (foo.name) IS NOT NULL",
+      }
+    `);
+  });
+
+  it(`should select stringAgg`, () => {
+    const query = db.select(stringAgg(db.foo.name, '-', db.foo.name.desc())).from(db.foo);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "-",
+        ],
+        "text": "SELECT string_agg (foo.name, $1 ORDER BY foo.name DESC) \\"stringAgg\\" FROM foo",
+      }
+    `);
+  });
+
+  it(`should select bitAnd, bitOr`, () => {
+    const query = db.select(bitAnd(db.foo.value), bitOr(db.foo.value)).from(db.foo);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT bit_and (foo.value) \\"bitAnd\\", bit_or (foo.value) \\"bitOr\\" FROM foo",
       }
     `);
   });

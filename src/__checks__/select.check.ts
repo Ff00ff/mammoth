@@ -1,4 +1,6 @@
 import {
+  arrayAgg,
+  coalesce,
   count,
   defineDb,
   defineTable,
@@ -61,13 +63,17 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
   // @dts-jest:snap should select aggregate subquery
   toSnap(db.select(db.foo.id, db.select(count()).from(db.foo)).from(db.foo));
 
+  // @dts-jest:snap should select array_agg
+  toSnap(db.select(arrayAgg(db.foo.name)).from(db.foo));
+
   // @dts-jest:snap should select null column in subquery
   toSnap(db.select(db.foo.id, db.select(db.foo.value).from(db.foo)).from(db.foo));
 
   // @dts-jest:snap should select aggregate with alias
   toSnap(db.select(db.foo.id, sum(db.foo.value).as(`total`)).from(db.foo));
 
-  //
+  // @dts-jest:snap should convert null value to not null using coalesce
+  toSnap(db.select(coalesce(db.foo.value, 1)).from(db.foo));
 
   db.select(db.foo.id, db.foo.value)
     .from(db.foo)

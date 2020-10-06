@@ -61,7 +61,7 @@ export const makeWith = (queryExecutor: QueryExecutorFn): WithFn => (...args: an
       }, {} as any),
 
       getName() {
-        return `"${name}"`;
+        return wrapQuotes(name);
       },
 
       getOriginalName() {

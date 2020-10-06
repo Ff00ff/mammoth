@@ -1,5 +1,12 @@
+import {
+  CollectionToken,
+  GroupToken,
+  ParameterToken,
+  SeparatorToken,
+  StringToken,
+  Token,
+} from './tokens';
 import { Condition, makeCondition } from './condition';
-import { GroupToken, ParameterToken, SeparatorToken, StringToken, Token } from './tokens';
 
 import { Query } from './query';
 
@@ -11,7 +18,11 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     return this.name;
   }
 
-  constructor(private readonly tokens: Token[], private readonly name: Name) {}
+  constructor(
+    private readonly tokens: Token[],
+    private readonly name: Name,
+    private readonly nameIsAlias = false,
+  ) {}
 
   private getDataTypeTokens(value: DataType | Expression<DataType, true, any> | Query<any>) {
     if (
@@ -33,15 +44,13 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
   as<AliasName extends string>(name: AliasName): Expression<DataType, IsNotNull, AliasName> {
     if (this.tokens.length > 2) {
       return new Expression<DataType, IsNotNull, AliasName>(
-        [new GroupToken(this.tokens), new StringToken(`"${name}"`)],
+        [new GroupToken(this.tokens)],
         name,
+        true,
       );
     }
 
-    return new Expression<DataType, IsNotNull, AliasName>(
-      [...this.tokens, new StringToken(`"${name}"`)],
-      name,
-    );
+    return new Expression<DataType, IsNotNull, AliasName>([...this.tokens], name, true);
   }
 
   isNull(): Condition {
@@ -53,19 +62,31 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
   }
 
   asc(): Expression<DataType, IsNotNull, '?column?'> {
-    return new Expression([...this.tokens, new StringToken(`ASC`)], `?column?`);
+    return new Expression<DataType, IsNotNull, '?column?'>(
+      [...this.tokens, new StringToken(`ASC`)],
+      '?column?',
+    );
   }
 
   desc(): Expression<DataType, IsNotNull, '?column?'> {
-    return new Expression([...this.tokens, new StringToken(`DESC`)], `?column?`);
+    return new Expression<DataType, IsNotNull, '?column?'>(
+      [...this.tokens, new StringToken(`DESC`)],
+      '?column?',
+    );
   }
 
   nullsFirst(): Expression<DataType, IsNotNull, '?column?'> {
-    return new Expression([...this.tokens, new StringToken(`NULLS FIRST`)], `?column?`);
+    return new Expression<DataType, IsNotNull, '?column?'>(
+      [...this.tokens, new StringToken(`NULLS FIRST`)],
+      '?column?',
+    );
   }
 
   nullsLast(): Expression<DataType, IsNotNull, '?column?'> {
-    return new Expression([...this.tokens, new StringToken(`NULLS LAST`)], `?column?`);
+    return new Expression<DataType, IsNotNull, '?column?'>(
+      [...this.tokens, new StringToken(`NULLS LAST`)],
+      '?column?',
+    );
   }
 
   in(array: DataType[] | Expression<DataType, IsNotNull, any> | Query<any>): Condition {
@@ -113,54 +134,54 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
   plus(
     value: DataType | Expression<DataType, IsNotNull, any>,
   ): Expression<DataType, IsNotNull, '?column?'> {
-    return new Expression(
+    return new Expression<DataType, IsNotNull, '?column?'>(
       [...this.tokens, new StringToken(`+`), ...this.getDataTypeTokens(value)],
-      `?column?`,
+      '?column?',
     );
   }
 
   minus(
     value: DataType | Expression<DataType, IsNotNull, any>,
   ): Expression<DataType, IsNotNull, '?column?'> {
-    return new Expression(
+    return new Expression<DataType, IsNotNull, '?column?'>(
       [...this.tokens, new StringToken(`-`), ...this.getDataTypeTokens(value)],
-      `?column?`,
+      '?column?',
     );
   }
 
   multiply(
     value: DataType | Expression<DataType, IsNotNull, any>,
   ): Expression<DataType, IsNotNull, '?column?'> {
-    return new Expression(
+    return new Expression<DataType, IsNotNull, '?column?'>(
       [...this.tokens, new StringToken(`*`), ...this.getDataTypeTokens(value)],
-      `?column?`,
+      '?column?',
     );
   }
 
   divide(
     value: DataType | Expression<DataType, IsNotNull, any>,
   ): Expression<DataType, IsNotNull, '?column?'> {
-    return new Expression(
+    return new Expression<DataType, IsNotNull, '?column?'>(
       [...this.tokens, new StringToken(`/`), ...this.getDataTypeTokens(value)],
-      `?column?`,
+      '?column?',
     );
   }
 
   modulo(
     value: DataType | Expression<DataType, IsNotNull, any>,
   ): Expression<DataType, IsNotNull, '?column?'> {
-    return new Expression(
+    return new Expression<DataType, IsNotNull, '?column?'>(
       [...this.tokens, new StringToken(`%`), ...this.getDataTypeTokens(value)],
-      `?column?`,
+      '?column?',
     );
   }
 
   concat(
     value: DataType | Expression<DataType, IsNotNull, any>,
   ): Expression<DataType, IsNotNull, '?column?'> {
-    return new Expression(
+    return new Expression<DataType, IsNotNull, '?column?'>(
       [...this.tokens, new StringToken(`||`), ...this.getDataTypeTokens(value)],
-      `?column?`,
+      '?column?',
     );
   }
 
@@ -232,8 +253,30 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     return makeCondition([...this.tokens, new StringToken(`<=`), ...this.getDataTypeTokens(value)]);
   }
 
+  orderBy(
+    ...expressions: Expression<any, any, any>[]
+  ): Expression<DataType, IsNotNull, '?column?'> {
+    return new Expression<DataType, IsNotNull, '?column?'>(
+      [
+        ...this.tokens,
+        new StringToken(`ORDER BY`),
+        new SeparatorToken(
+          ',',
+          expressions.map((expression) => new CollectionToken(expression.toTokens())),
+        ),
+      ],
+      '?column?',
+    );
+  }
+
   /** @internal */
   toTokens(includeAlias?: boolean) {
+    if (includeAlias && (this.nameIsAlias || this.name.match(/[A-Z]/))) {
+      // Some expression return a train_case name by default such as string_agg. We automatically
+      // convert these to camelCase equivalents e.g. stringAgg.
+      return [...this.tokens, new StringToken(`"${this.name}"`)];
+    }
+
     return this.tokens;
   }
 }

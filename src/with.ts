@@ -80,7 +80,7 @@ export const makeWith = (queryExecutor: QueryExecutorFn): WithFn => (...args: an
 
     tokens.push(
       new CollectionToken([
-        new StringToken(`"${name}"`),
+        new StringToken(wrapQuotes(name)),
         new StringToken(`AS`),
         new GroupToken(withQuery.toTokens()),
       ]),

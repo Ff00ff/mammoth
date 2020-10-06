@@ -1,15 +1,8 @@
-import {
-  AliasToken,
-  GroupToken,
-  ParameterToken,
-  SeparatorToken,
-  StringToken,
-  Token,
-} from './tokens';
+import { GroupToken, ParameterToken, SeparatorToken, StringToken, Token } from './tokens';
+import { toSnakeCase, wrapQuotes } from './naming/snake-case';
 
 import { Expression } from './expression';
 import { TableDefinition } from './table';
-import { toSnakeCase } from './naming/snake-case';
 
 export interface ColumnDefinition<DataType, IsNotNull extends boolean, HasDefault extends boolean> {
   notNull(): ColumnDefinition<DataType, true, HasDefault>;
@@ -114,13 +107,13 @@ export class Column<
       return this.originalColumnName
         ? [
             new StringToken(`${this.tableName}.${toSnakeCase(this.originalColumnName)}`),
-            new AliasToken((this.columnName as unknown) as string),
+            new StringToken(wrapQuotes(this.columnName)),
           ]
         : snakeCaseColumnName === (this.columnName as unknown)
         ? [new StringToken(`${this.tableName}.${snakeCaseColumnName}`)]
         : [
             new StringToken(`${this.tableName}.${snakeCaseColumnName}`),
-            new AliasToken((this.columnName as unknown) as string),
+            new StringToken(wrapQuotes(this.columnName)),
           ];
     }
 

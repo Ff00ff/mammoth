@@ -9,6 +9,7 @@ import {
 import { Condition, makeCondition } from './condition';
 
 import { Expression } from './expression';
+import { Query } from './query';
 
 export const stringAgg = (
   expression: Expression<string, boolean, any>,
@@ -141,6 +142,12 @@ export const any = <T>(array: T[]) =>
   );
 
 export const now = () => new Expression<Date, true, 'now'>([new StringToken(`NOW()`)], 'now');
+
+export const exists = (expression: Expression<any, any, any> | Query<any>): Condition =>
+  makeCondition([new StringToken(`EXISTS`), new GroupToken(expression.toTokens())]);
+
+export const notExists = (expression: Expression<any, any, any> | Query<any>): Condition =>
+  makeCondition([new StringToken(`NOT EXISTS`), new GroupToken(expression.toTokens())]);
 
 export const coalesce = <DataType>(
   ...expressions: (Expression<DataType, boolean, any> | DataType)[]

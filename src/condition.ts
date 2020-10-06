@@ -1,20 +1,22 @@
-import { CollectionToken, GroupToken, StringToken, Token } from "./tokens";
+import { CollectionToken, GroupToken, StringToken, Token } from './tokens';
+
+import { Expression } from './expression';
+import { Query } from './query';
 
 // A condition is a combination of expressions and operators that evaluates to true, false or unknown.
 export interface Condition {
   or(condition: Condition): Condition;
   and(condition: Condition): Condition;
-  andNotExists(condition: Condition): Condition;
-  andExists(condition: Condition): Condition;
-  not(condition: Condition): Condition;
+  andNotExists(expression: Expression<any, any, any> | Query<any>): Condition;
+  andExists(expression: Expression<any, any, any> | Query<any>): Condition;
 
   /** @internal */
   toTokens(includeAlias?: boolean): Token[];
 }
 
 export const makeCondition = (tokens: Token[]): Condition => {
-  const toGroup = (c: Condition) => {
-    const newTokens = c.toTokens();
+  const toGroup = (e: Condition | Expression<any, any, any> | Query<any>) => {
+    const newTokens = e.toTokens();
 
     // Anything above 3 means we need to start grouping this in ( and ).
     if (newTokens.length > 3) {
@@ -22,7 +24,7 @@ export const makeCondition = (tokens: Token[]): Condition => {
     }
 
     return new CollectionToken(newTokens);
-  }
+  };
 
   return {
     or(condition) {
@@ -33,16 +35,12 @@ export const makeCondition = (tokens: Token[]): Condition => {
       return makeCondition([...tokens, new StringToken(`AND`), toGroup(condition)]);
     },
 
-    andNotExists(condition) {
-      return makeCondition([...tokens, new StringToken(`AND NOT EXISTS`), toGroup(condition)]);
+    andNotExists(expression) {
+      return makeCondition([...tokens, new StringToken(`AND NOT EXISTS`), toGroup(expression)]);
     },
 
-    andExists(condition) {
-      return makeCondition([...tokens, new StringToken(`AND EXISTS`), toGroup(condition)]);
-    },
-
-    not(condition) {
-      return makeCondition([...tokens, new StringToken(`NOT`), toGroup(condition)]);
+    andExists(expression) {
+      return makeCondition([...tokens, new StringToken(`AND EXISTS`), toGroup(expression)]);
     },
 
     toTokens() {

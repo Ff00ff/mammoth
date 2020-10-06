@@ -10,10 +10,12 @@ import {
   defineDb,
   defineTable,
   every,
+  exists,
   group,
   integer,
   max,
   min,
+  notExists,
   stringAgg,
   sum,
   text,
@@ -651,6 +653,44 @@ describe(`select`, () => {
           600,
         ],
         "text": "SELECT foo.id FROM foo WHERE foo.name IS NULL OR (foo.name = $1 AND foo.name = $2) OR foo.value > $3",
+      }
+    `);
+  });
+
+  it(`should select and exists`, () => {
+    const query = db
+      .select(db.foo.id)
+      .from(db.foo)
+      .where(
+        exists(db.select(db.bar.id).where(db.bar.fooId.eq(db.foo.id))).andExists(
+          db.select(db.foo.id).from(db.foo),
+        ),
+      );
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo WHERE EXISTS (SELECT bar.id WHERE bar.foo_id = foo.id) AND EXISTS (SELECT foo.id FROM foo)",
+      }
+    `);
+  });
+
+  it(`should select and not exists`, () => {
+    const query = db
+      .select(db.foo.id)
+      .from(db.foo)
+      .where(
+        notExists(
+          db
+            .select(db.bar.id)
+            .where(db.bar.fooId.eq(db.foo.id).andNotExists(db.select(db.foo.id).from(db.foo))),
+        ),
+      );
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo WHERE NOT EXISTS (SELECT bar.id WHERE bar.foo_id = foo.id AND NOT EXISTS (SELECT foo.id FROM foo))",
       }
     `);
   });

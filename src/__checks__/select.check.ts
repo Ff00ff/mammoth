@@ -75,6 +75,14 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
   // @dts-jest:snap should convert null value to not null using coalesce
   toSnap(db.select(coalesce(db.foo.value, 1)).from(db.foo));
 
+  toSnap(
+    db
+      .select(db.foo.id)
+      .from(db.foo)
+      // @dts-jest:fail:snap should not use in with wrong data type
+      .where(db.foo.id.in(db.select(db.foo.createDate).from(db.foo))),
+  );
+
   db.select(db.foo.id, db.foo.value)
     .from(db.foo)
     .then((result) => {

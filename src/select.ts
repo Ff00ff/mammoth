@@ -10,7 +10,6 @@ import {
 import { Table, TableDefinition } from './table';
 
 import { Column } from './column';
-import { Condition } from './condition';
 import { Expression } from './expression';
 import { Query } from './query';
 import { QueryExecutorFn } from './types';
@@ -238,7 +237,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
     return this.tokens;
   }
 
-  on(joinCondition: Condition): SelectQuery<Columns> {
+  on(joinCondition: Expression<boolean, boolean, string>): SelectQuery<Columns> {
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`ON`),
@@ -260,7 +259,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
   }
 
   // [ WHERE condition ]
-  where(condition: Condition): SelectQuery<Columns> {
+  where(condition: Expression<boolean, boolean, string>): SelectQuery<Columns> {
     return this.newSelectQuery([...this.tokens, new StringToken(`WHERE`), ...condition.toTokens()]);
   }
 
@@ -283,7 +282,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
   }
 
   // [ HAVING condition [, ...] ]
-  having(...conditions: Condition[]): SelectQuery<Columns> {
+  having(...conditions: Expression<boolean, boolean, string>[]): SelectQuery<Columns> {
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`HAVING`),

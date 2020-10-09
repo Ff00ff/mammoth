@@ -13,7 +13,6 @@ import { SelectFn, makeSelect } from './select';
 import { Table, TableDefinition } from './table';
 
 import { Column } from './column';
-import { Condition } from './condition';
 import { DeleteQuery } from './delete';
 import { Expression } from './expression';
 import { Query } from './query';
@@ -287,11 +286,11 @@ export class InsertQuery<
     ]) as any;
   }
 
-  where(condition: Condition) {
+  where(expression: Expression<boolean, boolean, string>) {
     return new InsertQuery(this.queryExecutor, this.returningKeys, this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE`),
-      ...condition.toTokens(),
+      ...expression.toTokens(),
     ]);
   }
 

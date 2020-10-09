@@ -11,7 +11,7 @@ import type { GetReturning, QueryExecutorFn, ResultType } from './types';
 import type { Table, TableDefinition } from './table';
 
 import { Column } from './column';
-import type { Condition } from './condition';
+import { Expression } from './expression';
 import { Query } from './query';
 import type { ResultSet } from './result-set';
 
@@ -82,7 +82,7 @@ export class DeleteQuery<
     ]);
   }
 
-  where(condition: Condition): DeleteQuery<T, Returning> {
+  where(condition: Expression<boolean, boolean, string>): DeleteQuery<T, Returning> {
     return new DeleteQuery(this.queryExecutor, [], this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE`),

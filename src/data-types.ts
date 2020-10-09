@@ -8,7 +8,7 @@ export const timestampWithTimeZone = () =>
   makeColumnDefinition<Date, false, false>(`timestamp with time zone`);
 export const timestamptz = () =>
   makeColumnDefinition<Date, false, false>(`timestamp with time zone`);
-
+export const boolean = () => makeColumnDefinition<boolean, false, false>(`boolean`);
 export const citext = () => makeColumnDefinition<string, false, false>(`citext`);
 export const caseInsensitiveText = () => makeColumnDefinition<string, false, false>(`citext`);
 

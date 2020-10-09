@@ -6,6 +6,7 @@ import {
   bitOr,
   boolAnd,
   boolOr,
+  boolean,
   count,
   defineDb,
   defineTable,
@@ -23,6 +24,8 @@ import {
   uuid,
 } from '..';
 
+import { Query } from '../query';
+import { ResultSet } from '../result-set';
 import { toSnap } from './helpers';
 
 describe(`select`, () => {
@@ -42,6 +45,7 @@ describe(`select`, () => {
   const listItem = defineTable({
     id: uuid().primaryKey().default(`gen_random_uuid()`),
     name: text().notNull(),
+    isGreat: boolean().notNull(),
   });
 
   const db = defineDb({ foo, bar, listItem }, () =>
@@ -676,6 +680,19 @@ describe(`select`, () => {
   });
 
   it(`should select and not exists`, () => {
+    const test = db.select(db.listItem.isGreat, db.listItem.isGreat.as(`right`)).from(db.listItem);
+
+    type A = 'a' | 'b';
+    type B = { [K in A]: K };
+
+    type BooleanQuery<Q extends Query<any>> = ResultSet<Q, false> extends {
+      [K in keyof ResultSet<Q, false>]: boolean;
+    }
+      ? true
+      : false;
+
+    type Is = BooleanQuery<typeof test>;
+
     const query = db
       .select(db.foo.id)
       .from(db.foo)
@@ -693,5 +710,9 @@ describe(`select`, () => {
         "text": "SELECT foo.id FROM foo WHERE NOT EXISTS (SELECT bar.id WHERE bar.foo_id = foo.id AND NOT EXISTS (SELECT foo.id FROM foo))",
       }
     `);
+  });
+
+  it(`should select list item boolean`, () => {
+    const query = db.select(db.listItem.id).from(db.listItem).where(db.listItem.isGreat);
   });
 });

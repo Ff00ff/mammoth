@@ -6,9 +6,8 @@ import {
   SeparatorToken,
   StringToken,
 } from './tokens';
-import { Condition, makeCondition } from './condition';
+import { DefaultExpression, Expression } from './expression';
 
-import { Expression } from './expression';
 import { Query } from './query';
 
 export const stringAgg = (
@@ -123,17 +122,17 @@ export const xmlagg = <DataType>(expression: Expression<DataType, boolean, any>)
     'xmlagg',
   );
 
-export const not = (condition: Condition) =>
-  makeCondition([new StringToken(`NOT`), new GroupToken(condition.toTokens())]);
+export const not = (expression: Expression<boolean, boolean, string>) =>
+  new DefaultExpression<boolean>([new StringToken(`NOT`), new GroupToken(expression.toTokens())]);
 
-export const and = (condition: Condition) =>
-  makeCondition([new StringToken(`AND`), new GroupToken(condition.toTokens())]);
+export const and = (expression: Expression<boolean, boolean, string>) =>
+  new DefaultExpression<boolean>([new StringToken(`AND`), new GroupToken(expression.toTokens())]);
 
-export const or = (condition: Condition) =>
-  makeCondition([new StringToken(`OR`), new GroupToken(condition.toTokens())]);
+export const or = (expression: Expression<boolean, boolean, string>) =>
+  new DefaultExpression<boolean>([new StringToken(`OR`), new GroupToken(expression.toTokens())]);
 
-export const group = (condition: Condition) =>
-  makeCondition([new GroupToken(condition.toTokens())]);
+export const group = (expression: Expression<boolean, boolean, string>) =>
+  new DefaultExpression<boolean>([new GroupToken(expression.toTokens())]);
 
 export const any = <T>(array: T[]) =>
   new Expression<T, true, '?column?'>(
@@ -143,11 +142,25 @@ export const any = <T>(array: T[]) =>
 
 export const now = () => new Expression<Date, true, 'now'>([new StringToken(`NOW()`)], 'now');
 
-export const exists = (expression: Expression<any, any, any> | Query<any>): Condition =>
-  makeCondition([new StringToken(`EXISTS`), new GroupToken(expression.toTokens())]);
+export const exists = (
+  expression: Expression<any, any, any> | Query<any>,
+): DefaultExpression<boolean> =>
+  new DefaultExpression([new StringToken(`EXISTS`), new GroupToken(expression.toTokens())]);
 
-export const notExists = (expression: Expression<any, any, any> | Query<any>): Condition =>
-  makeCondition([new StringToken(`NOT EXISTS`), new GroupToken(expression.toTokens())]);
+export const andNotExists = (
+  expression: Expression<any, any, any> | Query<any>,
+): DefaultExpression<boolean> =>
+  new DefaultExpression([new StringToken(`AND NOT EXISTS`), new GroupToken(expression.toTokens())]);
+
+export const andExists = (
+  expression: Expression<any, any, any> | Query<any>,
+): DefaultExpression<boolean> =>
+  new DefaultExpression([new StringToken(`AND EXISTS`), new GroupToken(expression.toTokens())]);
+
+export const notExists = (
+  expression: Expression<any, any, any> | Query<any>,
+): DefaultExpression<boolean> =>
+  new DefaultExpression([new StringToken(`NOT EXISTS`), new GroupToken(expression.toTokens())]);
 
 export const coalesce = <DataType>(
   ...expressions: (Expression<DataType, boolean, any> | DataType)[]

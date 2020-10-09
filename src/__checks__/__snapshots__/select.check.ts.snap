@@ -2,6 +2,11 @@
 
 exports[`select should convert null value to not null using coalesce (type) should match snapshot 1`] = `"{ coalesce: GetDataType<number, true>; }"`;
 
+exports[`select should not use in with wrong data type (type) should match snapshot 1`] = `
+"Argument of type 'SelectQuery<GetSelectable<Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>>>' is not assignable to parameter of type 'string[] | Expression<string, true, any>'.
+  Type 'SelectQuery<GetSelectable<Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>>>' is missing the following properties from type 'Expression<string, true, any>': name, nameIsAlias, _expressionBrand, getName, and 33 more."
+`;
+
 exports[`select should return null and not null properties (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; createDate: GetDataType<Date, true>; value: GetDataType<number, false>; }"`;
 
 exports[`select should return nullable properties of all sides because of full join (type) should match snapshot 1`] = `"{ name: GetDataType<string, false>; startDate: GetDataType<Date, false>; value: GetDataType<number, false>; }"`;

@@ -9,7 +9,6 @@ import {
 import { GetReturning, QueryExecutorFn, ResultType } from './types';
 
 import { Column } from './column';
-import { Condition } from './condition';
 import { Expression } from './expression';
 import { Query } from './query';
 import { ResultSet } from './result-set';
@@ -62,7 +61,7 @@ export class UpdateQuery<
       .catch(onRejected);
   }
 
-  where(condition: Condition): UpdateQuery<T, Returning> {
+  where(condition: Expression<boolean, boolean, string>): UpdateQuery<T, Returning> {
     return new UpdateQuery(this.queryExecutor, this.returningKeys, this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE`),

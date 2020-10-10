@@ -285,7 +285,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
   }
 
   eq<Q extends Query<any>>(
-    value: DataType | Expression<DataType, IsNotNull, any> | SpecificQuery<DataType, Q>,
+    value: DataType | Expression<DataType, boolean, any> | SpecificQuery<DataType, Q>,
   ): DefaultExpression<boolean> {
     return new DefaultExpression([
       ...this.tokens,
@@ -295,7 +295,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
   }
 
   ne<Q extends Query<any>>(
-    value: DataType | Expression<DataType, IsNotNull, any> | SpecificQuery<DataType, Q>,
+    value: DataType | Expression<DataType, boolean, any> | SpecificQuery<DataType, Q>,
   ): DefaultExpression<boolean> {
     return new DefaultExpression([
       ...this.tokens,
@@ -305,7 +305,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
   }
 
   gt<Q extends Query<any>>(
-    value: DataType | Expression<DataType, IsNotNull, any> | SpecificQuery<DataType, Q>,
+    value: DataType | Expression<DataType, boolean, any> | SpecificQuery<DataType, Q>,
   ): DefaultExpression<boolean> {
     return new DefaultExpression([
       ...this.tokens,
@@ -315,7 +315,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
   }
 
   gte<Q extends Query<any>>(
-    value: DataType | Expression<DataType, IsNotNull, any> | SpecificQuery<DataType, Q>,
+    value: DataType | Expression<DataType, boolean, any> | SpecificQuery<DataType, Q>,
   ): DefaultExpression<boolean> {
     return new DefaultExpression([
       ...this.tokens,
@@ -325,7 +325,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
   }
 
   lt<Q extends Query<any>>(
-    value: DataType | Expression<DataType, IsNotNull, any> | SpecificQuery<DataType, Q>,
+    value: DataType | Expression<DataType, boolean, any> | SpecificQuery<DataType, Q>,
   ): DefaultExpression<boolean> {
     return new DefaultExpression([
       ...this.tokens,
@@ -335,7 +335,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
   }
 
   lte<Q extends Query<any>>(
-    value: DataType | Expression<DataType, IsNotNull, any> | SpecificQuery<DataType, Q>,
+    value: DataType | Expression<DataType, boolean, any> | SpecificQuery<DataType, Q>,
   ): DefaultExpression<boolean> {
     return new DefaultExpression([
       ...this.tokens,

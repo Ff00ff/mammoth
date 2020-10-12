@@ -8,6 +8,8 @@ import { makeDeleteFrom } from './delete';
 import { makeUpdate } from './update';
 import { makeWith } from './with';
 import { toSnakeCase } from './naming/snake-case';
+import * as sqlFunctions from './sql-functions';
+import { CaseStatement } from './case';
 
 const createTables = <TableDefinitions extends { [key: string]: TableDefinition<any> }>(
   tableDefinitions: TableDefinitions,
@@ -57,6 +59,8 @@ export const defineDb = <TableDefinitions extends { [key: string]: TableDefiniti
     deleteFrom: makeDeleteFrom(queryExecutor),
     update: makeUpdate(queryExecutor),
     with: makeWith(queryExecutor),
+    case: () => new CaseStatement<never>([]),
+    ...sqlFunctions,
 
     ...createTables(tableDefinitions),
   };

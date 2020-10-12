@@ -83,6 +83,21 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
       .where(db.foo.id.in(db.select(db.foo.createDate).from(db.foo))),
   );
 
+  // @dts-jest:snap should select case with correct type and alias
+  toSnap(
+    db.select(
+      db
+        .case()
+        .when(db.foo.value.gt(100))
+        .then('A' as const)
+        .when(db.foo.value.gt(0))
+        .then('B' as const)
+        .else('C' as const)
+        .end()
+        .as(`bar`),
+    ).from(db.foo),
+  );
+
   db.select(db.foo.id, db.foo.value)
     .from(db.foo)
     .then((result) => {

@@ -714,5 +714,32 @@ describe(`select`, () => {
 
   it(`should select list item boolean`, () => {
     const query = db.select(db.listItem.id).from(db.listItem).where(db.listItem.isGreat);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT list_item.id FROM list_item WHERE list_item.is_great",
+      }
+    `);
+  });
+
+  it(`should select with case and else`, () => {
+    const query = db
+      .select(
+        db.foo.id,
+        db.case().when(db.foo.value.gt(0)).then('great').else('not great').end().as('greatness'),
+      )
+      .from(db.foo);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          0,
+          "great",
+          "not great",
+        ],
+        "text": "SELECT foo.id, (WHEN foo.value > $1 THEN $2 ELSE $3) \\"greatness\\" FROM foo",
+      }
+    `);
   });
 });

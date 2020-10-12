@@ -25,6 +25,8 @@ exports[`select should select and await result set (type) should match snapshot 
 
 exports[`select should select array_agg (type) should match snapshot 1`] = `"{ arrayAgg: GetDataType<string[], false>; }"`;
 
+exports[`select should select case with correct type and alias (type) should match snapshot 1`] = `"{ bar: GetDataType<\\"A\\" | \\"B\\" | \\"C\\", true>; }"`;
+
 exports[`select should select expression (type) should match snapshot 1`] = `"{ \\"?column?\\": GetDataType<number, false>; }"`;
 
 exports[`select should select named expression (type) should match snapshot 1`] = `"{ test: GetDataType<number, false>; }"`;

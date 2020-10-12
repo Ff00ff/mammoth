@@ -3,7 +3,13 @@ name: Lint, build & test
 on:
   push:
     branches:
-      - master
+      # These are there to make sure checks are run in branches dependabot creates. A single *
+      # doesn't work so we're adding all possible cases here.
+      - '*'
+      - '*/*'
+      - '*/*/*' # E.g dependabot/npm_and_yarn/package-name
+      - '*/*/*/*' # E.g dependabot/npm_and_yarn/scope/package-name
+      - '!master'
 
 env:
   NODE_VERSION: 12.x
@@ -29,8 +35,3 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_AUTH_TOKEN }}
-          tag: beta
-          access: public

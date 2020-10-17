@@ -300,7 +300,7 @@ This is a list of all the data types and it's companioning data type function.
 
 ## Contribute
 
-Once you clone the repo, do a `npm install` you should be able to run `npm test` seeing everything turn green. Feel free to pick up one of the open issues — in particular you can pick up one labeled with "good first issue". Be sure to claim the issue before you start so we avoid two or more people working on the same thing.
+Once you clone the repo, do a `npm install` + `npm run build`. Now you should be able to run `npm test` seeing everything turn green. Feel free to pick up one of the open issues — in particular you can pick up one labeled with "good first issue". Be sure to claim the issue before you start so we avoid two or more people working on the same thing.
 
 ---
 

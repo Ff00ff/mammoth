@@ -52,7 +52,7 @@ export const makeColumnDefinition = <
   let defaultExpression: string | undefined = undefined;
   let checkExpression: string | undefined = undefined;
   let isUnique = false;
-  let referencesTable: string | undefined = undefined;
+  let referencesTable: any = undefined;
   let referencesColumn: string | undefined = undefined;
 
   return {
@@ -100,7 +100,7 @@ export const makeColumnDefinition = <
     },
 
     references(table, columnName) {
-      referencesTable = (table as any).getName();
+      referencesTable = table;
       referencesColumn = columnName;
 
       return this as any;

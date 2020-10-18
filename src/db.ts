@@ -58,6 +58,7 @@ export const defineDb = <TableDefinitions extends { [key: string]: TableDefiniti
     /** @internal */
     getTableDefinitions(): {
       name: string;
+      originalDefinition: any;
       columns: (ColumnDefinitionFormat & { name: string })[];
     }[] {
       const tableNames = Object.keys(tableDefinitions);
@@ -72,6 +73,7 @@ export const defineDb = <TableDefinitions extends { [key: string]: TableDefiniti
             name: columnName,
             ...(table as any)[columnName].getDefinition(),
           })),
+          originalDefinition: table,
         };
       });
     },

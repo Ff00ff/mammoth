@@ -1,15 +1,16 @@
-import { Column, ColumnDefinition } from './column';
+import * as sqlFunctions from './sql-functions';
+
+import { Column, ColumnDefinition, ColumnDefinitionFormat } from './column';
 import { InsertIntoResult, makeInsertInto } from './insert';
 import { SelectFn, makeSelect } from './select';
 import { Table, TableDefinition, makeTable } from './table';
 
+import { CaseStatement } from './case';
 import { QueryExecutorFn } from './types';
 import { makeDeleteFrom } from './delete';
 import { makeUpdate } from './update';
 import { makeWith } from './with';
 import { toSnakeCase } from './naming/snake-case';
-import * as sqlFunctions from './sql-functions';
-import { CaseStatement } from './case';
 
 const createTables = <TableDefinitions extends { [key: string]: TableDefinition<any> }>(
   tableDefinitions: TableDefinitions,
@@ -54,6 +55,26 @@ export const defineDb = <TableDefinitions extends { [key: string]: TableDefiniti
   queryExecutor: QueryExecutorFn,
 ) => {
   return {
+    /** @internal */
+    getTableDefinitions(): {
+      name: string;
+      columns: (ColumnDefinitionFormat & { name: string })[];
+    }[] {
+      const tableNames = Object.keys(tableDefinitions);
+
+      return tableNames.map((tableName) => {
+        const table = tableDefinitions[tableName];
+        const columnNames = Object.keys(table);
+
+        return {
+          name: tableName,
+          columns: columnNames.map((columnName) => ({
+            name: columnName,
+            ...(table as any)[columnName].getDefinition(),
+          })),
+        };
+      });
+    },
     select: makeSelect(queryExecutor),
     insertInto: makeInsertInto(queryExecutor),
     deleteFrom: makeDeleteFrom(queryExecutor),

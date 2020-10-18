@@ -4,6 +4,17 @@ import { toSnakeCase, wrapQuotes } from './naming/snake-case';
 import { Expression } from './expression';
 import { TableDefinition } from './table';
 
+export interface ColumnDefinitionFormat {
+  dataType: string;
+  isNotNull: boolean;
+  isPrimaryKey: boolean;
+  defaultExpression?: string;
+  checkExpression?: string;
+  isUnique: boolean;
+  referencesTable?: string;
+  referencesColumn?: string;
+}
+
 export interface ColumnDefinition<DataType, IsNotNull extends boolean, HasDefault extends boolean> {
   notNull(): ColumnDefinition<DataType, true, HasDefault>;
   primaryKey(): ColumnDefinition<DataType, true, HasDefault>;
@@ -13,9 +24,9 @@ export interface ColumnDefinition<DataType, IsNotNull extends boolean, HasDefaul
   // this is not neccesary in most of the cases we just assume a default expression will always set
   // a value. You can opt out of this by setting `IsAlwaysSettingAValue` to false.
   default<IsAlwaysSettingAValue extends boolean = true>(
-    defaultExpression: string,
+    expression: string,
   ): ColumnDefinition<DataType, IsNotNull, IsAlwaysSettingAValue>;
-  check(): ColumnDefinition<DataType, IsNotNull, HasDefault>;
+  check(expression: string): ColumnDefinition<DataType, IsNotNull, HasDefault>;
   unique(): ColumnDefinition<DataType, IsNotNull, HasDefault>;
   references<
     T extends TableDefinition<any>,
@@ -24,6 +35,9 @@ export interface ColumnDefinition<DataType, IsNotNull extends boolean, HasDefaul
     table: T,
     columnName: ColumnName,
   ): ColumnDefinition<DataType, IsNotNull, HasDefault>;
+
+  /** @internal */
+  getDefinition(): ColumnDefinitionFormat;
 }
 
 export const makeColumnDefinition = <
@@ -33,28 +47,62 @@ export const makeColumnDefinition = <
 >(
   dataType: string,
 ): ColumnDefinition<DataType, IsNotNull, HasDefault> => {
+  let isNotNull = false;
+  let isPrimaryKey = false;
+  let defaultExpression: string | undefined = undefined;
+  let checkExpression: string | undefined = undefined;
+  let isUnique = false;
+  let referencesTable: string | undefined = undefined;
+  let referencesColumn: string | undefined = undefined;
+
   return {
+    getDefinition() {
+      return {
+        dataType,
+        isNotNull,
+        isPrimaryKey,
+        defaultExpression,
+        checkExpression,
+        isUnique,
+        referencesTable,
+        referencesColumn,
+      };
+    },
+
     notNull() {
+      isNotNull = true;
+
       return this as any;
     },
 
     primaryKey() {
+      isPrimaryKey = true;
+
       return this as any;
     },
 
-    default(defaultExpression) {
+    default(expression) {
+      defaultExpression = expression;
+
       return this as any;
     },
 
-    check() {
+    check(expression) {
+      checkExpression = expression;
+
       return this as any;
     },
 
     unique() {
+      isUnique = true;
+
       return this as any;
     },
 
     references(table, columnName) {
+      referencesTable = (table as any).getName();
+      referencesColumn = columnName;
+
       return this as any;
     },
   };

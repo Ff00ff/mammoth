@@ -6,11 +6,11 @@
 [![Coverage Status](https://coveralls.io/repos/github/Ff00ff/mammoth/badge.svg?branch=master)](https://coveralls.io/github/Ff00ff/mammoth?branch=master)
 [![MIT License](https://img.shields.io/github/license/ff00ff/mammoth.svg)](https://raw.githubusercontent.com/Ff00ff/mammoth/master/LICENSE)
 
+📖 Work-in-progress documentation site is available at https://mammoth.tools/. 
+
 ```
 npm i @ff00ff/mammoth@1.0.0-rc.8
 ```
-
-<br/>
 
 Mammoth is a type-safe query builder. It only supports Postgres which we consider a feature. It's syntax is as close to SQL as possible so you already know how to use it. It's autocomplete features are great. It helps you avoid mistakes so you can develop applications faster.
 

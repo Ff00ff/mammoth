@@ -15,7 +15,11 @@ export interface ColumnDefinitionFormat {
   referencesColumn?: string;
 }
 
-export interface ColumnDefinition<DataType, IsNotNull extends boolean, HasDefault extends boolean> {
+export interface ColumnDefinition<
+  DataType,
+  IsNotNull extends boolean = false,
+  HasDefault extends boolean = false
+> {
   notNull(): ColumnDefinition<DataType, true, HasDefault>;
   primaryKey(): ColumnDefinition<DataType, true, HasDefault>;
   // In most cases a default clause means you do not need to provide any value during insert. In
@@ -42,8 +46,8 @@ export interface ColumnDefinition<DataType, IsNotNull extends boolean, HasDefaul
 
 export const makeColumnDefinition = <
   DataType,
-  IsNotNull extends boolean,
-  HasDefault extends boolean
+  IsNotNull extends boolean = false,
+  HasDefault extends boolean = false
 >(
   dataType: string,
 ): ColumnDefinition<DataType, IsNotNull, HasDefault> => {

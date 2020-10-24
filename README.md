@@ -267,37 +267,6 @@ Below is a list of clauses per query and a short description on what we Mammoth 
 - [ RETURNING \* | output_expression [ [ AS ] output_name ] [, ...] ] — supported, but limited to 10 expressions
 </details>
 
-### Column data type
-
-This is a list of all the data types and it's companioning data type function.
-
-| Function                   | SQL data type               |
-| -------------------------- | --------------------------- |
-| binary()                   | BYTEA                       |
-| blob()                     | BYTEA                       |
-| bytea()                    | BYTEA                       |
-| caseInsensitiveText()      | CITEXT                      |
-| citext()                   | CITEXT                      |
-| date()                     | DATE                        |
-| decimal()                  | DECIMAL                     |
-| integer()                  | INTEGER                     |
-| interval()                 | INTERVAL                    |
-| jsonb\<T>()                | JSONB                       |
-| json\<T>()                 | JSON                        |
-| money()                    | MONEY                       |
-| number()                   | IntegerColumn               |
-| serial()                   | SERIAL                      |
-| string()                   | TextColumn                  |
-| text()                     | TEXT                        |
-| text\<T>()                 | TEXT                        |
-| time()                     | TIME                        |
-| timestamp()                | TIMESTAMP                   |
-| timestampWithoutTimeZone() | TIMESTAMP WITHOUT TIME ZONE |
-| timestampWithTimeZone()    | TIMESTAMP WITH TIME ZONE    |
-| timeWithoutTimeZone()      | TIME WITHOUT TIME ZONE      |
-| timeWithTimeZone()         | TIME WITH TIME ZONE         |
-| uuid()                     | UUID                        |
-
 ## Contribute
 
 Once you clone the repo, do a `npm install` + `npm run build`. Now you should be able to run `npm test` seeing everything turn green. Feel free to pick up one of the open issues — in particular you can pick up one labeled with "good first issue". Be sure to claim the issue before you start so we avoid two or more people working on the same thing.

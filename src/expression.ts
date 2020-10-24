@@ -8,15 +8,18 @@ import {
   Token,
 } from './tokens';
 
-class Explain<T> {
-  private _humandReadableErrorBrand: any;
-}
-
 export class Expression<DataType, IsNotNull extends boolean, Name extends string> {
   private _expressionBrand: any;
 
   /** @internal */
   getName() {
+    return this.name;
+  }
+
+  // To avoid Name becoming any, it seems we have to use it somewhere. Because we strip internal
+  // calls to avoid poluting the public api, we just add a protected function which keeps Name
+  // intact and doesn't pollute the api.
+  protected unusedName() {
     return this.name;
   }
 

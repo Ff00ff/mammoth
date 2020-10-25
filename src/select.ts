@@ -14,6 +14,9 @@ import { Expression } from './expression';
 import { Query } from './query';
 import { QueryExecutorFn } from './types';
 import { ResultSet } from './result-set';
+import { Selectable, SelectFn } from './SelectFn';
+
+export { SelectFn };
 
 type ToJoinType<
   JoinType,
@@ -73,16 +76,6 @@ type AddFullJoin<Columns> = {
     ? Column<Name, TableName, DataType, IsNotNull, HasDefault, ToJoinType<JoinType, 'full-join'>>
     : never;
 };
-
-type GetSelectableName<S> = S extends Column<infer A2, string, any, boolean, boolean, any>
-  ? A2
-  : S extends Expression<any, boolean, infer A1>
-  ? A1
-  : S extends SelectQuery<infer Columns>
-  ? keyof Columns // This only works if the query has one select clause
-  : never;
-
-type GetSelectable<C extends Selectable> = { [K in GetSelectableName<C>]: C };
 
 // https://www.postgresql.org/docs/12/sql-select.html
 export class SelectQuery<Columns extends { [column: string]: any }> extends Query<Columns> {
@@ -357,188 +350,6 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
   skipLocked(): SelectQuery<Columns> {
     return this.newSelectQuery([...this.tokens, new StringToken(`SKIP LOCKED`)]);
   }
-}
-
-type Selectable =
-  | Expression<any, any, any>
-  | SelectQuery<any>
-  | Column<any, any, any, boolean, boolean, any>;
-
-export interface SelectFn {
-  <C1 extends Selectable>(c1: C1): SelectQuery<GetSelectable<C1>>;
-  <C1 extends Selectable, C2 extends Selectable>(c1: C1, c2: C2): SelectQuery<
-    GetSelectable<C1> & GetSelectable<C2>
-  >;
-  <C1 extends Selectable, C2 extends Selectable, C3 extends Selectable>(
-    c1: C1,
-    c2: C2,
-    c3: C3,
-  ): SelectQuery<GetSelectable<C1> & GetSelectable<C2> & GetSelectable<C3>>;
-  <C1 extends Selectable, C2 extends Selectable, C3 extends Selectable, C4 extends Selectable>(
-    c1: C1,
-    c2: C2,
-    c3: C3,
-    c4: C4,
-  ): SelectQuery<GetSelectable<C1> & GetSelectable<C2> & GetSelectable<C3> & GetSelectable<C4>>;
-  <
-    C1 extends Selectable,
-    C2 extends Selectable,
-    C3 extends Selectable,
-    C4 extends Selectable,
-    C5 extends Selectable
-  >(
-    c1: C1,
-    c2: C2,
-    c3: C3,
-    c4: C4,
-    c5: C5,
-  ): SelectQuery<
-    GetSelectable<C1> &
-      GetSelectable<C2> &
-      GetSelectable<C3> &
-      GetSelectable<C4> &
-      GetSelectable<C5>
-  >;
-  <
-    C1 extends Selectable,
-    C2 extends Selectable,
-    C3 extends Selectable,
-    C4 extends Selectable,
-    C5 extends Selectable,
-    C6 extends Selectable
-  >(
-    c1: C1,
-    c2: C2,
-    c3: C3,
-    c4: C4,
-    c5: C5,
-    c6: C6,
-  ): SelectQuery<
-    GetSelectable<C1> &
-      GetSelectable<C2> &
-      GetSelectable<C3> &
-      GetSelectable<C4> &
-      GetSelectable<C5> &
-      GetSelectable<C6>
-  >;
-  <
-    C1 extends Selectable,
-    C2 extends Selectable,
-    C3 extends Selectable,
-    C4 extends Selectable,
-    C5 extends Selectable,
-    C6 extends Selectable,
-    C7 extends Selectable
-  >(
-    c1: C1,
-    c2: C2,
-    c3: C3,
-    c4: C4,
-    c5: C5,
-    c6: C6,
-    c7: C7,
-  ): SelectQuery<
-    GetSelectable<C1> &
-      GetSelectable<C2> &
-      GetSelectable<C3> &
-      GetSelectable<C4> &
-      GetSelectable<C5> &
-      GetSelectable<C6> &
-      GetSelectable<C7>
-  >;
-  <
-    C1 extends Selectable,
-    C2 extends Selectable,
-    C3 extends Selectable,
-    C4 extends Selectable,
-    C5 extends Selectable,
-    C6 extends Selectable,
-    C7 extends Selectable,
-    C8 extends Selectable
-  >(
-    c1: C1,
-    c2: C2,
-    c3: C3,
-    c4: C4,
-    c5: C5,
-    c6: C6,
-    c7: C7,
-    c8: C8,
-  ): SelectQuery<
-    GetSelectable<C1> &
-      GetSelectable<C2> &
-      GetSelectable<C3> &
-      GetSelectable<C4> &
-      GetSelectable<C5> &
-      GetSelectable<C6> &
-      GetSelectable<C7> &
-      GetSelectable<C8>
-  >;
-  <
-    C1 extends Selectable,
-    C2 extends Selectable,
-    C3 extends Selectable,
-    C4 extends Selectable,
-    C5 extends Selectable,
-    C6 extends Selectable,
-    C7 extends Selectable,
-    C8 extends Selectable,
-    C9 extends Selectable
-  >(
-    c1: C1,
-    c2: C2,
-    c3: C3,
-    c4: C4,
-    c5: C5,
-    c6: C6,
-    c7: C7,
-    c8: C8,
-    c9: C9,
-  ): SelectQuery<
-    GetSelectable<C1> &
-      GetSelectable<C2> &
-      GetSelectable<C3> &
-      GetSelectable<C4> &
-      GetSelectable<C5> &
-      GetSelectable<C6> &
-      GetSelectable<C7> &
-      GetSelectable<C8> &
-      GetSelectable<C9>
-  >;
-  <
-    C1 extends Selectable,
-    C2 extends Selectable,
-    C3 extends Selectable,
-    C4 extends Selectable,
-    C5 extends Selectable,
-    C6 extends Selectable,
-    C7 extends Selectable,
-    C8 extends Selectable,
-    C9 extends Selectable,
-    C10 extends Selectable
-  >(
-    c1: C1,
-    c2: C2,
-    c3: C3,
-    c4: C4,
-    c5: C5,
-    c6: C6,
-    c7: C7,
-    c8: C8,
-    c9: C9,
-    c10: C10,
-  ): SelectQuery<
-    GetSelectable<C1> &
-      GetSelectable<C2> &
-      GetSelectable<C3> &
-      GetSelectable<C4> &
-      GetSelectable<C5> &
-      GetSelectable<C6> &
-      GetSelectable<C7> &
-      GetSelectable<C8> &
-      GetSelectable<C9> &
-      GetSelectable<C10>
-  >;
 }
 
 export const makeSelect = (queryExecutor: QueryExecutorFn, initialTokens?: Token[]): SelectFn => <

@@ -9,7 +9,7 @@
 📖 Work-in-progress documentation site is available at https://mammoth.tools/.
 
 ```
-npm i @ff00ff/mammoth@1.0.0-rc.9
+npm i @ff00ff/mammoth
 ```
 
 Mammoth is a type-safe query builder. It only supports Postgres which we consider a feature. It's syntax is as close to SQL as possible so you already know how to use it. It's autocomplete features are great. It helps you avoid mistakes so you can develop applications faster.
@@ -266,6 +266,10 @@ Below is a list of clauses per query and a short description on what we Mammoth 
 - [ ON CONFLICT [ conflict_target ] conflict_action ] — supported
 - [ RETURNING \* | output_expression [ [ AS ] output_name ] [, ...] ] — supported, but limited to 10 expressions
 </details>
+
+## Versioning
+
+Now that we've hit 1.0 Mammoth will stick to semantic versioning, meaning, breaking changes will only be included in major updates.
 
 ## Contribute
 

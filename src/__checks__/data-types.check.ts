@@ -22,6 +22,7 @@ import {
   defineDb,
   defineTable,
   doublePrecision,
+  enumType,
   float4,
   float8,
   inet,
@@ -140,6 +141,7 @@ const foo = defineTable({
   txidSnapshot: txidSnapshot(),
   uuid: uuid(),
   xml: xml(),
+  enumType: enumType('my_enum-type', ['A', 'B', 'C'] as const),
 });
 
 const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
@@ -211,6 +213,7 @@ const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 
         db.foo.txidSnapshot,
         db.foo.uuid,
         db.foo.xml,
+        db.foo.enumType,
       )
       .from(db.foo),
   );

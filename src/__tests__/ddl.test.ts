@@ -1,5 +1,6 @@
 import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
 
+import { enumType } from '../data-types';
 import { table } from 'console';
 import { toSnap } from './helpers';
 
@@ -9,6 +10,7 @@ describe(`ddl`, () => {
     createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
     value: integer(),
+    enumTest: enumType('my_enum_type', ['A', 'B', 'C']),
   });
 
   const db = defineDb(
@@ -29,6 +31,7 @@ describe(`ddl`, () => {
               "checkExpression": undefined,
               "dataType": "uuid",
               "defaultExpression": "gen_random_uuid()",
+              "enumValues": undefined,
               "isNotNull": false,
               "isPrimaryKey": true,
               "isUnique": false,
@@ -40,6 +43,7 @@ describe(`ddl`, () => {
               "checkExpression": undefined,
               "dataType": "timestamp with time zone",
               "defaultExpression": "now()",
+              "enumValues": undefined,
               "isNotNull": true,
               "isPrimaryKey": false,
               "isUnique": false,
@@ -51,6 +55,7 @@ describe(`ddl`, () => {
               "checkExpression": undefined,
               "dataType": "text",
               "defaultExpression": undefined,
+              "enumValues": undefined,
               "isNotNull": true,
               "isPrimaryKey": false,
               "isUnique": false,
@@ -62,6 +67,7 @@ describe(`ddl`, () => {
               "checkExpression": undefined,
               "dataType": "integer",
               "defaultExpression": undefined,
+              "enumValues": undefined,
               "isNotNull": false,
               "isPrimaryKey": false,
               "isUnique": false,
@@ -69,10 +75,35 @@ describe(`ddl`, () => {
               "referencesColumn": undefined,
               "referencesTable": undefined,
             },
+            Object {
+              "checkExpression": undefined,
+              "dataType": "my_enum_type",
+              "defaultExpression": undefined,
+              "enumValues": Array [
+                "A",
+                "B",
+                "C",
+              ],
+              "isNotNull": false,
+              "isPrimaryKey": false,
+              "isUnique": false,
+              "name": "enumTest",
+              "referencesColumn": undefined,
+              "referencesTable": undefined,
+            },
           ],
           "name": "foo",
           "originalDefinition": Object {
             "createDate": Object {
+              "check": [Function],
+              "default": [Function],
+              "getDefinition": [Function],
+              "notNull": [Function],
+              "primaryKey": [Function],
+              "references": [Function],
+              "unique": [Function],
+            },
+            "enumTest": Object {
               "check": [Function],
               "default": [Function],
               "getDefinition": [Function],

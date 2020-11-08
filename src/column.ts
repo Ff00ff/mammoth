@@ -13,6 +13,7 @@ export interface ColumnDefinitionFormat {
   isUnique: boolean;
   referencesTable?: string;
   referencesColumn?: string;
+  enumValues?: string[];
 }
 
 export interface ColumnDefinition<
@@ -50,6 +51,7 @@ export const makeColumnDefinition = <
   HasDefault extends boolean = false
 >(
   dataType: string,
+  enumValues?: string[],
 ): ColumnDefinition<DataType, IsNotNull, HasDefault> => {
   let isNotNull = false;
   let isPrimaryKey = false;
@@ -70,6 +72,7 @@ export const makeColumnDefinition = <
         isUnique,
         referencesTable,
         referencesColumn,
+        enumValues,
       };
     },
 

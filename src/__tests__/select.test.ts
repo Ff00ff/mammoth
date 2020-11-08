@@ -26,6 +26,7 @@ import {
 
 import { Query } from '../query';
 import { ResultSet } from '../result-set';
+import { enumType } from '../data-types';
 import { toSnap } from './helpers';
 
 describe(`select`, () => {
@@ -34,6 +35,7 @@ describe(`select`, () => {
     createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
     value: integer(),
+    enumTest: enumType('my_enum_type', ['A', 'B', 'C'] as const),
   });
 
   const bar = defineTable({
@@ -739,6 +741,17 @@ describe(`select`, () => {
           "not great",
         ],
         "text": "SELECT foo.id, (WHEN foo.value > $1 THEN $2 ELSE $3) \\"greatness\\" FROM foo",
+      }
+    `);
+  });
+
+  it(`should select enum column`, () => {
+    const query = db.select(db.foo.enumTest).from(db.foo);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.enum_test \\"enumTest\\" FROM foo",
       }
     `);
   });

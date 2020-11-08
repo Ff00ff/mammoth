@@ -332,3 +332,11 @@ export function xml<T>(): ColumnDefinition<T>;
 export function xml() {
   return makeDataType(`xml`);
 }
+
+// enum is a reserved keyword unfortunately
+export function enumType<EnumValue>(
+  name: string,
+  values: readonly EnumValue[],
+): ColumnDefinition<EnumValue> {
+  return makeDataType<EnumValue>(name, values as any);
+}

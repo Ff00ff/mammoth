@@ -266,6 +266,13 @@ Below is a list of clauses per query and a short description on what we Mammoth 
 - [ RETURNING \* | output_expression [ [ AS ] output_name ] [, ...] ] — supported, but limited to 10 expressions
 </details>
 
+<details>
+  <summary>Trunate</summary>
+
+- RESTART IDENTITY
+- CASCADE 
+</details>
+
 ## Versioning
 
 Now that we've hit 1.0 Mammoth will stick to semantic versioning, meaning, breaking changes will only be included in major updates.

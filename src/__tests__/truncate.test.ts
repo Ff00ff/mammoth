@@ -83,7 +83,7 @@ describe(`truncate`, () => {
   });
 
   it(`should return affectedCount`, async () => {
-    const query = await db.truncate(db.foo);
-    expect(query).toBe(1);
+    const affectedRows = await db.truncate(db.foo);
+    expect(affectedRows).toBe(1);
   });
 });

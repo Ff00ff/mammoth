@@ -267,7 +267,7 @@ Below is a list of clauses per query and a short description on what we Mammoth 
 </details>
 
 <details>
-  <summary>Trunate</summary>
+  <summary>Truncate</summary>
 
 - RESTART IDENTITY
 - CASCADE 

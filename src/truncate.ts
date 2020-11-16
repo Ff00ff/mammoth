@@ -1,51 +1,68 @@
-import {QueryExecutorFn} from "./types";
-import {Table, TableDefinition} from "./table";
-import {StringToken, Token} from "./tokens";
-import {Query} from "./query";
+import { QueryExecutorFn, ResultType } from './types';
+import { Table, TableDefinition } from './table';
+import { createQueryState, StringToken, Token } from './tokens';
+import { Query } from './query';
+import { ResultSet } from './result-set';
 
-export const makeTruncate = (queryExecutor: QueryExecutorFn) =>
-    <T extends Table<any, any>>(table: T,): T extends TableDefinition<any> ? never : TruncateQuery<T> => {
-        return new TruncateQuery<T>(
-            queryExecutor,
-            table,
-            [
-                new StringToken(`TRUNCATE`),
-                new StringToken((table as Table<any, any>).getName()),
-            ]) as any;
-    };
+export const makeTruncate = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
+  table: T,
+): T extends TableDefinition<any> ? never : TruncateQuery<T> => {
+  return new TruncateQuery<T>(queryExecutor, table, 'AFFECTED_COUNT', [
+    new StringToken(`TRUNCATE`),
+    new StringToken((table as Table<any, any>).getName()),
+  ]) as any;
+};
 
-export class TruncateQuery<T extends Table<any, any>> extends Query<void> {
-    constructor(
-        private readonly queryExecutor: QueryExecutorFn,
-        private readonly table: T,
-        private readonly tokens: Token[],
-    ) {
-        super();
-    }
+export class TruncateQuery<
+  T extends Table<any, any>,
+  Returning = number,
+  TableColumns = T extends Table<any, infer Columns> ? Columns : never
+> extends Query<Returning> {
+  constructor(
+    private readonly queryExecutor: QueryExecutorFn,
+    private readonly table: T,
+    private readonly resultType: ResultType,
+    private readonly tokens: Token[],
+  ) {
+    super();
+  }
 
-    restartIdentity<T extends Table<any, any>>() {
-        return this.newTruncateQuery([
-            ...this.tokens,
-            new StringToken(`RESTART IDENTITY`)
-        ]) as any;
-    }
+  then(
+    onFulfilled?: ((value: number) => any | PromiseLike<any>) | undefined | null,
+    onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null,
+  ) {
+    const queryState = createQueryState(this.tokens);
 
-    cascade<T extends Table<any, any>>() {
-        return this.newTruncateQuery([
-            ...this.tokens,
-            new StringToken("CASCADE")
-        ])
-    }
+    return this.queryExecutor(queryState.text.join(` `), queryState.parameters)
+      .then((result) => onFulfilled?.(result.affectedCount))
+      .catch(onRejected);
+  }
 
-    private newTruncateQuery(tokens: Token[]): TruncateQuery<any> {
-        return new TruncateQuery(this.queryExecutor, this.table, tokens);
-    }
+  restartIdentity<T extends Table<any, any>>() {
+    return this.newTruncateQuery([...this.tokens, new StringToken(`RESTART IDENTITY`)]) as any;
+  }
 
-    getReturningKeys(): string[] {
-        return [];
-    }
+  continueIdentity<T extends Table<any, any>>() {
+    return this.newTruncateQuery([...this.tokens, new StringToken(`CONTINUE IDENTITY`)]) as any;
+  }
 
-    toTokens(): Token[] {
-        return this.tokens;
-    }
+  cascade<T extends Table<any, any>>() {
+    return this.newTruncateQuery([...this.tokens, new StringToken('CASCADE')]);
+  }
+
+  restrict<T extends Table<any, any>>() {
+    return this.newTruncateQuery([...this.tokens, new StringToken('RESTRICT')]);
+  }
+
+  private newTruncateQuery(tokens: Token[]): TruncateQuery<any> {
+    return new TruncateQuery(this.queryExecutor, this.table, 'AFFECTED_COUNT', tokens);
+  }
+
+  getReturningKeys(): string[] {
+    return [];
+  }
+
+  toTokens(): Token[] {
+    return this.tokens;
+  }
 }

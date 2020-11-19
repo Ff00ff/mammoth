@@ -12,6 +12,42 @@ describe(`insert`, () => {
 
   const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 
+  it(`should insert a single row`, () => {
+    const query = db.insertInto(db.foo).values({
+      name: `Test`,
+    });
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "Test",
+        ],
+        "text": "INSERT INTO foo (name) VALUES ($1)",
+      }
+    `);
+  });
+
+  it(`should insert multiple rows`, () => {
+    const query = db.insertInto(db.foo).values([
+      {
+        name: `Test`,
+      },
+      {
+        name: `Test 2`,
+      },
+    ]);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "Test",
+          "Test 2",
+        ],
+        "text": "INSERT INTO foo (name) VALUES ($1), ($2)",
+      }
+    `);
+  });
+
   it(`should insert foo on conflict do update set`, () => {
     const query = db
       .insertInto(db.foo)

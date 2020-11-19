@@ -503,7 +503,51 @@ export class InsertQuery<
   }
 }
 
-export interface InsertIntoResult<T extends Table<any, any>> {
+export interface InsertIntoResult<
+  T extends Table<any, any>,
+  Row = T extends Table<any, infer Columns>
+    ? {
+        [K in keyof PickByValue<
+          {
+            [K in keyof Columns]: Columns[K] extends Column<
+              any,
+              any,
+              any,
+              infer IsNotNull,
+              infer HasDefault,
+              any
+            >
+              ? HasDefault extends true
+                ? false
+                : IsNotNull
+              : never;
+          },
+          true
+        >]: Columns[K] extends Column<any, any, infer DataType, any, any, any> ? DataType : never;
+      } &
+        {
+          [K in keyof PickByValue<
+            {
+              [K in keyof Columns]: Columns[K] extends Column<
+                any,
+                any,
+                any,
+                boolean,
+                infer HasDefault,
+                any
+              >
+                ? HasDefault extends true
+                  ? false
+                  : false
+                : never;
+            },
+            false
+          >]?: Columns[K] extends Column<any, any, infer DataType, any, any, any>
+            ? DataType | undefined
+            : never;
+        }
+    : never
+> {
   select: SelectFn;
 
   deleteFrom<DeleteTable extends Table<any, any>>(
@@ -534,9 +578,34 @@ export interface InsertIntoResult<T extends Table<any, any>> {
   };
 
   defaultValues(): InsertQuery<T, number>;
-  values(
-    values: T extends Table<any, infer Columns>
-      ? {
+  values(values: Row | Row[]): InsertQuery<T, number>;
+}
+
+export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
+  table: T,
+  columnNames?: T extends Table<any, infer Columns> ? (keyof Columns)[] : never,
+): T extends TableDefinition<any> ? never : InsertIntoResult<T> => {
+  type Row = T extends Table<any, infer Columns>
+    ? {
+        [K in keyof PickByValue<
+          {
+            [K in keyof Columns]: Columns[K] extends Column<
+              any,
+              any,
+              any,
+              infer IsNotNull,
+              infer HasDefault,
+              any
+            >
+              ? HasDefault extends true
+                ? false
+                : IsNotNull
+              : never;
+          },
+          true
+        >]: Columns[K] extends Column<any, any, infer DataType, any, any, any> ? DataType : never;
+      } &
+        {
           [K in keyof PickByValue<
             {
               [K in keyof Columns]: Columns[K] extends Column<
@@ -552,38 +621,13 @@ export interface InsertIntoResult<T extends Table<any, any>> {
                   : IsNotNull
                 : never;
             },
-            true
-          >]: Columns[K] extends Column<any, any, infer DataType, any, any, any> ? DataType : never;
-        } &
-          {
-            [K in keyof PickByValue<
-              {
-                [K in keyof Columns]: Columns[K] extends Column<
-                  any,
-                  any,
-                  any,
-                  boolean,
-                  infer HasDefault,
-                  any
-                >
-                  ? HasDefault extends true
-                    ? false
-                    : false
-                  : never;
-              },
-              false
-            >]?: Columns[K] extends Column<any, any, infer DataType, any, any, any>
-              ? DataType | undefined
-              : never;
-          }
-      : never,
-  ): InsertQuery<T, number>;
-}
+            false
+          >]?: Columns[K] extends Column<any, any, infer DataType, any, any, any>
+            ? DataType | undefined
+            : never;
+        }
+    : never;
 
-export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
-  table: T,
-  columnNames?: T extends Table<any, infer Columns> ? (keyof Columns)[] : never,
-): T extends TableDefinition<any> ? never : InsertIntoResult<T> => {
   return {
     select: makeSelect(queryExecutor, [
       new StringToken(`INSERT INTO`),
@@ -695,59 +739,17 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
     // required. Even though not strictly correct: we also assume a column containing a default
     // clause is not required. This is so you do not need to specify an undefined id when inserting
     // a row.
-    values(
-      values: T extends Table<any, infer Columns>
-        ? {
-            [K in keyof PickByValue<
-              {
-                [K in keyof Columns]: Columns[K] extends Column<
-                  any,
-                  any,
-                  any,
-                  infer IsNotNull,
-                  infer HasDefault,
-                  any
-                >
-                  ? HasDefault extends true
-                    ? false
-                    : IsNotNull
-                  : never;
-              },
-              true
-            >]: Columns[K] extends Column<any, any, infer DataType, any, any, any>
-              ? DataType
-              : never;
-          } &
-            {
-              [K in keyof PickByValue<
-                {
-                  [K in keyof Columns]: Columns[K] extends Column<
-                    any,
-                    any,
-                    any,
-                    infer IsNotNull,
-                    infer HasDefault,
-                    any
-                  >
-                    ? HasDefault extends true
-                      ? false
-                      : IsNotNull
-                    : never;
-                },
-                false
-              >]?: Columns[K] extends Column<any, any, infer DataType, any, any, any>
-                ? DataType | undefined
-                : never;
-            }
-        : never,
-    ): InsertQuery<T, number> {
+    values(listOrItem: Row | Row[]): InsertQuery<T, number> {
+      const list = Array.isArray(listOrItem) ? listOrItem : [listOrItem];
+      const [firstItem] = list;
+
       return new InsertQuery(queryExecutor, [], table, 'AFFECTED_COUNT', [
         new StringToken(`INSERT INTO`),
         new StringToken((table as Table<any, any>).getName()),
         new GroupToken([
           new SeparatorToken(
             `,`,
-            Object.keys(values).map((columnName) => {
+            Object.keys(firstItem).map((columnName) => {
               const column = (table as any)[columnName] as Column<any, any, any, any, any, any>;
 
               return new StringToken(column.getSnakeCaseName());
@@ -755,25 +757,30 @@ export const makeInsertInto = (queryExecutor: QueryExecutorFn) => <T extends Tab
           ),
         ]),
         new StringToken(`VALUES`),
-        new GroupToken([
-          new SeparatorToken(
-            `,`,
-            Object.keys(values).map((columnName) => {
-              const value = (values as any)[columnName];
+        new SeparatorToken(
+          ',',
+          list.map((values) => {
+            return new GroupToken([
+              new SeparatorToken(
+                `,`,
+                Object.keys(values).map((columnName) => {
+                  const value = (values as any)[columnName];
 
-              if (
-                value &&
-                typeof value === `object` &&
-                'toTokens' in value &&
-                typeof value.toTokens === `function`
-              ) {
-                return new CollectionToken(value.toTokens());
-              } else {
-                return new ParameterToken(value);
-              }
-            }),
-          ),
-        ]),
+                  if (
+                    value &&
+                    typeof value === `object` &&
+                    'toTokens' in value &&
+                    typeof value.toTokens === `function`
+                  ) {
+                    return new CollectionToken(value.toTokens());
+                  } else {
+                    return new ParameterToken(value);
+                  }
+                }),
+              ),
+            ]);
+          }),
+        ),
       ]);
     },
   } as any;

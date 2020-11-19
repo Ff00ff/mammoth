@@ -31,6 +31,9 @@ const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 
   // @dts-jest:snap should insert and returning count
   toSnap(db.insertInto(db.foo).values({ name: `Test` }));
 
+  // @dts-jest:snap should insert multiple rows and returning count
+  toSnap(db.insertInto(db.foo).values([{ name: `Test` }, { name: `Test 2` }]));
+
   // @dts-jest:snap should insert default column
   toSnap(db.insertInto(db.foo).values({ name: `Test`, createDate: new Date() }));
 
@@ -39,6 +42,9 @@ const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 
 
   // @dts-jest:fail:snap should not insert invalid type in known column
   toSnap(db.insertInto(db.foo).values({ name: 123 }));
+
+  // @dts-jest:fail:snap should not insert multiple rows with invalid colums
+  toSnap(db.insertInto(db.foo).values([{ name: `Test` }, { name: `Test 2`, asd: 123 }]));
 
   db.insertInto(db.foo)
     .values({ name: `Test` })

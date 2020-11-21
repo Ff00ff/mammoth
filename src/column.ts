@@ -115,6 +115,16 @@ export const makeColumnDefinition = <
   };
 };
 
+// This is only used as a nominal type, not actually as an instance.
+export class ColumnSet<Columns> {
+  private _columnSetBrand: any;
+
+  /** @internal */
+  toTokens(): Token[] {
+    return [];
+  }
+}
+
 export class Column<
   Name extends string,
   TableName,

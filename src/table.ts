@@ -1,6 +1,8 @@
-import { Column, ColumnDefinition } from './column';
+import { Column, ColumnDefinition, ColumnSet } from './column';
 import { toSnakeCase, wrapQuotes } from './naming/snake-case';
 
+import { Expression } from './expression';
+import { StringToken } from './tokens';
 import { dataType } from './data-types';
 
 export type TableRow<T> = T extends TableDefinition<infer Columns>
@@ -29,6 +31,8 @@ interface InternalTable<TableName, Columns> {
 
   /** @internal */
   getOriginalName(): string;
+
+  star(): ColumnSet<Columns>;
 
   // Because we use the column's table name to determine whether the data type should be nullable
   // when joining, we change the column's table name to the alias.
@@ -96,6 +100,9 @@ export const makeTable = <
     ...columns,
     as<T extends string>(alias: T) {
       return makeTable(alias, tableName, tableDefinition) as any;
+    },
+    star() {
+      return new Expression([new StringToken(`${wrapQuotes(tableName)}.*`)], '');
     },
     getName() {
       return tableName;

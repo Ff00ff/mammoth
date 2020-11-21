@@ -3,8 +3,8 @@
 exports[`select should convert null value to not null using coalesce (type) should match snapshot 1`] = `"{ coalesce: GetDataType<number, true>; }"`;
 
 exports[`select should not use in with wrong data type (type) should match snapshot 1`] = `
-"Argument of type 'SelectQuery<GetSelectable<Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>>>' is not assignable to parameter of type 'string[] | Expression<string, true, any>'.
-  Type 'SelectQuery<GetSelectable<Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>>>' is missing the following properties from type 'Expression<string, true, any>': name, nameIsAlias, _expressionBrand, unusedName, and 33 more."
+"Argument of type 'SelectQuery<{ createDate: Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>; }>' is not assignable to parameter of type 'string[] | Expression<string, true, any>'.
+  Type 'SelectQuery<{ createDate: Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>; }>' is missing the following properties from type 'Expression<string, true, any>': name, nameIsAlias, _expressionBrand, unusedName, and 33 more."
 `;
 
 exports[`select should return null and not null properties (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; createDate: GetDataType<Date, true>; value: GetDataType<number, false>; }"`;
@@ -28,6 +28,8 @@ exports[`select should select array_agg (type) should match snapshot 1`] = `"{ a
 exports[`select should select case with correct type and alias (type) should match snapshot 1`] = `"{ bar: GetDataType<\\"A\\" | \\"B\\" | \\"C\\", true>; }"`;
 
 exports[`select should select expression (type) should match snapshot 1`] = `"{ \\"?column?\\": GetDataType<number, false>; }"`;
+
+exports[`select should select foo.* (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; createDate: GetDataType<Date, true>; name: GetDataType<string, true>; value: GetDataType<number, false>; }"`;
 
 exports[`select should select named expression (type) should match snapshot 1`] = `"{ test: GetDataType<number, false>; }"`;
 

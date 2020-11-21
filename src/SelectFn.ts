@@ -1,6 +1,7 @@
-import { Column } from "./column";
-import { Expression } from "./expression";
-import { SelectQuery } from "./select";
+import { Column, ColumnSet } from './column';
+
+import { Expression } from './expression';
+import { SelectQuery } from './select';
 
 export type GetSelectableName<S> = S extends Column<infer A2, string, any, boolean, boolean, any>
   ? A2
@@ -10,12 +11,15 @@ export type GetSelectableName<S> = S extends Column<infer A2, string, any, boole
   ? keyof Columns // This only works if the query has one select clause
   : never;
 
-export type GetSelectable<C extends Selectable> = { [K in GetSelectableName<C>]: C };
+export type GetSelectable<C extends Selectable> = C extends ColumnSet<infer Columns>
+  ? Columns
+  : { [K in GetSelectableName<C>]: C };
 
 export type Selectable =
   | Expression<any, any, any>
   | SelectQuery<any>
-  | Column<any, any, any, boolean, boolean, any>;
+  | Column<any, any, any, boolean, boolean, any>
+  | ColumnSet<any>;
 
 export interface SelectFn {
   <C1 extends Selectable>(c1: C1): SelectQuery<GetSelectable<C1>>;

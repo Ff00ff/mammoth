@@ -76,6 +76,29 @@ describe(`select`, () => {
     `);
   });
 
+  it(`should select list_item.*`, () => {
+    const query = db.select(db.listItem.star()).from(db.listItem);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT list_item.* FROM list_item",
+      }
+    `);
+  });
+
+  it(`should select alias baz.*`, async () => {
+    const baz = db.bar.as(`baZ`);
+    const query = db.select(baz.star()).from(baz);
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT \\"baZ\\".* FROM bar \\"baZ\\"",
+      }
+    `);
+  });
+
   it(`should select as camel case table`, () => {
     const test = db.foo.as(`testMe`);
     const query = db.select(test.id).from(test);

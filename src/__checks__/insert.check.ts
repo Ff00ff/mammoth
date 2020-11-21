@@ -3,6 +3,7 @@ import {
   defineDb,
   defineTable,
   integer,
+  serial,
   text,
   timestampWithTimeZone,
   uuid,
@@ -24,7 +25,12 @@ const foo = defineTable({
   value: integer(),
 });
 
-const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
+const serialTest = defineTable({
+  id: serial().primaryKey(),
+  value: integer(),
+});
+
+const db = defineDb({ foo, serialTest }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 
 // @dts-jest:group insert check
 {
@@ -60,4 +66,9 @@ const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 
       // @dts-jest:snap should insert-returning and await rows
       result;
     });
+
+  // @dts-jest:snap should insert without explicit value for column serial
+  db.insertInto(db.serialTest).values({
+    value: 123,
+  });
 }

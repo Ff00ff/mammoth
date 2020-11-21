@@ -19,13 +19,13 @@ export function bigint<T>(): ColumnDefinition<T>;
 export function bigint() {
   return makeDataType(`bigint`);
 }
-export function bigserial(): ColumnDefinition<string>;
-export function bigserial<T>(): ColumnDefinition<T>;
+export function bigserial(): ColumnDefinition<string, false, true>;
+export function bigserial<T>(): ColumnDefinition<T, false, true>;
 export function bigserial() {
   return makeDataType(`bigserial`);
 }
-export function serial8(): ColumnDefinition<string>;
-export function serial8<T>(): ColumnDefinition<T>;
+export function serial8(): ColumnDefinition<string, false, true>;
+export function serial8<T>(): ColumnDefinition<T, false, true>;
 export function serial8() {
   return makeDataType(`serial8`);
 }
@@ -247,23 +247,23 @@ export function int2<T>(): ColumnDefinition<T>;
 export function int2() {
   return makeDataType(`int2`);
 }
-export function serial(): ColumnDefinition<number>;
-export function serial<T>(): ColumnDefinition<T>;
+export function serial(): ColumnDefinition<number, false, true>;
+export function serial<T>(): ColumnDefinition<T, false, true>;
 export function serial() {
   return makeDataType(`serial`);
 }
-export function serial4(): ColumnDefinition<number>;
-export function serial4<T>(): ColumnDefinition<T>;
+export function serial4(): ColumnDefinition<number, false, true>;
+export function serial4<T>(): ColumnDefinition<T, false, true>;
 export function serial4() {
   return makeDataType(`serial4`);
 }
-export function smallserial(): ColumnDefinition<number>;
-export function smallserial<T>(): ColumnDefinition<T>;
+export function smallserial(): ColumnDefinition<number, false, true>;
+export function smallserial<T>(): ColumnDefinition<T, false, true>;
 export function smallserial() {
   return makeDataType(`smallserial`);
 }
-export function serial2(): ColumnDefinition<number>;
-export function serial2<T>(): ColumnDefinition<T>;
+export function serial2(): ColumnDefinition<number, false, true>;
+export function serial2<T>(): ColumnDefinition<T, false, true>;
 export function serial2() {
   return makeDataType(`serial2`);
 }

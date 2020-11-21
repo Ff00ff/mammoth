@@ -1,6 +1,22 @@
 import { Column, ColumnDefinition } from './column';
 import { toSnakeCase, wrapQuotes } from './naming/snake-case';
 
+import { dataType } from './data-types';
+
+export type TableRow<T> = T extends TableDefinition<infer Columns>
+  ? {
+      [K in keyof Columns]: Columns[K] extends ColumnDefinition<
+        infer DataType,
+        infer IsNotNull,
+        boolean
+      >
+        ? IsNotNull extends true
+          ? DataType
+          : DataType | undefined
+        : never;
+    }
+  : never;
+
 export class TableDefinition<Columns> {
   private _tableDefinitionBrand: any;
 }

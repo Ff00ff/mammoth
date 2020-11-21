@@ -1,4 +1,5 @@
 import {
+  TableRow,
   arrayAgg,
   coalesce,
   count,
@@ -18,6 +19,10 @@ const toSnap = <T extends Query<any>>(query: T): ResultSet<T, true> => {
   return undefined as any;
 };
 
+const toTableRow = <T>(table: T): TableRow<T> => {
+  return undefined as any;
+};
+
 /** @dts-jest enable:test-type */
 
 const foo = defineTable({
@@ -34,6 +39,9 @@ const bar = defineTable({
   value: integer(),
   fooId: uuid().references(foo, 'id'),
 });
+
+// @dts-jest:snap should output all columns and the data type
+toTableRow(foo);
 
 const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 

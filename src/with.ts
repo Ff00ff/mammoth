@@ -5,7 +5,7 @@ import { Expression } from './expression';
 import { Query } from './query';
 import { ResultSet } from './result-set';
 import { SelectQuery } from './select';
-import { wrapQuotes } from './naming/snake-case';
+import { wrapQuotes } from './naming';
 
 export type FromItem<Q> = Q extends Query<any>
   ? FromItemQuery<Q>
@@ -61,7 +61,7 @@ export const makeWith = (queryExecutor: QueryExecutorFn): WithFn => (...args: an
       }, {} as any),
 
       getName() {
-        return wrapQuotes(name);
+        return name;
       },
 
       getOriginalName() {

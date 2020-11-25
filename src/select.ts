@@ -7,6 +7,7 @@ import {
   Token,
   createQueryState,
 } from './tokens';
+import { SelectFn, Selectable } from './SelectFn';
 import { Table, TableDefinition } from './table';
 
 import { Column } from './column';
@@ -14,7 +15,7 @@ import { Expression } from './expression';
 import { Query } from './query';
 import { QueryExecutorFn } from './types';
 import { ResultSet } from './result-set';
-import { Selectable, SelectFn } from './SelectFn';
+import { wrapQuotes } from './naming';
 
 export { SelectFn };
 
@@ -121,17 +122,25 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`FROM`),
-      table.getOriginalName()
-        ? new StringToken(`${table.getOriginalName()} "${table.getName()}"`)
-        : new StringToken(table.getName()),
+      this.getTableStringToken(table),
     ]) as any;
+  }
+
+  private getTableStringToken(table: Table<any, any>) {
+    if (table.getOriginalName()) {
+      return new StringToken(
+        `${wrapQuotes(table.getOriginalName())} ${wrapQuotes(table.getName())}`,
+      );
+    }
+
+    return new StringToken(wrapQuotes(table.getName()));
   }
 
   join(table: Table<any, any>): SelectQuery<Columns> {
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`JOIN`),
-      new StringToken(table.getName()),
+      this.getTableStringToken(table),
     ]);
   }
 
@@ -139,7 +148,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`INNER JOIN`),
-      new StringToken(table.getName()),
+      this.getTableStringToken(table),
     ]);
   }
 
@@ -149,7 +158,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`LEFT OUTER JOIN`),
-      new StringToken((table as Table<any, any>).getName()),
+      this.getTableStringToken(table),
     ]);
   }
 
@@ -159,7 +168,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`INNER JOIN`),
-      new StringToken((table as Table<any, any>).getName()),
+      this.getTableStringToken(table),
     ]);
   }
 
@@ -169,7 +178,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`RIGHT OUTER JOIN`),
-      new StringToken((table as Table<any, any>).getName()),
+      this.getTableStringToken(table),
     ]);
   }
 
@@ -179,7 +188,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`RIGHT JOIN`),
-      new StringToken((table as Table<any, any>).getName()),
+      this.getTableStringToken(table),
     ]);
   }
 
@@ -189,14 +198,14 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`FULL OUTER JOIN`),
-      new StringToken((table as Table<any, any>).getName()),
+      this.getTableStringToken(table),
     ]);
   }
   fullJoin<JoinTable extends Table<any, any>>(table: JoinTable): SelectQuery<AddFullJoin<Columns>> {
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`FULL JOIN`),
-      new StringToken((table as Table<any, any>).getName()),
+      this.getTableStringToken(table),
     ]);
   }
 
@@ -205,7 +214,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`CROSS JOIN`),
-      new StringToken((table as Table<any, any>).getName()),
+      this.getTableStringToken(table),
     ]);
   }
 

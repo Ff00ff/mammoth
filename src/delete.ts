@@ -14,6 +14,7 @@ import { Column } from './column';
 import { Expression } from './expression';
 import { Query } from './query';
 import type { ResultSet } from './result-set';
+import { wrapQuotes } from './naming';
 
 export const makeDeleteFrom = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
   table: T,
@@ -309,9 +310,9 @@ export class DeleteQuery<
           const column = (this.table as any)[alias] as Column<any, any, any, any, any, any>;
 
           if (alias !== column.getSnakeCaseName()) {
-            return new StringToken(`${column.getSnakeCaseName()} "${alias}"`);
+            return new StringToken(`${wrapQuotes(column.getSnakeCaseName())} ${wrapQuotes(alias)}`);
           } else {
-            return new StringToken(column.getSnakeCaseName());
+            return new StringToken(wrapQuotes(column.getSnakeCaseName()));
           }
         }),
       ),

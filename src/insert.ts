@@ -18,6 +18,7 @@ import { Expression } from './expression';
 import { Query } from './query';
 import { ResultSet } from './result-set';
 import { UpdateQuery } from './update';
+import { wrapQuotes } from './naming';
 
 // https://www.postgresql.org/docs/12/sql-insert.html
 export class InsertQuery<
@@ -277,7 +278,7 @@ export class InsertQuery<
           const column = (this.table as any)[alias] as Column<any, any, any, any, any, any>;
 
           if (alias !== column.getSnakeCaseName()) {
-            return new StringToken(`${column.getSnakeCaseName()} "${alias}"`);
+            return new StringToken(`${column.getSnakeCaseName()} ${wrapQuotes(alias)}`);
           } else {
             return new StringToken(column.getSnakeCaseName());
           }

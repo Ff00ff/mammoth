@@ -1,5 +1,5 @@
 import { GroupToken, ParameterToken, SeparatorToken, StringToken, Token } from './tokens';
-import { toSnakeCase, wrapQuotes } from './naming/snake-case';
+import { toSnakeCase, wrapQuotes } from './naming';
 
 import { Expression } from './expression';
 import { TableDefinition } from './table';
@@ -152,8 +152,20 @@ export class Column<
   ) {
     super(
       originalColumnName
-        ? [new StringToken(`${tableName}.${toSnakeCase(originalColumnName)}`)]
-        : [new StringToken(`${tableName}.${toSnakeCase((columnName as unknown) as string)}`)],
+        ? [
+            new StringToken(
+              `${wrapQuotes((tableName as unknown) as string)}.${wrapQuotes(
+                toSnakeCase(originalColumnName),
+              )}`,
+            ),
+          ]
+        : [
+            new StringToken(
+              `${wrapQuotes((tableName as unknown) as string)}.${wrapQuotes(
+                toSnakeCase(columnName),
+              )}`,
+            ),
+          ],
       columnName as any,
     );
   }
@@ -167,23 +179,28 @@ export class Column<
   /** @internal */
   toTokens(includeAlias?: boolean): Token[] {
     const snakeCaseColumnName = toSnakeCase((this.columnName as unknown) as string);
+    const toStringTokens = (tableName: TableName, columnName: string, alias?: string) => {
+      const initialToken = new StringToken(
+        `${wrapQuotes((tableName as unknown) as string)}.${wrapQuotes(columnName)}`,
+      );
+
+      if (!alias) {
+        return [initialToken];
+      }
+
+      return [initialToken, new StringToken(wrapQuotes(alias))];
+    };
 
     if (includeAlias) {
       return this.originalColumnName
-        ? [
-            new StringToken(`${this.tableName}.${toSnakeCase(this.originalColumnName)}`),
-            new StringToken(wrapQuotes(this.columnName)),
-          ]
+        ? toStringTokens(this.tableName, toSnakeCase(this.originalColumnName), this.columnName)
         : snakeCaseColumnName === (this.columnName as unknown)
-        ? [new StringToken(`${this.tableName}.${snakeCaseColumnName}`)]
-        : [
-            new StringToken(`${this.tableName}.${snakeCaseColumnName}`),
-            new StringToken(wrapQuotes(this.columnName)),
-          ];
+        ? toStringTokens(this.tableName, snakeCaseColumnName)
+        : toStringTokens(this.tableName, snakeCaseColumnName, this.columnName);
     }
 
     return this.originalColumnName
-      ? [new StringToken(`${this.tableName}.${toSnakeCase(this.originalColumnName)}`)]
-      : [new StringToken(`${this.tableName}.${snakeCaseColumnName}`)];
+      ? toStringTokens(this.tableName, toSnakeCase(this.originalColumnName))
+      : toStringTokens(this.tableName, snakeCaseColumnName);
   }
 }

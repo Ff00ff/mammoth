@@ -10,7 +10,7 @@ import { QueryExecutorFn } from './types';
 import { makeDeleteFrom } from './delete';
 import { makeUpdate } from './update';
 import { makeWith } from './with';
-import { toSnakeCase } from './naming/snake-case';
+import { toSnakeCase } from './naming';
 
 const createTables = <TableDefinitions extends { [key: string]: TableDefinition<any> }>(
   tableDefinitions: TableDefinitions,

@@ -1,9 +1,8 @@
 import { Column, ColumnDefinition, ColumnSet } from './column';
-import { toSnakeCase, wrapQuotes } from './naming/snake-case';
 
 import { Expression } from './expression';
 import { StringToken } from './tokens';
-import { dataType } from './data-types';
+import { wrapQuotes } from './naming';
 
 export type TableRow<T> = T extends TableDefinition<infer Columns>
   ? {
@@ -69,7 +68,7 @@ export const makeTable = <
 
   const columns = columnNames.reduce(
     (map, columnName) => {
-      const column = new Column(columnName as string, wrapQuotes(tableName), undefined) as any;
+      const column = new Column(columnName as string, tableName, undefined) as any;
       map[columnName] = column;
       return map;
     },

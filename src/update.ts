@@ -13,6 +13,7 @@ import { Expression } from './expression';
 import { Query } from './query';
 import { ResultSet } from './result-set';
 import { Table } from './table';
+import { wrapQuotes } from './naming';
 
 // https://www.postgresql.org/docs/12/sql-update.html
 export class UpdateQuery<
@@ -81,7 +82,11 @@ export class UpdateQuery<
     return new UpdateQuery(this.queryExecutor, this.returningKeys, this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`FROM`),
-      new StringToken(fromItem.getName()),
+      fromItem.getOriginalName()
+        ? new StringToken(
+            `${wrapQuotes(fromItem.getOriginalName())} ${wrapQuotes(fromItem.getName())}`,
+          )
+        : new StringToken(wrapQuotes(fromItem.getName())),
     ]);
   }
 
@@ -296,9 +301,9 @@ export class UpdateQuery<
           const column = (this.table as any)[alias] as Column<any, any, any, any, any, any>;
 
           if (alias !== column.getSnakeCaseName()) {
-            return new StringToken(`${column.getSnakeCaseName()} "${alias}"`);
+            return new StringToken(`${wrapQuotes(column.getSnakeCaseName())} ${wrapQuotes(alias)}`);
           } else {
-            return new StringToken(column.getSnakeCaseName());
+            return new StringToken(wrapQuotes(column.getSnakeCaseName()));
           }
         }),
       ),
@@ -314,7 +319,15 @@ export class UpdateQuery<
 export const makeUpdate = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
   table: T,
 ) => {
-  //
+  const getTableStringToken = (table: Table<any, any>) => {
+    if (table.getOriginalName()) {
+      return new StringToken(
+        `${wrapQuotes(table.getOriginalName())} ${wrapQuotes(table.getName())}`,
+      );
+    }
+
+    return new StringToken(wrapQuotes(table.getName()));
+  };
 
   return {
     set(
@@ -339,7 +352,7 @@ export const makeUpdate = (queryExecutor: QueryExecutorFn) => <T extends Table<a
 
       return new UpdateQuery(queryExecutor, [], table, 'AFFECTED_COUNT', [
         new StringToken(`UPDATE`),
-        new StringToken((table as Table<any, any>).getName()),
+        getTableStringToken(table),
         new StringToken(`SET`),
         new SeparatorToken(
           `,`,
@@ -348,7 +361,7 @@ export const makeUpdate = (queryExecutor: QueryExecutorFn) => <T extends Table<a
             const value = (values as any)[key];
 
             return new CollectionToken([
-              new StringToken(column.getSnakeCaseName()),
+              new StringToken(wrapQuotes(column.getSnakeCaseName())),
               new StringToken(`=`),
               value && typeof value === `object` && 'toTokens' in value
                 ? value.toTokens()

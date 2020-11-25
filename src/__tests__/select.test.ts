@@ -50,7 +50,12 @@ describe(`select`, () => {
     isGreat: boolean().notNull(),
   });
 
-  const db = defineDb({ foo, bar, listItem }, () =>
+  const user = defineTable({
+    id: uuid(),
+    with: text(),
+  });
+
+  const db = defineDb({ foo, bar, listItem, user }, () =>
     Promise.resolve({ rows: [], affectedCount: 0 }),
   );
 
@@ -131,7 +136,21 @@ describe(`select`, () => {
         "parameters": Array [
           1,
         ],
-        "text": "SELECT baz.id FROM foo \\"baz\\" WHERE baz.value = $1",
+        "text": "SELECT baz.id FROM foo baz WHERE baz.value = $1",
+      }
+    `);
+  });
+
+  it(`should alias a table with a reserved keyword plus reference it in a condition `, () => {
+    const user = db.foo.as(`user`);
+    const query = db.select(user.id).from(user).where(user.value.eq(1));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          1,
+        ],
+        "text": "SELECT \\"user\\".id FROM foo \\"user\\" WHERE \\"user\\".value = $1",
       }
     `);
   });
@@ -144,7 +163,7 @@ describe(`select`, () => {
         "parameters": Array [
           1,
         ],
-        "text": "SELECT foo.id, (foo.value + $1) \\"test\\" FROM foo",
+        "text": "SELECT foo.id, (foo.value + $1) test FROM foo",
       }
     `);
   });
@@ -274,7 +293,7 @@ describe(`select`, () => {
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "SELECT foo.id, SUM (foo.value) \\"total\\" FROM foo",
+        "text": "SELECT foo.id, SUM (foo.value) total FROM foo",
       }
     `);
   });
@@ -463,7 +482,7 @@ describe(`select`, () => {
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "SELECT COUNT (foo.create_date) \\"test\\" FROM foo",
+        "text": "SELECT COUNT (foo.create_date) test FROM foo",
       }
     `);
   });
@@ -763,7 +782,7 @@ describe(`select`, () => {
           "great",
           "not great",
         ],
-        "text": "SELECT foo.id, (WHEN foo.value > $1 THEN $2 ELSE $3) \\"greatness\\" FROM foo",
+        "text": "SELECT foo.id, (WHEN foo.value > $1 THEN $2 ELSE $3) greatness FROM foo",
       }
     `);
   });
@@ -775,6 +794,32 @@ describe(`select`, () => {
       Object {
         "parameters": Array [],
         "text": "SELECT foo.enum_test \\"enumTest\\" FROM foo",
+      }
+    `);
+  });
+
+  it(`should wrap quotes around tables and columns which are reserved keywords`, () => {
+    const test = db.user.as(`test`);
+    const query = db
+      .select(
+        db.user.id,
+        db.user.with,
+        db.user.with.as(`test`),
+        db.user.with.as(`analyse`),
+        db.user.with.as(`testMe`),
+        test.with.as(`with2`),
+      )
+      .from(db.user)
+      .innerJoin(db.user.as(`test`))
+      .where(db.user.with.eq('test-1').and(test.with.as(`with2`).eq('test-2')));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "test-1",
+          "test-2",
+        ],
+        "text": "SELECT \\"user\\".id, \\"user\\".\\"with\\", \\"user\\".\\"with\\" test, \\"user\\".\\"with\\" \\"analyse\\", \\"user\\".\\"with\\" \\"testMe\\", test.\\"with\\" with2 FROM \\"user\\" INNER JOIN \\"user\\" test WHERE \\"user\\".\\"with\\" = $1 AND test.\\"with\\" = $2",
       }
     `);
   });

@@ -3,12 +3,7 @@ name: Lint, build & test
 on:
   push:
     branches:
-      # These are there to make sure checks are run in branches dependabot creates. A single *
-      # doesn't work so we're adding all possible cases here.
       - '*'
-      - '*/*'
-      - '*/*/*' # E.g dependabot/npm_and_yarn/package-name
-      - '*/*/*/*' # E.g dependabot/npm_and_yarn/scope/package-name
       - '!master'
 
 env:
@@ -17,9 +12,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [12.x, 14.x]
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}

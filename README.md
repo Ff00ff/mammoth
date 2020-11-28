@@ -23,7 +23,7 @@ const rows = await db
   .where(db.foo.id.eq(`1`));
 ```
 
-The above query produces the following SQL:
+The above query produces the following SQL: 
 
 ```sql
 SELECT

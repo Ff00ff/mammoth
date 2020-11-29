@@ -10,7 +10,9 @@ console.log(`export interface SelectFn {
         .join(`, `)}>(${array
         .map((_, index) => `c${index + 1}: C${index + 1}`)
         .join(`, `)}): SelectQuery<
-        ${array.map((_, index) => `GetSelectable<C${index + 1}>`).join(` & `)}
+        ${array
+          .map((_, index) => `GetSelectable<C${index + 1}>`)
+          .join(` & `)}, ContainsStar<${array.map((_, index) => `C${index + 1}`).join(` | `)}>
       >`;
     })
     .join(`;\n`)}

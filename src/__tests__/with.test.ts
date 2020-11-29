@@ -1,7 +1,7 @@
 import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
+import { star, sum } from '../sql-functions';
 
 import { FromItem } from '../with';
-import { sum } from '../sql-functions';
 import { toSnap } from './helpers';
 
 describe(`with`, () => {
@@ -57,6 +57,34 @@ describe(`with`, () => {
           10,
         ],
         "text": "WITH \\"regionalSales\\" AS (SELECT order_log.region, SUM (order_log.amount) \\"totalSales\\" FROM order_log GROUP BY order_log.region), \\"topRegions\\" AS (SELECT \\"regionalSales\\".region FROM \\"regionalSales\\" WHERE \\"regionalSales\\".\\"totalSales\\" > (SELECT SUM (\\"regionalSales\\".\\"totalSales\\") / $1 FROM \\"regionalSales\\")) SELECT order_log.region, order_log.product, SUM (order_log.quantity) \\"productUnits\\", SUM (order_log.amount) \\"productSales\\" FROM order_log WHERE order_log.region IN (SELECT \\"topRegions\\".region FROM \\"topRegions\\") GROUP BY order_log.region, order_log.product",
+      }
+    `);
+  });
+
+  it(`should with as select * from`, () => {
+    const query = db.with(
+      `test`,
+      () => db.select(star()).from(db.orderLog),
+      ({ test }) => db.select(test.id).from(test),
+    );
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "WITH test AS (SELECT * FROM order_log) SELECT test.id FROM test",
+      }
+    `);
+  });
+
+  it(`should with as select * from and another select *`, () => {
+    const query = db.with(
+      `test`,
+      () => db.select(star()).from(db.orderLog),
+      ({ test }) => db.select(star()).from(test),
+    );
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "WITH test AS (SELECT * FROM order_log) SELECT * FROM test",
       }
     `);
   });

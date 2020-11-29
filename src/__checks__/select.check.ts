@@ -6,6 +6,7 @@ import {
   defineDb,
   defineTable,
   integer,
+  star,
   sum,
   text,
   timestampWithTimeZone,
@@ -56,6 +57,12 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
   // @dts-jest:snap should return nullable properties of left side properties when right joining
   toSnap(db.select(db.foo.name, db.bar.startDate, db.bar.value).from(db.foo).rightJoin(db.bar));
 
+  // @dts-jest:snap should select * and return nullable properties of left side properties when right joining
+  toSnap(db.select(star()).from(db.foo).rightJoin(db.bar));
+
+  // @dts-jest:snap should select foo.* and ignore the rest
+  toSnap(db.select(star(db.foo)).from(db.foo).innerJoin(db.bar));
+
   // @dts-jest:snap should return renamed properties because of alias
   toSnap(db.select(db.foo.name.as(`fooName`), db.foo.value.as(`fooValue`)).from(db.foo));
 
@@ -83,8 +90,17 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
   // @dts-jest:snap should convert null value to not null using coalesce
   toSnap(db.select(coalesce(db.foo.value, 1)).from(db.foo));
 
-  // @dts-jest:snap should select foo.*
-  toSnap(db.select(db.foo.star()).from(db.foo));
+  // @dts-jest:snap should select foo.* from foo
+  toSnap(db.select(star(db.foo)).from(db.foo));
+
+  // @dts-jest:snap should select * from foo
+  toSnap(db.select(star()).from(db.foo));
+
+  // @dts-jest:snap should select * from foo left join bar
+  toSnap(db.select(star()).from(db.foo).leftJoin(db.bar).on(db.bar.fooId.eq(db.foo.id)));
+
+  // @dts-jest:snap should select * from foo right join bar
+  toSnap(db.select(star()).from(db.foo).rightJoin(db.bar).on(db.bar.fooId.eq(db.foo.id)));
 
   toSnap(
     db
@@ -92,6 +108,11 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
       .from(db.foo)
       // @dts-jest:fail:snap should not use in with wrong data type
       .where(db.foo.id.in(db.select(db.foo.createDate).from(db.foo))),
+  );
+
+  // @dts-jest with test as select * from foo select * from test
+  toSnap(
+    db.with(`test`, db.select(star()).from(db.foo), ({ test }) => db.select(star()).from(test)),
   );
 
   // @dts-jest:snap should select case with correct type and alias

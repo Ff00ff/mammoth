@@ -27,7 +27,7 @@ describe(`delete`, () => {
     () => Promise.resolve({ rows: [], affectedCount: 0 }),
   );
 
-  it(`should delete`, () => {
+  it(`should delete from returning`, () => {
     const query = db
       .deleteFrom(db.foo)
       .using(db.bar, db.baz)

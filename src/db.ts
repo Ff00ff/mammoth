@@ -3,10 +3,11 @@ import * as sqlFunctions from './sql-functions';
 import { Column, ColumnDefinition, ColumnDefinitionFormat } from './column';
 import { InsertIntoResult, makeInsertInto } from './insert';
 import { SelectFn, makeSelect } from './select';
-import { Table, TableDefinition, makeTable } from './table';
+import { TableDefinition, makeTable } from './table';
 
 import { CaseStatement } from './case';
 import { QueryExecutorFn } from './types';
+import { Table } from './TableType';
 import { makeDeleteFrom } from './delete';
 import { makeUpdate } from './update';
 import { makeWith } from './with';

@@ -8,7 +8,34 @@ import {
 } from './tokens';
 import { DefaultExpression, Expression } from './expression';
 
+import { ColumnSet } from './column';
 import { Query } from './query';
+import { Table } from './TableType';
+import { wrapQuotes } from './naming';
+
+export class Star {
+  private _starBrand: any;
+
+  toTokens() {
+    return [new StringToken(`*`)];
+  }
+
+  getName() {
+    return `*`;
+  }
+}
+
+export function star(): Star;
+export function star<T extends Table<any, any>>(
+  table: T,
+): T extends Table<any, infer Columns> ? ColumnSet<Columns> : never;
+export function star(table?: Table<any, any>) {
+  if (table) {
+    return new Expression([new StringToken(`${wrapQuotes(table.getName())}.*`)], '') as any;
+  }
+
+  return new Star();
+}
 
 export const stringAgg = (
   expression: Expression<string, boolean, any>,

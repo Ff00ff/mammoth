@@ -10,13 +10,14 @@ import {
 } from './tokens';
 import { GetReturning, PickByValue, QueryExecutorFn, ResultType } from './types';
 import { SelectFn, makeSelect } from './select';
-import { Table, TableDefinition } from './table';
 
 import { Column } from './column';
 import { DeleteQuery } from './delete';
 import { Expression } from './expression';
 import { Query } from './query';
 import { ResultSet } from './result-set';
+import { Table } from './TableType';
+import { TableDefinition } from './table';
 import { UpdateQuery } from './update';
 import { wrapQuotes } from './naming';
 

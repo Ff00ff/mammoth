@@ -8,12 +8,13 @@ import {
   createQueryState,
 } from './tokens';
 import type { GetReturning, QueryExecutorFn, ResultType } from './types';
-import type { Table, TableDefinition } from './table';
 
 import { Column } from './column';
 import { Expression } from './expression';
 import { Query } from './query';
 import type { ResultSet } from './result-set';
+import type { Table } from './TableType';
+import type { TableDefinition } from './table';
 import { wrapQuotes } from './naming';
 
 export const makeDeleteFrom = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(

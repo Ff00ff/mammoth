@@ -1,3 +1,4 @@
+import { Star, star } from '../sql-functions';
 import {
   any,
   arrayAgg,
@@ -24,6 +25,7 @@ import {
   uuid,
 } from '..';
 
+import { Expression } from '../expression';
 import { Query } from '../query';
 import { ResultSet } from '../result-set';
 import { enumType } from '../data-types';
@@ -59,6 +61,50 @@ describe(`select`, () => {
     Promise.resolve({ rows: [], affectedCount: 0 }),
   );
 
+  it(`should select * from foo`, async () => {
+    const query = db
+      .select(star(), db.bar.id.as(`test`))
+      .from(db.foo)
+      .innerJoin(db.bar)
+      .on(db.bar.fooId.eq(db.foo.id));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT *, bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
+      }
+    `);
+  });
+
+  it(`should select foo.* from foo`, () => {
+    const query = db
+      .select(star(db.foo), db.bar.id.as(`test`))
+      .from(db.foo)
+      .innerJoin(db.bar)
+      .on(db.bar.fooId.eq(db.foo.id));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.*, bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
+      }
+    `);
+  });
+
+  it(`should select where exists star`, () => {
+    const query = db
+      .select(star())
+      .from(db.foo)
+      .where(exists(db.select(star()).from(db.bar).where(db.bar.fooId.eq(db.foo.id))));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT * FROM foo WHERE EXISTS (SELECT * FROM bar WHERE bar.foo_id = foo.id)",
+      }
+    `);
+  });
+
   it(`should select foo`, () => {
     const query = db.select(db.foo.id).from(db.foo);
 
@@ -82,7 +128,7 @@ describe(`select`, () => {
   });
 
   it(`should select list_item.*`, () => {
-    const query = db.select(db.listItem.star()).from(db.listItem);
+    const query = db.select(star(db.listItem)).from(db.listItem);
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
@@ -94,7 +140,7 @@ describe(`select`, () => {
 
   it(`should select alias baz.*`, async () => {
     const baz = db.bar.as(`baZ`);
-    const query = db.select(baz.star()).from(baz);
+    const query = db.select(star(baz)).from(baz);
 
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {

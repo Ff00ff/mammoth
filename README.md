@@ -16,7 +16,7 @@ Mammoth is a type-safe query builder. It only supports Postgres which we conside
 
 ```ts
 const rows = await db
-  .select(db.foo.id, db.bar.name)
+  .select(star())
   .from(db.foo)
   .leftJoin(db.bar)
   .on(db.foo.barId.eq(db.bar.id))
@@ -27,15 +27,14 @@ The above query produces the following SQL:
 
 ```sql
 SELECT
-  foo.id,
-  bar.name
+  *
 FROM foo
 LEFT JOIN bar ON (foo.bar_id = bar.id)
 WHERE
   foo.id = $1
 ```
 
-More importantly, the resulting type of rows is `{ id: string; name: string | undefined }[]`. Notice how the name is automatically nullable because of the left join.
+More importantly, the resulting type of rows is `{ id: string; barId: string; name: string | undefined }[]`. Notice how the name is automatically nullable because of the left join.
 
 ### Query examples
 

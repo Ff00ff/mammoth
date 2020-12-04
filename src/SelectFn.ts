@@ -2,6 +2,7 @@ import { Column, ColumnSet } from './column';
 
 import { Expression } from './expression';
 import { SelectQuery } from './select';
+import { Star } from './sql-functions';
 
 export type GetSelectableName<S> = S extends Column<infer A2, string, any, boolean, boolean, any>
   ? A2
@@ -19,24 +20,34 @@ export type Selectable =
   | Expression<any, any, any>
   | SelectQuery<any>
   | Column<any, any, any, boolean, boolean, any>
-  | ColumnSet<any>;
+  | ColumnSet<any>
+  | Star;
+
+type ContainsStar<Selectables> = Extract<Star, Selectables> extends never ? false : true;
 
 export interface SelectFn {
-  <C1 extends Selectable>(c1: C1): SelectQuery<GetSelectable<C1>>;
+  <C1 extends Selectable>(c1: C1): SelectQuery<GetSelectable<C1>, ContainsStar<C1>>;
   <C1 extends Selectable, C2 extends Selectable>(c1: C1, c2: C2): SelectQuery<
-    GetSelectable<C1> & GetSelectable<C2>
+    GetSelectable<C1> & GetSelectable<C2>,
+    ContainsStar<C1 | C2>
   >;
   <C1 extends Selectable, C2 extends Selectable, C3 extends Selectable>(
     c1: C1,
     c2: C2,
     c3: C3,
-  ): SelectQuery<GetSelectable<C1> & GetSelectable<C2> & GetSelectable<C3>>;
+  ): SelectQuery<
+    GetSelectable<C1> & GetSelectable<C2> & GetSelectable<C3>,
+    ContainsStar<C1 | C2 | C3>
+  >;
   <C1 extends Selectable, C2 extends Selectable, C3 extends Selectable, C4 extends Selectable>(
     c1: C1,
     c2: C2,
     c3: C3,
     c4: C4,
-  ): SelectQuery<GetSelectable<C1> & GetSelectable<C2> & GetSelectable<C3> & GetSelectable<C4>>;
+  ): SelectQuery<
+    GetSelectable<C1> & GetSelectable<C2> & GetSelectable<C3> & GetSelectable<C4>,
+    ContainsStar<C1 | C2 | C3 | C4>
+  >;
   <
     C1 extends Selectable,
     C2 extends Selectable,
@@ -54,7 +65,8 @@ export interface SelectFn {
       GetSelectable<C2> &
       GetSelectable<C3> &
       GetSelectable<C4> &
-      GetSelectable<C5>
+      GetSelectable<C5>,
+    ContainsStar<C1 | C2 | C3 | C4 | C5>
   >;
   <
     C1 extends Selectable,
@@ -76,7 +88,8 @@ export interface SelectFn {
       GetSelectable<C3> &
       GetSelectable<C4> &
       GetSelectable<C5> &
-      GetSelectable<C6>
+      GetSelectable<C6>,
+    ContainsStar<C1 | C2 | C3 | C4 | C5 | C6>
   >;
   <
     C1 extends Selectable,
@@ -101,7 +114,8 @@ export interface SelectFn {
       GetSelectable<C4> &
       GetSelectable<C5> &
       GetSelectable<C6> &
-      GetSelectable<C7>
+      GetSelectable<C7>,
+    ContainsStar<C1 | C2 | C3 | C4 | C5 | C6 | C7>
   >;
   <
     C1 extends Selectable,
@@ -129,7 +143,8 @@ export interface SelectFn {
       GetSelectable<C5> &
       GetSelectable<C6> &
       GetSelectable<C7> &
-      GetSelectable<C8>
+      GetSelectable<C8>,
+    ContainsStar<C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8>
   >;
   <
     C1 extends Selectable,
@@ -160,7 +175,8 @@ export interface SelectFn {
       GetSelectable<C6> &
       GetSelectable<C7> &
       GetSelectable<C8> &
-      GetSelectable<C9>
+      GetSelectable<C9>,
+    ContainsStar<C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9>
   >;
   <
     C1 extends Selectable,
@@ -194,7 +210,8 @@ export interface SelectFn {
       GetSelectable<C7> &
       GetSelectable<C8> &
       GetSelectable<C9> &
-      GetSelectable<C10>
+      GetSelectable<C10>,
+    ContainsStar<C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10>
   >;
   <
     C1 extends Selectable,
@@ -231,7 +248,8 @@ export interface SelectFn {
       GetSelectable<C8> &
       GetSelectable<C9> &
       GetSelectable<C10> &
-      GetSelectable<C11>
+      GetSelectable<C11>,
+    ContainsStar<C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11>
   >;
   <
     C1 extends Selectable,
@@ -271,7 +289,8 @@ export interface SelectFn {
       GetSelectable<C9> &
       GetSelectable<C10> &
       GetSelectable<C11> &
-      GetSelectable<C12>
+      GetSelectable<C12>,
+    ContainsStar<C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12>
   >;
   <
     C1 extends Selectable,
@@ -314,7 +333,8 @@ export interface SelectFn {
       GetSelectable<C10> &
       GetSelectable<C11> &
       GetSelectable<C12> &
-      GetSelectable<C13>
+      GetSelectable<C13>,
+    ContainsStar<C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 | C13>
   >;
   <
     C1 extends Selectable,
@@ -360,7 +380,8 @@ export interface SelectFn {
       GetSelectable<C11> &
       GetSelectable<C12> &
       GetSelectable<C13> &
-      GetSelectable<C14>
+      GetSelectable<C14>,
+    ContainsStar<C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 | C13 | C14>
   >;
   <
     C1 extends Selectable,
@@ -409,7 +430,8 @@ export interface SelectFn {
       GetSelectable<C12> &
       GetSelectable<C13> &
       GetSelectable<C14> &
-      GetSelectable<C15>
+      GetSelectable<C15>,
+    ContainsStar<C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 | C13 | C14 | C15>
   >;
   <
     C1 extends Selectable,
@@ -461,7 +483,10 @@ export interface SelectFn {
       GetSelectable<C13> &
       GetSelectable<C14> &
       GetSelectable<C15> &
-      GetSelectable<C16>
+      GetSelectable<C16>,
+    ContainsStar<
+      C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 | C13 | C14 | C15 | C16
+    >
   >;
   <
     C1 extends Selectable,
@@ -516,7 +541,10 @@ export interface SelectFn {
       GetSelectable<C14> &
       GetSelectable<C15> &
       GetSelectable<C16> &
-      GetSelectable<C17>
+      GetSelectable<C17>,
+    ContainsStar<
+      C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 | C13 | C14 | C15 | C16 | C17
+    >
   >;
   <
     C1 extends Selectable,
@@ -574,7 +602,27 @@ export interface SelectFn {
       GetSelectable<C15> &
       GetSelectable<C16> &
       GetSelectable<C17> &
-      GetSelectable<C18>
+      GetSelectable<C18>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+    >
   >;
   <
     C1 extends Selectable,
@@ -635,7 +683,28 @@ export interface SelectFn {
       GetSelectable<C16> &
       GetSelectable<C17> &
       GetSelectable<C18> &
-      GetSelectable<C19>
+      GetSelectable<C19>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+    >
   >;
   <
     C1 extends Selectable,
@@ -699,7 +768,29 @@ export interface SelectFn {
       GetSelectable<C17> &
       GetSelectable<C18> &
       GetSelectable<C19> &
-      GetSelectable<C20>
+      GetSelectable<C20>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+    >
   >;
   <
     C1 extends Selectable,
@@ -766,7 +857,30 @@ export interface SelectFn {
       GetSelectable<C18> &
       GetSelectable<C19> &
       GetSelectable<C20> &
-      GetSelectable<C21>
+      GetSelectable<C21>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+    >
   >;
   <
     C1 extends Selectable,
@@ -836,7 +950,31 @@ export interface SelectFn {
       GetSelectable<C19> &
       GetSelectable<C20> &
       GetSelectable<C21> &
-      GetSelectable<C22>
+      GetSelectable<C22>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+    >
   >;
   <
     C1 extends Selectable,
@@ -909,7 +1047,32 @@ export interface SelectFn {
       GetSelectable<C20> &
       GetSelectable<C21> &
       GetSelectable<C22> &
-      GetSelectable<C23>
+      GetSelectable<C23>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+    >
   >;
   <
     C1 extends Selectable,
@@ -985,7 +1148,33 @@ export interface SelectFn {
       GetSelectable<C21> &
       GetSelectable<C22> &
       GetSelectable<C23> &
-      GetSelectable<C24>
+      GetSelectable<C24>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+    >
   >;
   <
     C1 extends Selectable,
@@ -1064,7 +1253,34 @@ export interface SelectFn {
       GetSelectable<C22> &
       GetSelectable<C23> &
       GetSelectable<C24> &
-      GetSelectable<C25>
+      GetSelectable<C25>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+    >
   >;
   <
     C1 extends Selectable,
@@ -1146,7 +1362,35 @@ export interface SelectFn {
       GetSelectable<C23> &
       GetSelectable<C24> &
       GetSelectable<C25> &
-      GetSelectable<C26>
+      GetSelectable<C26>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+    >
   >;
   <
     C1 extends Selectable,
@@ -1231,7 +1475,36 @@ export interface SelectFn {
       GetSelectable<C24> &
       GetSelectable<C25> &
       GetSelectable<C26> &
-      GetSelectable<C27>
+      GetSelectable<C27>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+    >
   >;
   <
     C1 extends Selectable,
@@ -1319,7 +1592,37 @@ export interface SelectFn {
       GetSelectable<C25> &
       GetSelectable<C26> &
       GetSelectable<C27> &
-      GetSelectable<C28>
+      GetSelectable<C28>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+    >
   >;
   <
     C1 extends Selectable,
@@ -1410,7 +1713,38 @@ export interface SelectFn {
       GetSelectable<C26> &
       GetSelectable<C27> &
       GetSelectable<C28> &
-      GetSelectable<C29>
+      GetSelectable<C29>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+    >
   >;
   <
     C1 extends Selectable,
@@ -1504,7 +1838,39 @@ export interface SelectFn {
       GetSelectable<C27> &
       GetSelectable<C28> &
       GetSelectable<C29> &
-      GetSelectable<C30>
+      GetSelectable<C30>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+    >
   >;
   <
     C1 extends Selectable,
@@ -1601,7 +1967,40 @@ export interface SelectFn {
       GetSelectable<C28> &
       GetSelectable<C29> &
       GetSelectable<C30> &
-      GetSelectable<C31>
+      GetSelectable<C31>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+    >
   >;
   <
     C1 extends Selectable,
@@ -1701,7 +2100,41 @@ export interface SelectFn {
       GetSelectable<C29> &
       GetSelectable<C30> &
       GetSelectable<C31> &
-      GetSelectable<C32>
+      GetSelectable<C32>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+    >
   >;
   <
     C1 extends Selectable,
@@ -1804,7 +2237,42 @@ export interface SelectFn {
       GetSelectable<C30> &
       GetSelectable<C31> &
       GetSelectable<C32> &
-      GetSelectable<C33>
+      GetSelectable<C33>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+    >
   >;
   <
     C1 extends Selectable,
@@ -1910,7 +2378,43 @@ export interface SelectFn {
       GetSelectable<C31> &
       GetSelectable<C32> &
       GetSelectable<C33> &
-      GetSelectable<C34>
+      GetSelectable<C34>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+    >
   >;
   <
     C1 extends Selectable,
@@ -2019,7 +2523,44 @@ export interface SelectFn {
       GetSelectable<C32> &
       GetSelectable<C33> &
       GetSelectable<C34> &
-      GetSelectable<C35>
+      GetSelectable<C35>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+    >
   >;
   <
     C1 extends Selectable,
@@ -2131,7 +2672,45 @@ export interface SelectFn {
       GetSelectable<C33> &
       GetSelectable<C34> &
       GetSelectable<C35> &
-      GetSelectable<C36>
+      GetSelectable<C36>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+    >
   >;
   <
     C1 extends Selectable,
@@ -2246,7 +2825,46 @@ export interface SelectFn {
       GetSelectable<C34> &
       GetSelectable<C35> &
       GetSelectable<C36> &
-      GetSelectable<C37>
+      GetSelectable<C37>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+    >
   >;
   <
     C1 extends Selectable,
@@ -2364,7 +2982,47 @@ export interface SelectFn {
       GetSelectable<C35> &
       GetSelectable<C36> &
       GetSelectable<C37> &
-      GetSelectable<C38>
+      GetSelectable<C38>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+    >
   >;
   <
     C1 extends Selectable,
@@ -2485,7 +3143,48 @@ export interface SelectFn {
       GetSelectable<C36> &
       GetSelectable<C37> &
       GetSelectable<C38> &
-      GetSelectable<C39>
+      GetSelectable<C39>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+    >
   >;
   <
     C1 extends Selectable,
@@ -2609,7 +3308,49 @@ export interface SelectFn {
       GetSelectable<C37> &
       GetSelectable<C38> &
       GetSelectable<C39> &
-      GetSelectable<C40>
+      GetSelectable<C40>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+    >
   >;
   <
     C1 extends Selectable,
@@ -2736,7 +3477,50 @@ export interface SelectFn {
       GetSelectable<C38> &
       GetSelectable<C39> &
       GetSelectable<C40> &
-      GetSelectable<C41>
+      GetSelectable<C41>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+    >
   >;
   <
     C1 extends Selectable,
@@ -2866,7 +3650,51 @@ export interface SelectFn {
       GetSelectable<C39> &
       GetSelectable<C40> &
       GetSelectable<C41> &
-      GetSelectable<C42>
+      GetSelectable<C42>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+    >
   >;
   <
     C1 extends Selectable,
@@ -2999,7 +3827,52 @@ export interface SelectFn {
       GetSelectable<C40> &
       GetSelectable<C41> &
       GetSelectable<C42> &
-      GetSelectable<C43>
+      GetSelectable<C43>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+    >
   >;
   <
     C1 extends Selectable,
@@ -3135,7 +4008,53 @@ export interface SelectFn {
       GetSelectable<C41> &
       GetSelectable<C42> &
       GetSelectable<C43> &
-      GetSelectable<C44>
+      GetSelectable<C44>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+    >
   >;
   <
     C1 extends Selectable,
@@ -3274,7 +4193,54 @@ export interface SelectFn {
       GetSelectable<C42> &
       GetSelectable<C43> &
       GetSelectable<C44> &
-      GetSelectable<C45>
+      GetSelectable<C45>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+    >
   >;
   <
     C1 extends Selectable,
@@ -3416,7 +4382,55 @@ export interface SelectFn {
       GetSelectable<C43> &
       GetSelectable<C44> &
       GetSelectable<C45> &
-      GetSelectable<C46>
+      GetSelectable<C46>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+    >
   >;
   <
     C1 extends Selectable,
@@ -3561,7 +4575,56 @@ export interface SelectFn {
       GetSelectable<C44> &
       GetSelectable<C45> &
       GetSelectable<C46> &
-      GetSelectable<C47>
+      GetSelectable<C47>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+    >
   >;
   <
     C1 extends Selectable,
@@ -3709,7 +4772,57 @@ export interface SelectFn {
       GetSelectable<C45> &
       GetSelectable<C46> &
       GetSelectable<C47> &
-      GetSelectable<C48>
+      GetSelectable<C48>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+    >
   >;
   <
     C1 extends Selectable,
@@ -3860,7 +4973,58 @@ export interface SelectFn {
       GetSelectable<C46> &
       GetSelectable<C47> &
       GetSelectable<C48> &
-      GetSelectable<C49>
+      GetSelectable<C49>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+    >
   >;
   <
     C1 extends Selectable,
@@ -4014,7 +5178,59 @@ export interface SelectFn {
       GetSelectable<C47> &
       GetSelectable<C48> &
       GetSelectable<C49> &
-      GetSelectable<C50>
+      GetSelectable<C50>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+    >
   >;
   <
     C1 extends Selectable,
@@ -4171,7 +5387,60 @@ export interface SelectFn {
       GetSelectable<C48> &
       GetSelectable<C49> &
       GetSelectable<C50> &
-      GetSelectable<C51>
+      GetSelectable<C51>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+    >
   >;
   <
     C1 extends Selectable,
@@ -4331,7 +5600,61 @@ export interface SelectFn {
       GetSelectable<C49> &
       GetSelectable<C50> &
       GetSelectable<C51> &
-      GetSelectable<C52>
+      GetSelectable<C52>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+    >
   >;
   <
     C1 extends Selectable,
@@ -4494,7 +5817,62 @@ export interface SelectFn {
       GetSelectable<C50> &
       GetSelectable<C51> &
       GetSelectable<C52> &
-      GetSelectable<C53>
+      GetSelectable<C53>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+    >
   >;
   <
     C1 extends Selectable,
@@ -4660,7 +6038,63 @@ export interface SelectFn {
       GetSelectable<C51> &
       GetSelectable<C52> &
       GetSelectable<C53> &
-      GetSelectable<C54>
+      GetSelectable<C54>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+    >
   >;
   <
     C1 extends Selectable,
@@ -4829,7 +6263,64 @@ export interface SelectFn {
       GetSelectable<C52> &
       GetSelectable<C53> &
       GetSelectable<C54> &
-      GetSelectable<C55>
+      GetSelectable<C55>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+    >
   >;
   <
     C1 extends Selectable,
@@ -5001,7 +6492,65 @@ export interface SelectFn {
       GetSelectable<C53> &
       GetSelectable<C54> &
       GetSelectable<C55> &
-      GetSelectable<C56>
+      GetSelectable<C56>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+    >
   >;
   <
     C1 extends Selectable,
@@ -5176,7 +6725,66 @@ export interface SelectFn {
       GetSelectable<C54> &
       GetSelectable<C55> &
       GetSelectable<C56> &
-      GetSelectable<C57>
+      GetSelectable<C57>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+    >
   >;
   <
     C1 extends Selectable,
@@ -5354,7 +6962,67 @@ export interface SelectFn {
       GetSelectable<C55> &
       GetSelectable<C56> &
       GetSelectable<C57> &
-      GetSelectable<C58>
+      GetSelectable<C58>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+    >
   >;
   <
     C1 extends Selectable,
@@ -5535,7 +7203,68 @@ export interface SelectFn {
       GetSelectable<C56> &
       GetSelectable<C57> &
       GetSelectable<C58> &
-      GetSelectable<C59>
+      GetSelectable<C59>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+    >
   >;
   <
     C1 extends Selectable,
@@ -5719,7 +7448,69 @@ export interface SelectFn {
       GetSelectable<C57> &
       GetSelectable<C58> &
       GetSelectable<C59> &
-      GetSelectable<C60>
+      GetSelectable<C60>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+    >
   >;
   <
     C1 extends Selectable,
@@ -5906,7 +7697,70 @@ export interface SelectFn {
       GetSelectable<C58> &
       GetSelectable<C59> &
       GetSelectable<C60> &
-      GetSelectable<C61>
+      GetSelectable<C61>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+    >
   >;
   <
     C1 extends Selectable,
@@ -6096,7 +7950,71 @@ export interface SelectFn {
       GetSelectable<C59> &
       GetSelectable<C60> &
       GetSelectable<C61> &
-      GetSelectable<C62>
+      GetSelectable<C62>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+    >
   >;
   <
     C1 extends Selectable,
@@ -6289,7 +8207,72 @@ export interface SelectFn {
       GetSelectable<C60> &
       GetSelectable<C61> &
       GetSelectable<C62> &
-      GetSelectable<C63>
+      GetSelectable<C63>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+    >
   >;
   <
     C1 extends Selectable,
@@ -6485,7 +8468,73 @@ export interface SelectFn {
       GetSelectable<C61> &
       GetSelectable<C62> &
       GetSelectable<C63> &
-      GetSelectable<C64>
+      GetSelectable<C64>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+    >
   >;
   <
     C1 extends Selectable,
@@ -6684,7 +8733,74 @@ export interface SelectFn {
       GetSelectable<C62> &
       GetSelectable<C63> &
       GetSelectable<C64> &
-      GetSelectable<C65>
+      GetSelectable<C65>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+      | C65
+    >
   >;
   <
     C1 extends Selectable,
@@ -6886,7 +9002,75 @@ export interface SelectFn {
       GetSelectable<C63> &
       GetSelectable<C64> &
       GetSelectable<C65> &
-      GetSelectable<C66>
+      GetSelectable<C66>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+      | C65
+      | C66
+    >
   >;
   <
     C1 extends Selectable,
@@ -7091,7 +9275,76 @@ export interface SelectFn {
       GetSelectable<C64> &
       GetSelectable<C65> &
       GetSelectable<C66> &
-      GetSelectable<C67>
+      GetSelectable<C67>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+      | C65
+      | C66
+      | C67
+    >
   >;
   <
     C1 extends Selectable,
@@ -7299,7 +9552,77 @@ export interface SelectFn {
       GetSelectable<C65> &
       GetSelectable<C66> &
       GetSelectable<C67> &
-      GetSelectable<C68>
+      GetSelectable<C68>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+      | C65
+      | C66
+      | C67
+      | C68
+    >
   >;
   <
     C1 extends Selectable,
@@ -7510,7 +9833,78 @@ export interface SelectFn {
       GetSelectable<C66> &
       GetSelectable<C67> &
       GetSelectable<C68> &
-      GetSelectable<C69>
+      GetSelectable<C69>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+      | C65
+      | C66
+      | C67
+      | C68
+      | C69
+    >
   >;
   <
     C1 extends Selectable,
@@ -7724,7 +10118,79 @@ export interface SelectFn {
       GetSelectable<C67> &
       GetSelectable<C68> &
       GetSelectable<C69> &
-      GetSelectable<C70>
+      GetSelectable<C70>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+      | C65
+      | C66
+      | C67
+      | C68
+      | C69
+      | C70
+    >
   >;
   <
     C1 extends Selectable,
@@ -7941,7 +10407,80 @@ export interface SelectFn {
       GetSelectable<C68> &
       GetSelectable<C69> &
       GetSelectable<C70> &
-      GetSelectable<C71>
+      GetSelectable<C71>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+      | C65
+      | C66
+      | C67
+      | C68
+      | C69
+      | C70
+      | C71
+    >
   >;
   <
     C1 extends Selectable,
@@ -8161,7 +10700,81 @@ export interface SelectFn {
       GetSelectable<C69> &
       GetSelectable<C70> &
       GetSelectable<C71> &
-      GetSelectable<C72>
+      GetSelectable<C72>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+      | C65
+      | C66
+      | C67
+      | C68
+      | C69
+      | C70
+      | C71
+      | C72
+    >
   >;
   <
     C1 extends Selectable,
@@ -8384,7 +10997,82 @@ export interface SelectFn {
       GetSelectable<C70> &
       GetSelectable<C71> &
       GetSelectable<C72> &
-      GetSelectable<C73>
+      GetSelectable<C73>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+      | C65
+      | C66
+      | C67
+      | C68
+      | C69
+      | C70
+      | C71
+      | C72
+      | C73
+    >
   >;
   <
     C1 extends Selectable,
@@ -8610,7 +11298,83 @@ export interface SelectFn {
       GetSelectable<C71> &
       GetSelectable<C72> &
       GetSelectable<C73> &
-      GetSelectable<C74>
+      GetSelectable<C74>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+      | C65
+      | C66
+      | C67
+      | C68
+      | C69
+      | C70
+      | C71
+      | C72
+      | C73
+      | C74
+    >
   >;
   <
     C1 extends Selectable,
@@ -8839,6 +11603,83 @@ export interface SelectFn {
       GetSelectable<C72> &
       GetSelectable<C73> &
       GetSelectable<C74> &
-      GetSelectable<C75>
+      GetSelectable<C75>,
+    ContainsStar<
+      | C1
+      | C2
+      | C3
+      | C4
+      | C5
+      | C6
+      | C7
+      | C8
+      | C9
+      | C10
+      | C11
+      | C12
+      | C13
+      | C14
+      | C15
+      | C16
+      | C17
+      | C18
+      | C19
+      | C20
+      | C21
+      | C22
+      | C23
+      | C24
+      | C25
+      | C26
+      | C27
+      | C28
+      | C29
+      | C30
+      | C31
+      | C32
+      | C33
+      | C34
+      | C35
+      | C36
+      | C37
+      | C38
+      | C39
+      | C40
+      | C41
+      | C42
+      | C43
+      | C44
+      | C45
+      | C46
+      | C47
+      | C48
+      | C49
+      | C50
+      | C51
+      | C52
+      | C53
+      | C54
+      | C55
+      | C56
+      | C57
+      | C58
+      | C59
+      | C60
+      | C61
+      | C62
+      | C63
+      | C64
+      | C65
+      | C66
+      | C67
+      | C68
+      | C69
+      | C70
+      | C71
+      | C72
+      | C73
+      | C74
+      | C75
+    >
   >;
 }

@@ -8,21 +8,27 @@ import {
   createQueryState,
 } from './tokens';
 import { SelectFn, Selectable } from './SelectFn';
-import { Table, TableDefinition } from './table';
 
 import { Column } from './column';
 import { Expression } from './expression';
+import { FromItem } from './with';
 import { Query } from './query';
 import { QueryExecutorFn } from './types';
 import { ResultSet } from './result-set';
+import { Star } from './sql-functions';
+import { Table } from './TableType';
+import { TableDefinition } from './table';
 import { wrapQuotes } from './naming';
 
 export { SelectFn };
 
-type ToJoinType<
-  JoinType,
-  NewJoinType extends 'left-join' | 'left-side-of-right-join' | 'full-join'
-> = Extract<JoinType, 'left-side-of-right-join'> extends never ? NewJoinType : JoinType;
+type JoinType = 'left-join' | 'left-side-of-right-join' | 'full-join';
+type ToJoinType<OldType, NewType extends JoinType> = Extract<
+  OldType,
+  'left-side-of-right-join'
+> extends never
+  ? NewType
+  : OldType;
 
 // It's important to note that to make sure we infer the table name, we should pass object instead
 // of any as the second argument to the table.
@@ -65,21 +71,71 @@ type AddRightJoin<Columns, JoinTable> = {
     : never;
 };
 
-type AddFullJoin<Columns> = {
+type AddJoinType<Columns, NewJoinType extends JoinType> = {
   [K in keyof Columns]: Columns[K] extends Column<
     infer Name,
     infer TableName,
     infer DataType,
     infer IsNotNull,
     infer HasDefault,
-    infer JoinType
+    infer OldJoinType
   >
-    ? Column<Name, TableName, DataType, IsNotNull, HasDefault, ToJoinType<JoinType, 'full-join'>>
+    ? Column<Name, TableName, DataType, IsNotNull, HasDefault, ToJoinType<OldJoinType, NewJoinType>>
     : never;
 };
 
+type Join<
+  Query extends SelectQuery<any>,
+  JoinTable extends Table<any, any> | FromItem<any>
+> = Query extends SelectQuery<infer ExistingColumns, infer IncludesStar>
+  ? IncludesStar extends true
+    ? SelectQuery<ExistingColumns & Omit<GetColumns<JoinTable>, keyof ExistingColumns>, true>
+    : SelectQuery<ExistingColumns, false>
+  : never;
+
+type GetColumns<From extends Table<any, any> | FromItem<any>> = From extends Table<
+  any,
+  infer Columns
+>
+  ? Columns
+  : From extends FromItem<infer Q>
+  ? Q extends Query<infer Returning>
+    ? Returning
+    : never
+  : never;
+
+type LeftJoin<
+  Query extends SelectQuery<any>,
+  JoinTable extends Table<any, any> | FromItem<any>
+> = Query extends SelectQuery<infer ExistingColumns, infer IncludesStar>
+  ? IncludesStar extends true
+    ? SelectQuery<ExistingColumns & AddJoinType<GetColumns<JoinTable>, 'left-join'>>
+    : SelectQuery<AddLeftJoin<ExistingColumns, JoinTable>>
+  : never;
+
+type RightJoin<
+  Query extends SelectQuery<any>,
+  JoinTable extends Table<any, any> | FromItem<any>
+> = Query extends SelectQuery<infer ExistingColumns, infer IncludesStar>
+  ? IncludesStar extends true
+    ? SelectQuery<AddJoinType<ExistingColumns, 'left-side-of-right-join'> & GetColumns<JoinTable>>
+    : SelectQuery<AddRightJoin<ExistingColumns, JoinTable>>
+  : never;
+
+type FullJoin<
+  Query extends SelectQuery<any>,
+  JoinTable extends Table<any, any> | FromItem<any>
+> = Query extends SelectQuery<infer ExistingColumns, infer IncludesStar>
+  ? IncludesStar extends true
+    ? SelectQuery<AddJoinType<ExistingColumns & GetColumns<JoinTable>, 'full-join'>>
+    : SelectQuery<AddJoinType<ExistingColumns, 'full-join'>>
+  : never;
+
 // https://www.postgresql.org/docs/12/sql-select.html
-export class SelectQuery<Columns extends { [column: string]: any }> extends Query<Columns> {
+export class SelectQuery<
+  Columns extends { [column: string]: any },
+  IncludesStar = false
+> extends Query<Columns> {
   private _selectQueryBrand: any;
 
   /** @internal */
@@ -90,6 +146,7 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
   constructor(
     private readonly queryExecutor: QueryExecutorFn,
     private readonly returningKeys: string[],
+    private readonly includesStar: boolean,
     private readonly tokens: Token[],
   ) {
     super();
@@ -109,21 +166,30 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
       .catch(onRejected);
   }
 
-  private newSelectQuery(tokens: Token[]): SelectQuery<Columns> {
-    return new SelectQuery(this.queryExecutor, this.returningKeys, tokens);
+  private newSelectQuery(tokens: Token[], table?: Table<any, any>): SelectQuery<Columns> {
+    const returningKeys =
+      this.includesStar && table
+        ? [
+            ...this.returningKeys,
+            ...Object.keys(table).filter(
+              (name) => ![`as`, `getName`, `getOriginalName`].includes(name),
+            ),
+          ]
+        : this.returningKeys;
+
+    return new SelectQuery(this.queryExecutor, returningKeys, this.includesStar, tokens);
   }
 
   // [ FROM from_item [, ...] ]
   from<T extends Table<any, any>>(
     fromItem: T,
-  ): T extends TableDefinition<any> ? never : SelectQuery<Columns> {
+  ): T extends TableDefinition<any> ? never : Join<SelectQuery<Columns, IncludesStar>, T> {
     const table = fromItem as Table<any, any>;
 
-    return this.newSelectQuery([
-      ...this.tokens,
-      new StringToken(`FROM`),
-      this.getTableStringToken(table),
-    ]) as any;
+    return this.newSelectQuery(
+      [...this.tokens, new StringToken(`FROM`), this.getTableStringToken(table)],
+      table,
+    ) as any;
   }
 
   private getTableStringToken(table: Table<any, any>) {
@@ -136,86 +202,84 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
     return new StringToken(wrapQuotes(table.getName()));
   }
 
-  join(table: Table<any, any>): SelectQuery<Columns> {
-    return this.newSelectQuery([
-      ...this.tokens,
-      new StringToken(`JOIN`),
-      this.getTableStringToken(table),
-    ]);
+  join<T extends Table<any, any>>(table: T): Join<SelectQuery<Columns, IncludesStar>, T> {
+    return this.newSelectQuery(
+      [...this.tokens, new StringToken(`JOIN`), this.getTableStringToken(table)],
+      table,
+    ) as any;
   }
 
-  innerJoin(table: Table<any, any>): SelectQuery<Columns> {
-    return this.newSelectQuery([
-      ...this.tokens,
-      new StringToken(`INNER JOIN`),
-      this.getTableStringToken(table),
-    ]);
+  innerJoin<JoinTable extends Table<string, any>>(
+    table: JoinTable,
+  ): Join<SelectQuery<Columns, IncludesStar>, JoinTable> {
+    return this.newSelectQuery(
+      [...this.tokens, new StringToken(`INNER JOIN`), this.getTableStringToken(table)],
+      table,
+    ) as any;
   }
 
   leftOuterJoin<JoinTable extends Table<any, any>>(
     table: JoinTable,
-  ): SelectQuery<AddLeftJoin<Columns, JoinTable>> {
-    return this.newSelectQuery([
-      ...this.tokens,
-      new StringToken(`LEFT OUTER JOIN`),
-      this.getTableStringToken(table),
-    ]);
+  ): LeftJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
+    return this.newSelectQuery(
+      [...this.tokens, new StringToken(`LEFT OUTER JOIN`), this.getTableStringToken(table)],
+      table,
+    ) as any;
   }
 
   leftJoin<JoinTable extends Table<any, any>>(
     table: JoinTable,
-  ): SelectQuery<AddLeftJoin<Columns, JoinTable>> {
-    return this.newSelectQuery([
-      ...this.tokens,
-      new StringToken(`INNER JOIN`),
-      this.getTableStringToken(table),
-    ]);
+  ): LeftJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
+    return this.newSelectQuery(
+      [...this.tokens, new StringToken(`INNER JOIN`), this.getTableStringToken(table)],
+      table,
+    ) as any;
   }
 
   rightOuterJoin<JoinTable extends Table<any, any>>(
     table: JoinTable,
-  ): SelectQuery<AddRightJoin<Columns, JoinTable>> {
-    return this.newSelectQuery([
-      ...this.tokens,
-      new StringToken(`RIGHT OUTER JOIN`),
-      this.getTableStringToken(table),
-    ]);
+  ): RightJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
+    return this.newSelectQuery(
+      [...this.tokens, new StringToken(`RIGHT OUTER JOIN`), this.getTableStringToken(table)],
+      table,
+    ) as any;
   }
 
   rightJoin<JoinTable extends Table<any, any>>(
     table: JoinTable,
-  ): SelectQuery<AddRightJoin<Columns, JoinTable>> {
-    return this.newSelectQuery([
-      ...this.tokens,
-      new StringToken(`RIGHT JOIN`),
-      this.getTableStringToken(table),
-    ]);
+  ): RightJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
+    return this.newSelectQuery(
+      [...this.tokens, new StringToken(`RIGHT JOIN`), this.getTableStringToken(table)],
+      table,
+    ) as any;
   }
 
   fullOuterJoin<JoinTable extends Table<any, any>>(
     table: JoinTable,
-  ): SelectQuery<AddFullJoin<Columns>> {
-    return this.newSelectQuery([
-      ...this.tokens,
-      new StringToken(`FULL OUTER JOIN`),
-      this.getTableStringToken(table),
-    ]);
+  ): FullJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
+    return this.newSelectQuery(
+      [...this.tokens, new StringToken(`FULL OUTER JOIN`), this.getTableStringToken(table)],
+      table,
+    ) as any;
   }
-  fullJoin<JoinTable extends Table<any, any>>(table: JoinTable): SelectQuery<AddFullJoin<Columns>> {
-    return this.newSelectQuery([
-      ...this.tokens,
-      new StringToken(`FULL JOIN`),
-      this.getTableStringToken(table),
-    ]);
+
+  fullJoin<JoinTable extends Table<any, any>>(
+    table: JoinTable,
+  ): FullJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
+    return this.newSelectQuery(
+      [...this.tokens, new StringToken(`FULL JOIN`), this.getTableStringToken(table)],
+      table,
+    ) as any;
   }
 
   // This doesn't go with an ON or USING afterwards
-  crossJoin(table: Table<any, any>): SelectQuery<Columns> {
-    return this.newSelectQuery([
-      ...this.tokens,
-      new StringToken(`CROSS JOIN`),
-      this.getTableStringToken(table),
-    ]);
+  crossJoin<JoinTable extends Table<any, any>>(
+    table: Table<any, any>,
+  ): Join<SelectQuery<Columns, IncludesStar>, JoinTable> {
+    return this.newSelectQuery(
+      [...this.tokens, new StringToken(`CROSS JOIN`), this.getTableStringToken(table)],
+      table,
+    ) as any;
   }
 
   forUpdate(): SelectQuery<Columns> {
@@ -239,12 +303,12 @@ export class SelectQuery<Columns extends { [column: string]: any }> extends Quer
     return this.tokens;
   }
 
-  on(joinCondition: Expression<boolean, boolean, string>): SelectQuery<Columns> {
+  on(joinCondition: Expression<boolean, boolean, string>): SelectQuery<Columns, IncludesStar> {
     return this.newSelectQuery([
       ...this.tokens,
       new StringToken(`ON`),
       new GroupToken(joinCondition.toTokens()),
-    ]);
+    ]) as any;
   }
 
   using(...columns: Column<any, any, any, any, any, any>[]): SelectQuery<Columns> {
@@ -366,14 +430,21 @@ export const makeSelect = (queryExecutor: QueryExecutorFn, initialTokens?: Token
 >(
   ...columns: T[]
 ) => {
+  const includesStar = !!columns.find((column) => column instanceof Star);
+
   const returningKeys = columns.map((column) => {
     if (column instanceof Query) {
       return column.getReturningKeys()[0];
     }
+
+    if (!column) {
+      throw new Error(`No column ${columns}`);
+    }
+
     return (column as any).getName();
   });
 
-  return new SelectQuery(queryExecutor, returningKeys, [
+  return new SelectQuery(queryExecutor, returningKeys, includesStar, [
     ...(initialTokens || []),
     new StringToken(`SELECT`),
     new SeparatorToken(
@@ -388,5 +459,5 @@ export const makeSelect = (queryExecutor: QueryExecutorFn, initialTokens?: Token
         return new CollectionToken(tokens);
       }),
     ),
-  ]);
+  ]) as any;
 };

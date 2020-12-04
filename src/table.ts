@@ -1,8 +1,6 @@
-import { Column, ColumnDefinition, ColumnSet } from './column';
+import { Column, ColumnDefinition } from './column';
 
-import { Expression } from './expression';
-import { StringToken } from './tokens';
-import { wrapQuotes } from './naming';
+import { Table } from './TableType';
 
 export type TableRow<T> = T extends TableDefinition<infer Columns>
   ? {
@@ -20,38 +18,6 @@ export type TableRow<T> = T extends TableDefinition<infer Columns>
 
 export class TableDefinition<Columns> {
   private _tableDefinitionBrand: any;
-}
-
-export type Table<TableName, Columns> = Columns & InternalTable<TableName, Columns>;
-
-interface InternalTable<TableName, Columns> {
-  /** @internal */
-  getName(): string;
-
-  /** @internal */
-  getOriginalName(): string;
-
-  star(): ColumnSet<Columns>;
-
-  // Because we use the column's table name to determine whether the data type should be nullable
-  // when joining, we change the column's table name to the alias.
-  as<T>(
-    alias: T,
-  ): Table<
-    T,
-    {
-      [K in keyof Columns]: Columns[K] extends Column<
-        infer Name,
-        string,
-        infer DataType,
-        infer IsNotNull,
-        infer HasDefault,
-        infer JoinType
-      >
-        ? Column<Name, T, DataType, IsNotNull, HasDefault, JoinType>
-        : never;
-    }
-  >;
 }
 
 export const makeTable = <
@@ -99,9 +65,6 @@ export const makeTable = <
     ...columns,
     as<T extends string>(alias: T) {
       return makeTable(alias, tableName, tableDefinition) as any;
-    },
-    star() {
-      return new Expression([new StringToken(`${wrapQuotes(tableName)}.*`)], '');
     },
     getName() {
       return tableName;

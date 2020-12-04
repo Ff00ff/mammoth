@@ -12,7 +12,7 @@ import { Column } from './column';
 import { Expression } from './expression';
 import { Query } from './query';
 import { ResultSet } from './result-set';
-import { Table } from './table';
+import { Table } from './TableType';
 import { wrapQuotes } from './naming';
 
 // https://www.postgresql.org/docs/12/sql-update.html

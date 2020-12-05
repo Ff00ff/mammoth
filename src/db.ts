@@ -9,6 +9,7 @@ import { CaseStatement } from './case';
 import { QueryExecutorFn } from './types';
 import { Table } from './TableType';
 import { makeDeleteFrom } from './delete';
+import { makeTruncate } from './truncate';
 import { makeUpdate } from './update';
 import { makeWith } from './with';
 import { toSnakeCase } from './naming';
@@ -83,6 +84,7 @@ export const defineDb = <TableDefinitions extends { [key: string]: TableDefiniti
     deleteFrom: makeDeleteFrom(queryExecutor),
     update: makeUpdate(queryExecutor),
     with: makeWith(queryExecutor),
+    truncate: makeTruncate(queryExecutor),
     case: () => new CaseStatement<never>([]),
     ...sqlFunctions,
 

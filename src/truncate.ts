@@ -1,8 +1,9 @@
 import { QueryExecutorFn, ResultType } from './types';
-import { Table, TableDefinition } from './table';
-import { createQueryState, StringToken, Token } from './tokens';
+import { StringToken, Token, createQueryState } from './tokens';
+
 import { Query } from './query';
-import { ResultSet } from './result-set';
+import { Table } from './TableType';
+import { TableDefinition } from './table';
 
 export const makeTruncate = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
   table: T,

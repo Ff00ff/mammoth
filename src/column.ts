@@ -12,6 +12,7 @@ export interface ColumnDefinitionFormat {
   checkExpression?: string;
   isUnique: boolean;
   referencesTable?: string;
+  referencesSelf?: boolean;
   referencesColumn?: string;
   enumValues?: string[];
 }
@@ -40,6 +41,7 @@ export interface ColumnDefinition<
     table: T,
     columnName: ColumnName,
   ): ColumnDefinition<DataType, IsNotNull, HasDefault>;
+  referencesSelf(columnName: string): ColumnDefinition<DataType, IsNotNull, HasDefault>;
 
   /** @internal */
   getDefinition(): ColumnDefinitionFormat;
@@ -59,6 +61,7 @@ export const makeColumnDefinition = <
   let checkExpression: string | undefined = undefined;
   let isUnique = false;
   let referencesTable: any = undefined;
+  let referencesSelf: boolean = false;
   let referencesColumn: string | undefined = undefined;
 
   return {
@@ -71,6 +74,7 @@ export const makeColumnDefinition = <
         checkExpression,
         isUnique,
         referencesTable,
+        referencesSelf,
         referencesColumn,
         enumValues,
       };
@@ -110,6 +114,12 @@ export const makeColumnDefinition = <
       referencesTable = table;
       referencesColumn = columnName;
 
+      return this as any;
+    },
+
+    referencesSelf(columnName) {
+      referencesSelf = true;
+      referencesColumn = columnName;
       return this as any;
     },
   };

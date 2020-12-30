@@ -38,17 +38,17 @@ export class UpdateQuery<
     super();
   }
 
-  then(
+  then<Result1, Result2 = never>(
     onFulfilled?:
       | ((
           value: Returning extends number
             ? Returning
             : ResultSet<UpdateQuery<T, Returning>, false>[],
-        ) => any | PromiseLike<any>)
+        ) => Result1 | PromiseLike<Result1>)
       | undefined
       | null,
-    onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null,
-  ) {
+    onRejected?: ((reason: any) => Result2 | PromiseLike<Result2>) | undefined | null,
+  ): Promise<Result1 | Result2> {
     const queryState = createQueryState(this.tokens);
 
     return this.queryExecutor(queryState.text.join(` `), queryState.parameters)

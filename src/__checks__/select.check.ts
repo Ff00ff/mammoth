@@ -138,4 +138,16 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
       // @dts-jest:snap should select and await result set
       result;
     });
+
+  db.select(db.foo.id)
+    .from(db.foo)
+    .then((result) => {
+      // @dts-jest:snap should return correct result in then
+      result;
+      return 123;
+    })
+    .then((result) => {
+      // @dts-jest:snap should return previous return value in then
+      result;
+    });
 }

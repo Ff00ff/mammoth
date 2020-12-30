@@ -152,18 +152,18 @@ export class SelectQuery<
     super();
   }
 
-  then(
+  then<Result1, Result2 = never>(
     onFulfilled?:
-      | ((value: ResultSet<SelectQuery<Columns>, false>[]) => any | PromiseLike<any>)
+      | ((value: ResultSet<SelectQuery<Columns>, false>[]) => Result1 | PromiseLike<Result1>)
       | undefined
       | null,
-    onRejected?: ((reason: any) => void | PromiseLike<void>) | undefined | null,
-  ) {
+    onRejected?: ((reason: any) => Result2 | PromiseLike<Result2>) | undefined | null,
+  ): Promise<Result1 | Result2> {
     const queryState = createQueryState(this.tokens);
 
     return this.queryExecutor(queryState.text.join(` `), queryState.parameters)
       .then((result) => (onFulfilled ? onFulfilled(result.rows as any) : result))
-      .catch(onRejected);
+      .catch(onRejected) as any;
   }
 
   private newSelectQuery(tokens: Token[], table?: Table<any, any>): SelectQuery<Columns> {

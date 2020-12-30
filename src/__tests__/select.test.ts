@@ -1,4 +1,4 @@
-import { Star, star } from '../sql-functions';
+import { Star, raw, star } from '../sql-functions';
 import {
   any,
   arrayAgg,
@@ -866,6 +866,24 @@ describe(`select`, () => {
           "test-2",
         ],
         "text": "SELECT \\"user\\".id, \\"user\\".\\"with\\", \\"user\\".\\"with\\" test, \\"user\\".\\"with\\" \\"analyse\\", \\"user\\".\\"with\\" \\"testMe\\", test.\\"with\\" with2 FROM \\"user\\" INNER JOIN \\"user\\" test WHERE \\"user\\".\\"with\\" = $1 AND test.\\"with\\" = $2",
+      }
+    `);
+  });
+
+  it(`should select with raw`, () => {
+    const query = db
+      .select(db.foo.id, raw<number, true, 'something'>`something`)
+      .from(db.foo)
+      .where(db.foo.id.eq('test-1').or(raw`1 = ${1}`.and(db.foo.id.eq(`test-2`))));
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "test-1",
+          1,
+          "test-2",
+        ],
+        "text": "SELECT foo.id, something FROM foo WHERE foo.id = $1 OR (1 =  $2  AND foo.id = $3)",
       }
     `);
   });

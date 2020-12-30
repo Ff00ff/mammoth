@@ -49,4 +49,6 @@ exports[`select should select named expression (type) should match snapshot 1`] 
 
 exports[`select should select null column in subquery (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; value: GetDataType<number, false>; }"`;
 
+exports[`select should select raw expression (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; }"`;
+
 exports[`should output all columns and the data type (type) should match snapshot 1`] = `"{ id: string; createDate: Date; name: string; value: number; }"`;

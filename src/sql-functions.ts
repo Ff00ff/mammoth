@@ -25,6 +25,23 @@ export class Star {
   }
 }
 
+export function raw<
+  DataType = unknown,
+  IsNotNull extends boolean = true,
+  Name extends string = never
+>(strings: TemplateStringsArray, ...parameters: any[]) {
+  const tokens = strings.flatMap((string, index) => {
+    if (index === strings.length - 1) {
+      return [new StringToken(string)];
+    }
+
+    const parameter = parameters[index];
+    return [new StringToken(string), new ParameterToken(parameter)];
+  });
+
+  return new Expression<DataType, IsNotNull, Name>(tokens, '' as any);
+}
+
 export function star(): Star;
 export function star<T extends Table<any, any>>(
   table: T,

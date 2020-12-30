@@ -11,8 +11,8 @@ export type GetReturning<TableColumns, ColumnName extends keyof TableColumns> = 
   [K in ColumnName]: TableColumns[K];
 };
 
-export class GetDataType<Type, IsNull extends boolean> {
-  private _!: Type & IsNull;
+export class GetDataType<Type, IsNotNull extends boolean> {
+  private _!: Type & IsNotNull;
 }
 
 export type QueryExecutorFn = (

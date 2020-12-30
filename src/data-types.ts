@@ -340,3 +340,16 @@ export function enumType<EnumValue>(
 ): ColumnDefinition<EnumValue> {
   return makeDataType<EnumValue>(name, values as any);
 }
+
+export function array<T>(dataType: ColumnDefinition<T>) {
+  return internalArray<T[]>(dataType, 1);
+}
+
+export function array2d<T>(dataType: ColumnDefinition<T>) {
+  return internalArray<T[][]>(dataType, 2);
+}
+
+function internalArray<T>(dataType: ColumnDefinition<T>, dimensions: number) {
+  const definition = dataType.getDefinition();
+  return makeDataType<T>(definition.dataType + '[]'.repeat(dimensions));
+}

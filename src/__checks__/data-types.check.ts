@@ -1,4 +1,6 @@
 import {
+  array,
+  array2d,
   arrayAgg,
   bigint,
   bigserial,
@@ -142,6 +144,8 @@ const foo = defineTable({
   uuid: uuid(),
   xml: xml(),
   enumType: enumType('my_enum-type', ['A', 'B', 'C'] as const),
+  array: array(text()),
+  array2d: array2d(text()),
 });
 
 const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
@@ -214,6 +218,8 @@ const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 
         db.foo.uuid,
         db.foo.xml,
         db.foo.enumType,
+        db.foo.array,
+        db.foo.array2d,
       )
       .from(db.foo),
   );

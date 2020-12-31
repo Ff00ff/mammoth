@@ -37,6 +37,7 @@ describe(`ddl`, () => {
               "isUnique": false,
               "name": "id",
               "referencesColumn": undefined,
+              "referencesSelf": false,
               "referencesTable": undefined,
             },
             Object {
@@ -49,6 +50,7 @@ describe(`ddl`, () => {
               "isUnique": false,
               "name": "createDate",
               "referencesColumn": undefined,
+              "referencesSelf": false,
               "referencesTable": undefined,
             },
             Object {
@@ -61,6 +63,7 @@ describe(`ddl`, () => {
               "isUnique": false,
               "name": "name",
               "referencesColumn": undefined,
+              "referencesSelf": false,
               "referencesTable": undefined,
             },
             Object {
@@ -73,6 +76,7 @@ describe(`ddl`, () => {
               "isUnique": false,
               "name": "value",
               "referencesColumn": undefined,
+              "referencesSelf": false,
               "referencesTable": undefined,
             },
             Object {
@@ -89,6 +93,7 @@ describe(`ddl`, () => {
               "isUnique": false,
               "name": "enumTest",
               "referencesColumn": undefined,
+              "referencesSelf": false,
               "referencesTable": undefined,
             },
           ],
@@ -101,6 +106,7 @@ describe(`ddl`, () => {
               "notNull": [Function],
               "primaryKey": [Function],
               "references": [Function],
+              "referencesSelf": [Function],
               "unique": [Function],
             },
             "enumTest": Object {
@@ -110,6 +116,7 @@ describe(`ddl`, () => {
               "notNull": [Function],
               "primaryKey": [Function],
               "references": [Function],
+              "referencesSelf": [Function],
               "unique": [Function],
             },
             "id": Object {
@@ -119,6 +126,7 @@ describe(`ddl`, () => {
               "notNull": [Function],
               "primaryKey": [Function],
               "references": [Function],
+              "referencesSelf": [Function],
               "unique": [Function],
             },
             "name": Object {
@@ -128,6 +136,7 @@ describe(`ddl`, () => {
               "notNull": [Function],
               "primaryKey": [Function],
               "references": [Function],
+              "referencesSelf": [Function],
               "unique": [Function],
             },
             "value": Object {
@@ -137,6 +146,7 @@ describe(`ddl`, () => {
               "notNull": [Function],
               "primaryKey": [Function],
               "references": [Function],
+              "referencesSelf": [Function],
               "unique": [Function],
             },
           },

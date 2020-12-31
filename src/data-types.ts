@@ -1,30 +1,40 @@
-import { Column, ColumnDefinition, makeColumnDefinition } from './column';
+import { ColumnDefinition, makeColumnDefinition } from './column';
 
 const variableLength = (string: string, ...n: (number | undefined)[]) =>
   n.length > 0 ? `${string}(${n.join(`, `)})` : string;
 
 const makeDataType = makeColumnDefinition;
 
+export type Int4 = number;
+export type Int8 = string;
+export type Float4 = number;
+// In pg, by default, double precision / float8s are parsed through `parseFloat()` JS global
+// func. This means we lose precision. We align the types with pg and these can be altered in
+// user-land.
+export type Float8 = number;
+export type Numeric = string;
+export type AnyNumber = Int4 | Int8 | Float4 | Float8 | Numeric;
+
 export function dataType<T>(dataType: string) {
   return makeDataType<T>(dataType);
 }
 
-export function int8(): ColumnDefinition<string>;
+export function int8(): ColumnDefinition<Int8>;
 export function int8<T>(): ColumnDefinition<T>;
 export function int8() {
   return makeDataType(`int8`);
 }
-export function bigint(): ColumnDefinition<string>;
+export function bigint(): ColumnDefinition<Int8>;
 export function bigint<T>(): ColumnDefinition<T>;
 export function bigint() {
   return makeDataType(`bigint`);
 }
-export function bigserial(): ColumnDefinition<string, false, true>;
+export function bigserial(): ColumnDefinition<Int8, false, true>;
 export function bigserial<T>(): ColumnDefinition<T, false, true>;
 export function bigserial() {
   return makeDataType(`bigserial`);
 }
-export function serial8(): ColumnDefinition<string, false, true>;
+export function serial8(): ColumnDefinition<Int8, false, true>;
 export function serial8<T>(): ColumnDefinition<T, false, true>;
 export function serial8() {
   return makeDataType(`serial8`);
@@ -114,12 +124,12 @@ export function date() {
   return makeDataType(`date`);
 }
 
-export function doublePrecision(): ColumnDefinition<number>;
+export function doublePrecision(): ColumnDefinition<Float8>;
 export function doublePrecision<T>(): ColumnDefinition<T>;
 export function doublePrecision() {
   return makeDataType(`double precision`);
 }
-export function float8(): ColumnDefinition<number>;
+export function float8(): ColumnDefinition<Float8>;
 export function float8<T>(): ColumnDefinition<T>;
 export function float8() {
   return makeDataType(`float8`);
@@ -130,27 +140,27 @@ export function inet() {
   return makeDataType(`inet`);
 }
 
-export function decimal(): ColumnDefinition<string>;
-export function decimal(p: number): ColumnDefinition<string>;
-export function decimal(p: number, s: number): ColumnDefinition<string>;
+export function decimal(): ColumnDefinition<Numeric>;
+export function decimal(p: number): ColumnDefinition<Numeric>;
+export function decimal(p: number, s: number): ColumnDefinition<Numeric>;
 export function decimal<T>(): ColumnDefinition<T>;
 export function decimal<T>(p: number): ColumnDefinition<T>;
 export function decimal<T>(p: number, s: number): ColumnDefinition<T>;
 export function decimal(...n: any[]) {
   return makeDataType(variableLength(`decimal`, ...n));
 }
-export function integer(): ColumnDefinition<number>;
+export function integer(): ColumnDefinition<Int4>;
 export function integer<T>(): ColumnDefinition<T>;
 export function integer() {
   return makeDataType(`integer`);
 }
 
-export function int(): ColumnDefinition<number>;
+export function int(): ColumnDefinition<Int4>;
 export function int<T>(): ColumnDefinition<T>;
 export function int() {
   return makeDataType(`int`);
 }
-export function int4(): ColumnDefinition<number>;
+export function int4(): ColumnDefinition<Int4>;
 export function int4<T>(): ColumnDefinition<T>;
 export function int4() {
   return makeDataType(`int4`);
@@ -196,9 +206,9 @@ export function money() {
   return makeDataType(`money`);
 }
 
-export function numeric(): ColumnDefinition<string>;
-export function numeric(p: number): ColumnDefinition<string>;
-export function numeric(p: number, s: number): ColumnDefinition<string>;
+export function numeric(): ColumnDefinition<Numeric>;
+export function numeric(p: number): ColumnDefinition<Numeric>;
+export function numeric(p: number, s: number): ColumnDefinition<Numeric>;
 export function numeric<T>(): ColumnDefinition<T>;
 export function numeric<T>(p: number): ColumnDefinition<T>;
 export function numeric<T>(p: number, s: number): ColumnDefinition<T>;
@@ -227,42 +237,42 @@ export function polygon<T>(): ColumnDefinition<T>;
 export function polygon() {
   return makeDataType(`polygon`);
 }
-export function real(): ColumnDefinition<number>;
+export function real(): ColumnDefinition<Float4>;
 export function real<T>(): ColumnDefinition<T>;
 export function real() {
   return makeDataType(`real`);
 }
-export function float4(): ColumnDefinition<number>;
+export function float4(): ColumnDefinition<Float4>;
 export function float4<T>(): ColumnDefinition<T>;
 export function float4() {
   return makeDataType(`float4`);
 }
-export function smallint(): ColumnDefinition<number>;
+export function smallint(): ColumnDefinition<Int4>;
 export function smallint<T>(): ColumnDefinition<T>;
 export function smallint() {
   return makeDataType(`smallint`);
 }
-export function int2(): ColumnDefinition<number>;
+export function int2(): ColumnDefinition<Int4>;
 export function int2<T>(): ColumnDefinition<T>;
 export function int2() {
   return makeDataType(`int2`);
 }
-export function serial(): ColumnDefinition<number, false, true>;
+export function serial(): ColumnDefinition<Int4, false, true>;
 export function serial<T>(): ColumnDefinition<T, false, true>;
 export function serial() {
   return makeDataType(`serial`);
 }
-export function serial4(): ColumnDefinition<number, false, true>;
+export function serial4(): ColumnDefinition<Int4, false, true>;
 export function serial4<T>(): ColumnDefinition<T, false, true>;
 export function serial4() {
   return makeDataType(`serial4`);
 }
-export function smallserial(): ColumnDefinition<number, false, true>;
+export function smallserial(): ColumnDefinition<Int4, false, true>;
 export function smallserial<T>(): ColumnDefinition<T, false, true>;
 export function smallserial() {
   return makeDataType(`smallserial`);
 }
-export function serial2(): ColumnDefinition<number, false, true>;
+export function serial2(): ColumnDefinition<Int4, false, true>;
 export function serial2<T>(): ColumnDefinition<T, false, true>;
 export function serial2() {
   return makeDataType(`serial2`);

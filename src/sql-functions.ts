@@ -1,3 +1,4 @@
+import { AnyNumber, Int8 } from './data-types';
 import {
   CollectionToken,
   EmptyToken,
@@ -84,13 +85,13 @@ export const stringAgg = (
   );
 };
 
-export const bitAnd = (expression: Expression<number, boolean, any>) =>
-  new Expression<number, false, 'bitAnd'>(
+export const bitAnd = <T extends AnyNumber>(expression: Expression<T, boolean, any>) =>
+  new Expression<T, false, 'bitAnd'>(
     [new StringToken(`bit_and`), new GroupToken(expression.toTokens(false))],
     'bitAnd',
   );
-export const bitOr = (expression: Expression<number, boolean, any>) =>
-  new Expression<number, false, 'bitOr'>(
+export const bitOr = <T extends AnyNumber>(expression: Expression<T, boolean, any>) =>
+  new Expression<T, false, 'bitOr'>(
     [new StringToken(`bit_or`), new GroupToken(expression.toTokens(false))],
     'bitOr',
   );
@@ -119,16 +120,14 @@ export const arrayAgg = <DataType>(expression: Expression<DataType, boolean, any
     'arrayAgg',
   );
 
-export const count = (
-  expression?: Expression<any, any, any>,
-): Expression<string, true, 'count'> => {
+export const count = (expression?: Expression<any, any, any>): Expression<Int8, true, 'count'> => {
   if (!expression) {
-    return new Expression<string, true, 'count'>([new StringToken(`COUNT(*)`)], 'count');
+    return new Expression<Int8, true, 'count'>([new StringToken(`COUNT(*)`)], 'count');
   }
 
   const tokens = expression.toTokens();
 
-  return new Expression<string, true, 'count'>(
+  return new Expression<Int8, true, 'count'>(
     [new StringToken(`COUNT`), new GroupToken(tokens)],
     'count',
   );
@@ -148,14 +147,14 @@ export const max = <DataType>(expression: Expression<DataType, boolean, any>) =>
     'max',
   );
 
-export const avg = (expression: Expression<number, boolean, any>) =>
-  new Expression<number, false, 'avg'>(
+export const avg = <T extends AnyNumber>(expression: Expression<T, boolean, any>) =>
+  new Expression<T, false, 'avg'>(
     [new StringToken(`AVG`), new GroupToken(expression.toTokens())],
     'avg',
   );
 
-export const sum = (expression: Expression<number, boolean, any>) =>
-  new Expression<number, false, 'sum'>(
+export const sum = <T extends AnyNumber>(expression: Expression<T, boolean, any>) =>
+  new Expression<T, false, 'sum'>(
     [new StringToken(`SUM`), new GroupToken(expression.toTokens())],
     'sum',
   );

@@ -580,7 +580,7 @@ describe(`select`, () => {
     expect(toSnap(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "SELECT foo.id FROM foo INNER JOIN bar ON (foo.id = bar.foo_id)",
+        "text": "SELECT foo.id FROM foo LEFT JOIN bar ON (foo.id = bar.foo_id)",
       }
     `);
   });

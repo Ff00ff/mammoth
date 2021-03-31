@@ -231,7 +231,7 @@ export class SelectQuery<
     table: JoinTable,
   ): LeftJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
     return this.newSelectQuery(
-      [...this.tokens, new StringToken(`INNER JOIN`), this.getTableStringToken(table)],
+      [...this.tokens, new StringToken(`LEFT JOIN`), this.getTableStringToken(table)],
       table,
     ) as any;
   }

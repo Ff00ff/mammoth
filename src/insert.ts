@@ -382,6 +382,25 @@ export class InsertQuery<
     };
   }
 
+  private getConflictTargetToken<ColumnNames extends T extends Table<any, infer Columns> ? (keyof Columns)[] : never>(
+    columnNames: ColumnNames,
+  ): Token {
+    if (columnNames.length === 0) return new EmptyToken();
+    return new GroupToken([new SeparatorToken(',',
+      columnNames.map((columnName) => {
+        const column = (this.table as any)[columnName] as Column<
+          any,
+          any,
+          any,
+          any,
+          any,
+          any
+          >;
+        return new StringToken(column.getSnakeCaseName());
+      })
+    )]);
+  }
+
   onConflict<ColumnNames extends T extends Table<any, infer Columns> ? (keyof Columns)[] : never>(
     ...columnNames: ColumnNames
   ) {
@@ -396,22 +415,7 @@ export class InsertQuery<
           [
             ...self.tokens,
             new StringToken(`ON CONFLICT`),
-            columnNames.length > 0
-              ? new GroupToken(
-                  columnNames.map((columnName) => {
-                    const column = (self.table as any)[columnName] as Column<
-                      any,
-                      any,
-                      any,
-                      any,
-                      any,
-                      any
-                    >;
-
-                    return new StringToken(column.getSnakeCaseName());
-                  }),
-                )
-              : new EmptyToken(),
+            self.getConflictTargetToken(columnNames),
             new StringToken(`DO NOTHING`),
           ],
         );
@@ -443,21 +447,7 @@ export class InsertQuery<
           [
             ...self.tokens,
             new StringToken(`ON CONFLICT`),
-            columnNames.length > 0
-              ? new GroupToken(
-                  columnNames.map((columnName) => {
-                    const column = (self.table as any)[columnName] as Column<
-                      any,
-                      any,
-                      any,
-                      any,
-                      any,
-                      any
-                    >;
-                    return new StringToken(column.getSnakeCaseName());
-                  }),
-                )
-              : new EmptyToken(),
+            self.getConflictTargetToken(columnNames),
             new StringToken(`DO UPDATE SET`),
             new SeparatorToken(
               `,`,

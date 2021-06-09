@@ -147,7 +147,7 @@ export class Column<
 
   /** @internal */
   getSnakeCaseName() {
-    return toSnakeCase(this.columnName);
+    return wrapQuotes(toSnakeCase(this.columnName));
   }
 
   /** @internal */

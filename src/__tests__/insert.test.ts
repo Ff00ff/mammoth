@@ -70,6 +70,28 @@ describe(`insert`, () => {
     `);
   });
 
+  it(`should handle multi-column onConflict`, () => {
+    const query = db
+      .insertInto(db.foo)
+      .values({
+        name: `Test`,
+      })
+      .onConflict(`id`, `name`)
+      .doUpdateSet({
+        name: `Test 2`,
+      });
+
+    expect(toSnap(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "Test",
+          "Test 2",
+        ],
+        "text": "INSERT INTO foo (name) VALUES ($1) ON CONFLICT (id, name) DO UPDATE SET name = $2",
+      }
+    `);
+  });
+
   it(`should insert with default values`, () => {
     const query = db.insertInto(db.foo).defaultValues();
 

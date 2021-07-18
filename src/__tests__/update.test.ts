@@ -1,6 +1,4 @@
-import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
-
-import { toSnap } from './helpers';
+import { defineDb, defineTable, integer, text, timestampWithTimeZone, toSql, uuid } from '..';
 
 describe(`update`, () => {
   const foo = defineTable({
@@ -26,7 +24,7 @@ describe(`update`, () => {
       .where(db.foo.value.isNull())
       .returning(`id`, `createDate`);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Test",
@@ -43,7 +41,7 @@ describe(`update`, () => {
       .from(db.bar)
       .where(db.bar.fooId.eq(db.foo.id).and(db.bar.name.isNotNull()));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Test",
@@ -61,7 +59,7 @@ describe(`update`, () => {
       .from(test)
       .where(test.fooId.eq(db.foo.id).and(test.name.isNotNull()));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Test",
@@ -74,7 +72,7 @@ describe(`update`, () => {
   it(`should update where current of foo`, () => {
     const query = db.update(db.foo).set({ name: `Test` }).whereCurrentOf(`cursor1`);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Test",
@@ -88,7 +86,7 @@ describe(`update`, () => {
   it(`should update reserved keyword column`, () => {
     const query = db.update(db.bar).set({ with: `Test` });
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Test",

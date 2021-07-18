@@ -1,4 +1,4 @@
-import { Star, raw, star } from '../sql-functions';
+import { Star, raw, star, toSql } from '../sql-functions';
 import {
   any,
   arrayAgg,
@@ -29,7 +29,6 @@ import { Expression } from '../expression';
 import { Query } from '../query';
 import { ResultSet } from '../result-set';
 import { enumType } from '../data-types';
-import { toSnap } from './helpers';
 
 describe(`select`, () => {
   const foo = defineTable({
@@ -68,7 +67,7 @@ describe(`select`, () => {
       .innerJoin(db.bar)
       .on(db.bar.fooId.eq(db.foo.id));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT *, bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
@@ -83,7 +82,7 @@ describe(`select`, () => {
       .innerJoin(db.bar)
       .on(db.bar.fooId.eq(db.foo.id));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.*, bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
@@ -97,7 +96,7 @@ describe(`select`, () => {
       .from(db.foo)
       .where(exists(db.select(star()).from(db.bar).where(db.bar.fooId.eq(db.foo.id))));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT * FROM foo WHERE EXISTS (SELECT * FROM bar WHERE bar.foo_id = foo.id)",
@@ -108,7 +107,7 @@ describe(`select`, () => {
   it(`should select foo`, () => {
     const query = db.select(db.foo.id).from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo",
@@ -119,7 +118,7 @@ describe(`select`, () => {
   it(`should select camel case table`, () => {
     const query = db.select(db.listItem.id).from(db.listItem);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT list_item.id FROM list_item",
@@ -130,7 +129,7 @@ describe(`select`, () => {
   it(`should select list_item.*`, () => {
     const query = db.select(star(db.listItem)).from(db.listItem);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT list_item.* FROM list_item",
@@ -142,7 +141,7 @@ describe(`select`, () => {
     const baz = db.bar.as(`baZ`);
     const query = db.select(star(baz)).from(baz);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT \\"baZ\\".* FROM bar \\"baZ\\"",
@@ -154,7 +153,7 @@ describe(`select`, () => {
     const test = db.foo.as(`testMe`);
     const query = db.select(test.id).from(test);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT \\"testMe\\".id FROM foo \\"testMe\\"",
@@ -165,7 +164,7 @@ describe(`select`, () => {
   it(`should alias a column`, () => {
     const query = db.select(db.foo.id.as(`fooId`)).from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id \\"fooId\\" FROM foo",
@@ -177,7 +176,7 @@ describe(`select`, () => {
     const baz = db.foo.as(`baz`);
     const query = db.select(baz.id).from(baz).where(baz.value.eq(1));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           1,
@@ -191,7 +190,7 @@ describe(`select`, () => {
     const user = db.foo.as(`user`);
     const query = db.select(user.id).from(user).where(user.value.eq(1));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           1,
@@ -204,7 +203,7 @@ describe(`select`, () => {
   it(`should plus a column as expression`, () => {
     const query = db.select(db.foo.id, db.foo.value.plus(1).as(`test`)).from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           1,
@@ -216,7 +215,7 @@ describe(`select`, () => {
 
   it(`should select subquery`, () => {
     const query = db.select(db.foo.id, db.select(db.foo.value).from(db.foo)).from(db.foo);
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id, (SELECT foo.value FROM foo) FROM foo",
@@ -230,7 +229,7 @@ describe(`select`, () => {
       .from(db.foo)
       .where(db.foo.name.eq(any(['1', '2', '3'])));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           Array [
@@ -250,7 +249,7 @@ describe(`select`, () => {
       .from(db.foo)
       .where(db.foo.id.in(db.select(db.foo.id).from(db.foo)));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo WHERE foo.id IN (SELECT foo.id FROM foo)",
@@ -264,7 +263,7 @@ describe(`select`, () => {
       .from(db.foo)
       .where(db.foo.id.in(db.deleteFrom(db.foo).returning(`id`)));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo WHERE foo.id IN (DELETE FROM foo RETURNING id)",
@@ -278,7 +277,7 @@ describe(`select`, () => {
       .from(db.foo)
       .where(db.foo.name.in([`A`, `B`, `C`]));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "A",
@@ -296,7 +295,7 @@ describe(`select`, () => {
       .from(db.foo)
       .where(db.foo.id.notIn(db.select(db.foo.id).from(db.foo)));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo WHERE foo.id NOT IN (SELECT foo.id FROM foo)",
@@ -310,7 +309,7 @@ describe(`select`, () => {
       .from(db.foo)
       .where(db.foo.name.notIn([`A`, `B`, `C`]));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "A",
@@ -325,7 +324,7 @@ describe(`select`, () => {
   it(`should convert column to snake case`, () => {
     const query = db.select(db.foo.createDate).from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.create_date \\"createDate\\" FROM foo",
@@ -336,7 +335,7 @@ describe(`select`, () => {
   it(`should select aggregate with as`, () => {
     const query = db.select(db.foo.id, sum(db.foo.value).as(`total`)).from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id, SUM (foo.value) total FROM foo",
@@ -349,7 +348,7 @@ describe(`select`, () => {
       .select(db.foo.id, min(db.foo.value), max(db.foo.value), avg(db.foo.value))
       .from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id, MIN (foo.value), MAX (foo.value), AVG (foo.value) FROM foo",
@@ -360,7 +359,7 @@ describe(`select`, () => {
   it(`should explicitly group`, () => {
     const query = db.select(db.foo.id).from(db.foo).where(group(db.foo.value.isNull()));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo WHERE (foo.value IS NULL)",
@@ -371,7 +370,7 @@ describe(`select`, () => {
   it(`should select with in`, () => {
     const query = db.select(db.foo.id).where(db.foo.name.in([`A`, `B`, `C`]));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "A",
@@ -386,7 +385,7 @@ describe(`select`, () => {
   it(`should select with order by`, () => {
     const query = db.select(db.foo.id).orderBy(db.foo.name.asc().nullsFirst());
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id ORDER BY foo.name ASC NULLS FIRST",
@@ -397,7 +396,7 @@ describe(`select`, () => {
   it(`should select with order by desc`, () => {
     const query = db.select(db.foo.id).orderBy(db.foo.name.desc().nullsLast());
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id ORDER BY foo.name DESC NULLS LAST",
@@ -408,7 +407,7 @@ describe(`select`, () => {
   it(`should select with concat`, () => {
     const query = db.select(db.foo.name.concat(`!`)).from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "!",
@@ -421,7 +420,7 @@ describe(`select`, () => {
   it(`should select where is not null`, () => {
     const query = db.select(db.foo.id).where(db.foo.value.isNotNull());
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id WHERE foo.value IS NOT NULL",
@@ -444,7 +443,7 @@ describe(`select`, () => {
           .and(db.foo.value.betweenSymmetric(-20, 20)),
       );
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           1,
@@ -465,7 +464,7 @@ describe(`select`, () => {
   it(`should select camel cased`, () => {
     const query = db.select(db.foo.id).from(db.foo).where(db.foo.createDate.isNotNull());
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo WHERE foo.create_date IS NOT NULL",
@@ -476,7 +475,7 @@ describe(`select`, () => {
   it(`should select aggregate on camel cased column`, () => {
     const query = db.select(count(db.foo.createDate)).from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT COUNT (foo.create_date) FROM foo",
@@ -490,7 +489,7 @@ describe(`select`, () => {
       .from(db.foo)
       .having(arrayAgg(db.foo.name).isNotNull());
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT array_agg (foo.name ORDER BY foo.name DESC) \\"arrayAgg\\" FROM foo HAVING array_agg (foo.name) IS NOT NULL",
@@ -501,7 +500,7 @@ describe(`select`, () => {
   it(`should select stringAgg`, () => {
     const query = db.select(stringAgg(db.foo.name, '-', db.foo.name.desc())).from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "-",
@@ -514,7 +513,7 @@ describe(`select`, () => {
   it(`should select bitAnd, bitOr`, () => {
     const query = db.select(bitAnd(db.foo.value), bitOr(db.foo.value)).from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT bit_and (foo.value) \\"bitAnd\\", bit_or (foo.value) \\"bitOr\\" FROM foo",
@@ -525,7 +524,7 @@ describe(`select`, () => {
   it(`should select aggregate with alias`, () => {
     const query = db.select(count(db.foo.createDate).as(`test`)).from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT COUNT (foo.create_date) test FROM foo",
@@ -536,7 +535,7 @@ describe(`select`, () => {
   it(`should select join`, () => {
     const query = db.select(db.foo.id).from(db.foo).join(db.bar).on(db.foo.id.eq(db.bar.fooId));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo JOIN bar ON (foo.id = bar.foo_id)",
@@ -551,7 +550,7 @@ describe(`select`, () => {
       .innerJoin(db.bar)
       .on(db.foo.id.eq(db.bar.fooId));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo INNER JOIN bar ON (foo.id = bar.foo_id)",
@@ -566,7 +565,7 @@ describe(`select`, () => {
       .leftOuterJoin(db.bar)
       .on(db.foo.id.eq(db.bar.fooId));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo LEFT OUTER JOIN bar ON (foo.id = bar.foo_id)",
@@ -577,7 +576,7 @@ describe(`select`, () => {
   it(`should select left join`, () => {
     const query = db.select(db.foo.id).from(db.foo).leftJoin(db.bar).on(db.foo.id.eq(db.bar.fooId));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo LEFT JOIN bar ON (foo.id = bar.foo_id)",
@@ -588,7 +587,7 @@ describe(`select`, () => {
   it(`should select right outer join`, () => {
     const query = db.select(db.foo.id).from(db.foo).rightOuterJoin(db.bar).using(db.foo.id);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo RIGHT OUTER JOIN bar USING (foo.id)",
@@ -603,7 +602,7 @@ describe(`select`, () => {
       .rightJoin(db.bar)
       .on(db.foo.id.eq(db.bar.fooId));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo RIGHT JOIN bar ON (foo.id = bar.foo_id)",
@@ -618,7 +617,7 @@ describe(`select`, () => {
       .fullOuterJoin(db.bar)
       .on(db.foo.id.eq(db.bar.fooId));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo FULL OUTER JOIN bar ON (foo.id = bar.foo_id)",
@@ -629,7 +628,7 @@ describe(`select`, () => {
   it(`should select full join`, () => {
     const query = db.select(db.foo.id).from(db.foo).fullJoin(db.bar).on(db.foo.id.eq(db.bar.fooId));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo FULL JOIN bar ON (foo.id = bar.foo_id)",
@@ -640,7 +639,7 @@ describe(`select`, () => {
   it(`should select cross join`, () => {
     const query = db.select(db.foo.id).from(db.foo).crossJoin(db.bar);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo CROSS JOIN bar",
@@ -651,7 +650,7 @@ describe(`select`, () => {
   it(`should select for update of table nowait`, () => {
     const query = db.select(db.foo.id).from(db.foo).limit(1).forUpdate().of(db.foo).nowait();
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           1,
@@ -664,7 +663,7 @@ describe(`select`, () => {
   it(`should select for no key update skip locked`, () => {
     const query = db.select(db.foo.id).from(db.foo).limit(1).forNoKeyUpdate().skipLocked();
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           1,
@@ -677,7 +676,7 @@ describe(`select`, () => {
   it(`should select for share`, () => {
     const query = db.select(db.foo.id).from(db.foo).limit(1).forShare().skipLocked();
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           1,
@@ -690,7 +689,7 @@ describe(`select`, () => {
   it(`should select for key share`, () => {
     const query = db.select(db.foo.id).from(db.foo).limit(1).forKeyShare().skipLocked();
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           1,
@@ -703,7 +702,7 @@ describe(`select`, () => {
   it(`should select group by having count(*) > 1`, () => {
     const query = db.select(db.foo.id).from(db.foo).groupBy(db.foo.name).having(count().gt(`1`));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "1",
@@ -716,7 +715,7 @@ describe(`select`, () => {
   it(`should select limit-offset-fetch`, () => {
     const query = db.select(db.foo.id).from(db.foo).limit(10).offset(10).fetch(5);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           10,
@@ -739,7 +738,7 @@ describe(`select`, () => {
           .or(db.foo.value.gt(600)),
       );
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Jane",
@@ -761,7 +760,7 @@ describe(`select`, () => {
         ),
       );
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo WHERE EXISTS (SELECT bar.id WHERE bar.foo_id = foo.id) AND EXISTS (SELECT foo.id FROM foo)",
@@ -794,7 +793,7 @@ describe(`select`, () => {
         ),
       );
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id FROM foo WHERE NOT EXISTS (SELECT bar.id WHERE bar.foo_id = foo.id AND NOT EXISTS (SELECT foo.id FROM foo))",
@@ -805,7 +804,7 @@ describe(`select`, () => {
   it(`should select list item boolean`, () => {
     const query = db.select(db.listItem.id).from(db.listItem).where(db.listItem.isGreat);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT list_item.id FROM list_item WHERE list_item.is_great",
@@ -821,7 +820,7 @@ describe(`select`, () => {
       )
       .from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           0,
@@ -836,7 +835,7 @@ describe(`select`, () => {
   it(`should select enum column`, () => {
     const query = db.select(db.foo.enumTest).from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "SELECT foo.enum_test \\"enumTest\\" FROM foo",
@@ -859,7 +858,7 @@ describe(`select`, () => {
       .innerJoin(db.user.as(`test`))
       .where(db.user.with.eq('test-1').and(test.with.as(`with2`).eq('test-2')));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "test-1",
@@ -876,7 +875,7 @@ describe(`select`, () => {
       .from(db.foo)
       .where(db.foo.id.eq('test-1').or(raw`1 = ${1}`.and(db.foo.id.eq(`test-2`))));
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "test-1",

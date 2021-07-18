@@ -1,6 +1,4 @@
-import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
-
-import { toSnap } from './helpers';
+import { defineDb, defineTable, integer, text, timestampWithTimeZone, toSql, uuid } from '..';
 
 describe(`insert`, () => {
   const foo = defineTable({
@@ -17,7 +15,7 @@ describe(`insert`, () => {
       name: `Test`,
     });
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Test",
@@ -37,7 +35,7 @@ describe(`insert`, () => {
       },
     ]);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Test",
@@ -59,7 +57,7 @@ describe(`insert`, () => {
         name: `Test 2`,
       });
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Test",
@@ -81,7 +79,7 @@ describe(`insert`, () => {
         name: `Test 2`,
       });
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Test",
@@ -95,7 +93,7 @@ describe(`insert`, () => {
   it(`should insert with default values`, () => {
     const query = db.insertInto(db.foo).defaultValues();
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "INSERT INTO foo DEFAULT VALUES",
@@ -106,7 +104,7 @@ describe(`insert`, () => {
   it(`should insert with returning`, () => {
     const query = db.insertInto(db.foo).values({ name: `Test` }).returning(`id`);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Test",
@@ -122,7 +120,7 @@ describe(`insert`, () => {
       .select(db.foo.id, db.foo.name, db.foo.createDate)
       .from(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "INSERT INTO foo (name, value, create_date) SELECT foo.id, foo.name, foo.create_date \\"createDate\\" FROM foo",
@@ -137,7 +135,7 @@ describe(`insert`, () => {
       .set({ value: 123 })
       .returning(`name`, `value`, `createDate`);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           123,
@@ -154,7 +152,7 @@ describe(`insert`, () => {
       .where(db.foo.value.lt(123))
       .returning(`name`, `value`, `createDate`);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           123,
@@ -167,7 +165,7 @@ describe(`insert`, () => {
   it(`insert into on conflict do nothing`, () => {
     const query = db.insertInto(db.foo).values({ name: `Test` }).onConflict().doNothing();
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           "Test",

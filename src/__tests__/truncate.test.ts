@@ -1,6 +1,4 @@
-import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
-
-import { toSnap } from './helpers';
+import { defineDb, defineTable, integer, text, timestampWithTimeZone, toSql, uuid } from '..';
 
 describe(`truncate`, () => {
   const foo = defineTable({
@@ -30,7 +28,7 @@ describe(`truncate`, () => {
   it(`should truncate`, () => {
     const query = db.truncate(db.foo);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
                 Object {
                   "parameters": Array [],
                   "text": "TRUNCATE foo",
@@ -41,7 +39,7 @@ describe(`truncate`, () => {
   it(`should restart identity`, () => {
     const query = db.truncate(db.foo).restartIdentity();
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
                 Object {
                   "parameters": Array [],
                   "text": "TRUNCATE foo RESTART IDENTITY",
@@ -52,7 +50,7 @@ describe(`truncate`, () => {
   it(`should continue identity`, () => {
     const query = db.truncate(db.foo).continueIdentity();
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
                 Object {
                   "parameters": Array [],
                   "text": "TRUNCATE foo CONTINUE IDENTITY",
@@ -63,7 +61,7 @@ describe(`truncate`, () => {
   it(`should cascade`, () => {
     const query = db.truncate(db.foo).cascade();
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
                 Object {
                   "parameters": Array [],
                   "text": "TRUNCATE foo CASCADE",
@@ -74,7 +72,7 @@ describe(`truncate`, () => {
   it(`should restrict`, () => {
     const query = db.truncate(db.foo).restrict();
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
                 Object {
                   "parameters": Array [],
                   "text": "TRUNCATE foo RESTRICT",

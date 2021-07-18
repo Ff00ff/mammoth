@@ -1,6 +1,6 @@
 import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
 
-import { toSnap } from './helpers';
+import { toSql } from '../sql-functions';
 
 describe(`delete`, () => {
   const foo = defineTable({
@@ -34,7 +34,7 @@ describe(`delete`, () => {
       .where(db.foo.id.ne(db.bar.id))
       .returning(`id`, `name`, `createDate`);
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "DELETE FROM foo USING bar, baz WHERE foo.id <> bar.id RETURNING id, name, create_date \\"createDate\\"",

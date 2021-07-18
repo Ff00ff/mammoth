@@ -6,6 +6,7 @@ import {
   ParameterToken,
   SeparatorToken,
   StringToken,
+  createQueryState,
 } from './tokens';
 import { DefaultExpression, Expression } from './expression';
 
@@ -225,3 +226,12 @@ export const coalesce = <DataType>(
     'coalesce',
   );
 };
+
+export function toSql(query: Query<any>) {
+  const queryState = createQueryState(query.toTokens());
+
+  return {
+    text: queryState.text.join(` `),
+    parameters: queryState.parameters,
+  };
+}

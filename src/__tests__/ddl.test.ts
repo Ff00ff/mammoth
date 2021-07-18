@@ -1,8 +1,6 @@
 import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
 
 import { enumType } from '../data-types';
-import { table } from 'console';
-import { toSnap } from './helpers';
 
 describe(`ddl`, () => {
   const foo = defineTable({

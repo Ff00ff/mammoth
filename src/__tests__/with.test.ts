@@ -1,8 +1,4 @@
-import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
-import { star, sum } from '../sql-functions';
-
-import { FromItem } from '../with';
-import { toSnap } from './helpers';
+import { defineDb, defineTable, integer, star, sum, text, timestampWithTimeZone, toSql, uuid } from '..';
 
 describe(`with`, () => {
   const orderLog = defineTable({
@@ -51,7 +47,7 @@ describe(`with`, () => {
           .groupBy(db.orderLog.region, db.orderLog.product),
     );
 
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [
           10,
@@ -67,7 +63,7 @@ describe(`with`, () => {
       () => db.select(star()).from(db.orderLog),
       ({ test }) => db.select(test.id).from(test),
     );
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "WITH test AS (SELECT * FROM order_log) SELECT test.id FROM test",
@@ -81,7 +77,7 @@ describe(`with`, () => {
       () => db.select(star()).from(db.orderLog),
       ({ test }) => db.select(star()).from(test),
     );
-    expect(toSnap(query)).toMatchInlineSnapshot(`
+    expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
         "text": "WITH test AS (SELECT * FROM order_log) SELECT * FROM test",

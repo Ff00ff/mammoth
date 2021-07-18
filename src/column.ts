@@ -36,7 +36,11 @@ export interface ColumnDefinition<
   unique(): ColumnDefinition<DataType, IsNotNull, HasDefault>;
   references<
     T extends TableDefinition<any>,
-    ColumnName extends T extends TableDefinition<infer Columns> ? keyof Columns : never
+    ColumnName extends T extends TableDefinition<infer Columns>
+      ? keyof Columns extends string
+        ? keyof Columns
+        : never
+      : never
   >(
     table: T,
     columnName: ColumnName,

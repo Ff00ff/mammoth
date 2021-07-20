@@ -11,7 +11,7 @@ import {
 import { wrapQuotes } from './naming';
 
 export class Expression<DataType, IsNotNull extends boolean, Name extends string> {
-  private _expressionBrand: any;
+  private _expressionBrand!: [DataType, IsNotNull, Name];
 
   /** @internal */
   getName() {
@@ -31,7 +31,7 @@ export class Expression<DataType, IsNotNull extends boolean, Name extends string
     private readonly nameIsAlias = false,
   ) {}
 
-  private getDataTypeTokens(value: DataType | Expression<DataType, true, any> | Query<any>) {
+  private getDataTypeTokens(value: DataType | Expression<DataType, boolean, any> | Query<any>) {
     if (
       value &&
       typeof value === `object` &&

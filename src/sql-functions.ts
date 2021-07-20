@@ -27,11 +27,10 @@ export class Star {
   }
 }
 
-export function raw<
-  DataType = unknown,
-  IsNotNull extends boolean = true,
-  Name extends string = never
->(strings: TemplateStringsArray, ...parameters: any[]) {
+export function raw<DataType, IsNotNull extends boolean, Name extends string>(
+  strings: TemplateStringsArray,
+  ...parameters: any[]
+) {
   const tokens = strings.flatMap((string, index) => {
     if (index === strings.length - 1) {
       return [new StringToken(string)];

@@ -153,5 +153,5 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
     });
 
   // @dts-jest:snap should select raw expression
-  toSnap(db.select(db.foo.id, raw<number>`test`).from(db.foo));
+  toSnap(db.select(db.foo.id, raw<number, false, `test`>`test`).from(db.foo));
 }

@@ -11,11 +11,11 @@ exports[`select should return correct result in then (type) should match snapsho
 
 exports[`select should return null and not null properties (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; createDate: GetDataType<Date, true>; value: GetDataType<number, false>; }"`;
 
-exports[`select should return nullable properties of all sides because of full join (type) should match snapshot 1`] = `"{ name: GetDataType<string, false>; startDate: GetDataType<Date, false>; value: GetDataType<number, false>; }"`;
+exports[`select should return nullable properties of all sides because of full join (type) should match snapshot 1`] = `"{ value: GetDataType<number, false>; name: GetDataType<string, false>; startDate: GetDataType<Date, false>; }"`;
 
 exports[`select should return nullable properties of left joined columns (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; endDate: GetDataType<Date, false>; value: GetDataType<number, false>; }"`;
 
-exports[`select should return nullable properties of left side properties when right joining (type) should match snapshot 1`] = `"{ name: GetDataType<string, false>; startDate: GetDataType<Date, true>; value: GetDataType<number, false>; }"`;
+exports[`select should return nullable properties of left side properties when right joining (type) should match snapshot 1`] = `"{ value: GetDataType<number, false>; name: GetDataType<string, false>; startDate: GetDataType<Date, true>; }"`;
 
 exports[`select should return previous return value in then (type) should match snapshot 1`] = `"number"`;
 
@@ -49,6 +49,6 @@ exports[`select should select named expression (type) should match snapshot 1`] 
 
 exports[`select should select null column in subquery (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; value: GetDataType<number, false>; }"`;
 
-exports[`select should select raw expression (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; }"`;
+exports[`select should select raw expression (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; test: GetDataType<number, false>; }"`;
 
 exports[`should output all columns and the data type (type) should match snapshot 1`] = `"{ id: string; createDate: Date; name: string; value: number; }"`;

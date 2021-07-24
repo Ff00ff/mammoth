@@ -85,8 +85,8 @@ type AddJoinType<Columns, NewJoinType extends JoinType> = {
 };
 
 type Join<
-  Query extends SelectQuery<any>,
-  JoinTable extends Table<any, any> | FromItem<any>
+  Query extends SelectQuery<any, boolean>,
+  JoinTable extends Table<any, any> | FromItem<any>,
 > = Query extends SelectQuery<infer ExistingColumns, infer IncludesStar>
   ? IncludesStar extends true
     ? SelectQuery<ExistingColumns & Omit<GetColumns<JoinTable>, keyof ExistingColumns>, true>
@@ -106,7 +106,7 @@ type GetColumns<From extends Table<any, any> | FromItem<any>> = From extends Tab
 
 type LeftJoin<
   Query extends SelectQuery<any>,
-  JoinTable extends Table<any, any> | FromItem<any>
+  JoinTable extends Table<any, any> | FromItem<any>,
 > = Query extends SelectQuery<infer ExistingColumns, infer IncludesStar>
   ? IncludesStar extends true
     ? SelectQuery<ExistingColumns & AddJoinType<GetColumns<JoinTable>, 'left-join'>>
@@ -115,7 +115,7 @@ type LeftJoin<
 
 type RightJoin<
   Query extends SelectQuery<any>,
-  JoinTable extends Table<any, any> | FromItem<any>
+  JoinTable extends Table<any, any> | FromItem<any>,
 > = Query extends SelectQuery<infer ExistingColumns, infer IncludesStar>
   ? IncludesStar extends true
     ? SelectQuery<AddJoinType<ExistingColumns, 'left-side-of-right-join'> & GetColumns<JoinTable>>
@@ -124,7 +124,7 @@ type RightJoin<
 
 type FullJoin<
   Query extends SelectQuery<any>,
-  JoinTable extends Table<any, any> | FromItem<any>
+  JoinTable extends Table<any, any> | FromItem<any>,
 > = Query extends SelectQuery<infer ExistingColumns, infer IncludesStar>
   ? IncludesStar extends true
     ? SelectQuery<AddJoinType<ExistingColumns & GetColumns<JoinTable>, 'full-join'>>
@@ -134,7 +134,7 @@ type FullJoin<
 // https://www.postgresql.org/docs/12/sql-select.html
 export class SelectQuery<
   Columns extends { [column: string]: any },
-  IncludesStar = false
+  IncludesStar = false,
 > extends Query<Columns> {
   private _selectQueryBrand: any;
 
@@ -425,39 +425,37 @@ export class SelectQuery<
   }
 }
 
-export const makeSelect = (queryExecutor: QueryExecutorFn, initialTokens?: Token[]): SelectFn => <
-  T extends Selectable
->(
-  ...columns: T[]
-) => {
-  const includesStar = !!columns.find((column) => column instanceof Star);
+export const makeSelect =
+  (queryExecutor: QueryExecutorFn, initialTokens?: Token[]): SelectFn =>
+  <T extends Selectable>(...columns: T[]) => {
+    const includesStar = !!columns.find((column) => column instanceof Star);
 
-  const returningKeys = columns.map((column) => {
-    if (column instanceof Query) {
-      return column.getReturningKeys()[0];
-    }
+    const returningKeys = columns.map((column) => {
+      if (column instanceof Query) {
+        return column.getReturningKeys()[0];
+      }
 
-    if (!column) {
-      throw new Error(`No column ${columns}`);
-    }
+      if (!column) {
+        throw new Error(`No column ${columns}`);
+      }
 
-    return (column as any).getName();
-  });
+      return (column as any).getName();
+    });
 
-  return new SelectQuery(queryExecutor, returningKeys, includesStar, [
-    ...(initialTokens || []),
-    new StringToken(`SELECT`),
-    new SeparatorToken(
-      `,`,
-      columns.map((column) => {
-        const tokens = column.toTokens(true);
+    return new SelectQuery(queryExecutor, returningKeys, includesStar, [
+      ...(initialTokens || []),
+      new StringToken(`SELECT`),
+      new SeparatorToken(
+        `,`,
+        columns.map((column) => {
+          const tokens = column.toTokens(true);
 
-        if (column instanceof Query) {
-          return new GroupToken(tokens);
-        }
+          if (column instanceof Query) {
+            return new GroupToken(tokens);
+          }
 
-        return new CollectionToken(tokens);
-      }),
-    ),
-  ]) as any;
-};
+          return new CollectionToken(tokens);
+        }),
+      ),
+    ]) as any;
+  };

@@ -3,6 +3,7 @@ import {
   defineDb,
   defineTable,
   integer,
+  raw,
   serial,
   text,
   timestampWithTimeZone,
@@ -71,4 +72,22 @@ const db = defineDb({ foo, serialTest }, () => Promise.resolve({ rows: [], affec
   db.insertInto(db.serialTest).values({
     value: 123,
   });
+
+  // @dts-jest:snap should insert with expression of the not-null correct type
+  db.insertInto(db.serialTest).values({
+    value: raw<number, true>`get_value()`,
+  });
+
+  // @dts-jest:snap should insert with expression of the nullable correct type
+  db.insertInto(db.serialTest).values({
+    value: raw<number, false>`get_value()`,
+  });
+
+  db.insertInto(db.serialTest).values({
+    // @dts-jest:fail:snap should not insert with wrong type of expression
+    value: raw<string>`get_value()`,
+  });
+
+  // @dts-jest:snap should insert using subquery
+  db.insertInto(db.foo).values({ name: db.select(db.foo.name.concat(` 2`)).from(db.foo).limit(1) });
 }

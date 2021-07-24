@@ -1,5 +1,7 @@
 import { defineDb, defineTable, integer, text, timestampWithTimeZone, toSql, uuid } from '..';
 
+import { raw } from '../sql-functions';
+
 describe(`insert`, () => {
   const foo = defineTable({
     id: uuid().primaryKey().default(`gen_random_uuid()`),
@@ -171,6 +173,35 @@ describe(`insert`, () => {
           "Test",
         ],
         "text": "INSERT INTO foo (name) VALUES ($1) ON CONFLICT DO NOTHING",
+      }
+    `);
+  });
+
+  it(`should insert a single row using a raw expression`, () => {
+    const query = db.insertInto(db.foo).values({
+      name: raw<string, true, `name`>`get_some_text()`,
+    });
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "INSERT INTO foo (name) VALUES ((get_some_text()))",
+      }
+    `);
+  });
+
+  it(`should insert using subquery`, () => {
+    const query = db.insertInto(db.foo).values({
+      name: db.select(db.foo.name.concat(` 2`)).from(db.foo).limit(1),
+    });
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          " 2",
+          1,
+        ],
+        "text": "INSERT INTO foo (name) VALUES ((SELECT foo.name || $1 FROM foo LIMIT $2))",
       }
     `);
   });

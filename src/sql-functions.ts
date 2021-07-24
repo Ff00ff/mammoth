@@ -27,7 +27,7 @@ export class Star {
   }
 }
 
-export function raw<DataType, IsNotNull extends boolean, Name extends string>(
+export function raw<DataType, IsNotNull extends boolean = false, Name extends string = '?column?'>(
   strings: TemplateStringsArray,
   ...parameters: any[]
 ) {

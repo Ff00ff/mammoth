@@ -11,7 +11,7 @@ import {
 import { wrapQuotes } from './naming';
 
 export class Expression<DataType, IsNotNull extends boolean, Name extends string> {
-  private _expressionBrand!: [DataType, IsNotNull, Name];
+  private _expressionBrand!: ['expression', DataType, IsNotNull, Name];
 
   /** @internal */
   getName() {

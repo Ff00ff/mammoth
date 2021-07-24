@@ -6,7 +6,7 @@ import { Token } from './tokens';
 export type SpecificQuery<
   DataType,
   Q extends Query<any>,
-  Result = ResultSet<Q, false>
+  Result = ResultSet<Q, false>,
 > = Result extends {
   [K in keyof Result]: DataType | undefined;
 }
@@ -17,7 +17,7 @@ export type BooleanQuery<Q extends Query<any>> = SpecificQuery<boolean, Q>;
 
 // this class is captured when doing a conditional type check (through T extends Query<infer Returning>).
 export abstract class Query<Returning> {
-  private _queryBrand!: Returning;
+  private _queryBrand!: ['query', Returning];
   /** @internal */
   abstract toTokens(includeAlias?: boolean): Token[];
   /** @internal */

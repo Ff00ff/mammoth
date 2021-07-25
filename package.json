@@ -19,7 +19,7 @@
   ],
   "devDependencies": {
     "@types/jest": "^26.0.24",
-    "@types/node": "^16.3.3",
+    "@types/node": "^16.4.1",
     "dts-jest": "^23.3.0",
     "jest": "^26.6.3",
     "prettier": "^2.3.2",

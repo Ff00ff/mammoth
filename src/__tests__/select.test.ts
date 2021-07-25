@@ -254,6 +254,22 @@ describe(`select`, () => {
     `);
   });
 
+  it(`should select where any with empty set`, () => {
+    const query = db
+      .select(db.foo.id)
+      .from(db.foo)
+      .where(db.foo.name.eq(any([])));
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          Array [],
+        ],
+        "text": "SELECT foo.id FROM foo WHERE foo.name = ANY ($1)",
+      }
+    `);
+  });
+
   it(`should select IN with subquery`, () => {
     const query = db
       .select(db.foo.id)

@@ -1,8 +1,9 @@
+import { allReservedKeywords } from './all-reserved-keywords';
 import { reservedKeywords } from './reserved-keywords';
 
-export const wrapQuotes = (string: string) => {
+export const wrapQuotes = (string: string, extended?: boolean) => {
   const isCamelCase = string.match(/[A-Z]/);
-  const isReserved = reservedKeywords.has(string);
+  const isReserved = reservedKeywords.has(string) || (extended && allReservedKeywords.has(string));
   const shouldWrap = isReserved || isCamelCase;
 
   return shouldWrap ? `"${string}"` : string;

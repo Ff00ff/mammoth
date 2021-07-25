@@ -60,7 +60,18 @@ describe(`select`, () => {
     Promise.resolve({ rows: [], affectedCount: 0 }),
   );
 
-  it(`should select * from foo`, async () => {
+  it(`should select star from foo join bar`, () => {
+    const query = db.select(star()).from(db.foo).innerJoin(db.bar).on(db.bar.fooId.eq(db.foo.id));
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.enum_test \\"enumTest\\", bar.id, bar.foo_id \\"fooId\\", bar.name FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
+      }
+    `);
+  });
+
+  it(`should select star plus bar alias from foo`, () => {
     const query = db
       .select(star(), db.bar.id.as(`test`))
       .from(db.foo)
@@ -70,12 +81,12 @@ describe(`select`, () => {
     expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "SELECT *, bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
+        "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.enum_test \\"enumTest\\", bar.id, bar.foo_id \\"fooId\\", bar.name, bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
       }
     `);
   });
 
-  it(`should select foo.* from foo`, () => {
+  it(`should select star foo plus bar alias from foo`, () => {
     const query = db
       .select(star(db.foo), db.bar.id.as(`test`))
       .from(db.foo)
@@ -85,7 +96,7 @@ describe(`select`, () => {
     expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "SELECT foo.*, bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
+        "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.enum_test \\"enumTest\\", bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
       }
     `);
   });
@@ -99,7 +110,7 @@ describe(`select`, () => {
     expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "SELECT * FROM foo WHERE EXISTS (SELECT * FROM bar WHERE bar.foo_id = foo.id)",
+        "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.enum_test \\"enumTest\\" FROM foo WHERE EXISTS (SELECT bar.id, bar.foo_id \\"fooId\\", bar.name FROM bar WHERE bar.foo_id = foo.id)",
       }
     `);
   });
@@ -132,19 +143,19 @@ describe(`select`, () => {
     expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "SELECT list_item.* FROM list_item",
+        "text": "SELECT list_item.id, list_item.name, list_item.is_great \\"isGreat\\" FROM list_item",
       }
     `);
   });
 
-  it(`should select alias baz.*`, async () => {
+  it(`should select alias baz.*`, () => {
     const baz = db.bar.as(`baZ`);
     const query = db.select(star(baz)).from(baz);
 
     expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "SELECT \\"baZ\\".* FROM bar \\"baZ\\"",
+        "text": "SELECT \\"baZ\\".id, \\"baZ\\".foo_id \\"fooId\\", \\"baZ\\".name FROM bar \\"baZ\\"",
       }
     `);
   });
@@ -883,6 +894,34 @@ describe(`select`, () => {
           "test-2",
         ],
         "text": "SELECT foo.id, something FROM foo WHERE foo.id = $1 OR (1 =  $2  AND foo.id = $3)",
+      }
+    `);
+  });
+
+  it(`should select using row-wise compare using raw expression`, () => {
+    const query = db
+      .select(star())
+      .from(db.foo)
+      .where(raw`(name, value)`.gt(raw`(${'Test'}, ${123})`));
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [
+          "Test",
+          123,
+        ],
+        "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.enum_test \\"enumTest\\" FROM foo WHERE (name, value) > ( $1 ,  $2 )",
+      }
+    `);
+  });
+
+  it(`should quote name in alias as extended reserved keyword`, () => {
+    const query = db.select(db.foo.id.as(`name`)).from(db.foo);
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id \\"name\\" FROM foo",
       }
     `);
   });

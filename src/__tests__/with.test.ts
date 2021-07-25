@@ -1,4 +1,14 @@
-import { defineDb, defineTable, integer, star, sum, text, timestampWithTimeZone, toSql, uuid } from '..';
+import {
+  defineDb,
+  defineTable,
+  integer,
+  star,
+  sum,
+  text,
+  timestampWithTimeZone,
+  toSql,
+  uuid,
+} from '..';
 
 describe(`with`, () => {
   const orderLog = defineTable({
@@ -66,12 +76,12 @@ describe(`with`, () => {
     expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "WITH test AS (SELECT * FROM order_log) SELECT test.id FROM test",
+        "text": "WITH test AS (SELECT order_log.id, order_log.region, order_log.product, order_log.quantity, order_log.amount FROM order_log) SELECT test.id FROM test",
       }
     `);
   });
 
-  it(`should with as select * from and another select *`, () => {
+  it(`should with as select star from and another select star`, () => {
     const query = db.with(
       `test`,
       () => db.select(star()).from(db.orderLog),
@@ -80,7 +90,35 @@ describe(`with`, () => {
     expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "WITH test AS (SELECT * FROM order_log) SELECT * FROM test",
+        "text": "WITH test AS (SELECT order_log.id, order_log.region, order_log.product, order_log.quantity, order_log.amount FROM order_log) SELECT test.id, test.region, test.product, test.quantity, test.amount FROM test",
+      }
+    `);
+  });
+
+  it(`should with as select star and then access one of the columns`, () => {
+    const query = db.with(
+      `test`,
+      () => db.select(star()).from(db.orderLog),
+      ({ test }) => db.select(test.id).from(test),
+    );
+    expect(toSql(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "WITH test AS (SELECT order_log.id, order_log.region, order_log.product, order_log.quantity, order_log.amount FROM order_log) SELECT test.id FROM test",
+      }
+    `);
+  });
+
+  it(`should with as select order log star and then access one of the columns`, () => {
+    const query = db.with(
+      `test`,
+      () => db.select(star(db.orderLog)).from(db.orderLog),
+      ({ test }) => db.select(test.id).from(test),
+    );
+    expect(toSql(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "WITH test AS (SELECT order_log.id, order_log.region, order_log.product, order_log.quantity, order_log.amount FROM order_log) SELECT test.id FROM test",
       }
     `);
   });

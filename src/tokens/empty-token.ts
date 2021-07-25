@@ -1,7 +1,7 @@
-import { Token } from './token';
+import { State, Token } from './token';
 
 export class EmptyToken extends Token {
-  reduce(state: any) {
+  reduce(state: State) {
     return state;
   }
 }

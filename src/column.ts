@@ -20,7 +20,7 @@ export interface ColumnDefinitionFormat {
 export interface ColumnDefinition<
   DataType,
   IsNotNull extends boolean = false,
-  HasDefault extends boolean = false
+  HasDefault extends boolean = false,
 > {
   notNull(): ColumnDefinition<DataType, true, HasDefault>;
   primaryKey(): ColumnDefinition<DataType, true, HasDefault>;
@@ -40,7 +40,7 @@ export interface ColumnDefinition<
       ? keyof Columns extends string
         ? keyof Columns
         : never
-      : never
+      : never,
   >(
     table: T,
     columnName: ColumnName,
@@ -54,7 +54,7 @@ export interface ColumnDefinition<
 export const makeColumnDefinition = <
   DataType,
   IsNotNull extends boolean = false,
-  HasDefault extends boolean = false
+  HasDefault extends boolean = false,
 >(
   dataType: string,
   enumValues?: string[],
@@ -145,7 +145,7 @@ export class Column<
   DataType,
   IsNotNull extends boolean,
   HasDefault extends boolean,
-  JoinType
+  JoinType,
 > extends Expression<DataType, IsNotNull, Name> {
   private _columnBrand: any;
 
@@ -168,14 +168,14 @@ export class Column<
       originalColumnName
         ? [
             new StringToken(
-              `${wrapQuotes((tableName as unknown) as string)}.${wrapQuotes(
+              `${wrapQuotes(tableName as unknown as string)}.${wrapQuotes(
                 toSnakeCase(originalColumnName),
               )}`,
             ),
           ]
         : [
             new StringToken(
-              `${wrapQuotes((tableName as unknown) as string)}.${wrapQuotes(
+              `${wrapQuotes(tableName as unknown as string)}.${wrapQuotes(
                 toSnakeCase(columnName),
               )}`,
             ),
@@ -187,22 +187,22 @@ export class Column<
   as<AliasName extends string>(
     alias: AliasName,
   ): Column<AliasName, TableName, DataType, IsNotNull, HasDefault, JoinType> {
-    return new Column(alias, this.tableName, (this.columnName as unknown) as string);
+    return new Column(alias, this.tableName, this.columnName as unknown as string);
   }
 
   /** @internal */
   toTokens(includeAlias?: boolean): Token[] {
-    const snakeCaseColumnName = toSnakeCase((this.columnName as unknown) as string);
+    const snakeCaseColumnName = toSnakeCase(this.columnName as unknown as string);
     const toStringTokens = (tableName: TableName, columnName: string, alias?: string) => {
       const initialToken = new StringToken(
-        `${wrapQuotes((tableName as unknown) as string)}.${wrapQuotes(columnName)}`,
+        `${wrapQuotes(tableName as unknown as string)}.${wrapQuotes(columnName)}`,
       );
 
       if (!alias) {
         return [initialToken];
       }
 
-      return [initialToken, new StringToken(wrapQuotes(alias))];
+      return [initialToken, new StringToken(wrapQuotes(alias, true))];
     };
 
     if (includeAlias) {

@@ -1,5 +1,7 @@
 import { State, Token, createQueryState } from './token';
 
+import type { Table } from '../TableType';
+
 export type Separator = ',';
 
 export class SeparatorToken extends Token {
@@ -13,12 +15,12 @@ export class SeparatorToken extends Token {
     this.tokens = tokens;
   }
 
-  reduce(state: State, numberOfParameters: number) {
+  reduce(state: State, numberOfParameters: number, tables: Table<any, any>[]) {
     const length = this.tokens.length;
     let parameterIndex = numberOfParameters;
     this.tokens.forEach((token, index) => {
       const last = index === length - 1;
-      const tokenState = createQueryState([token], parameterIndex);
+      const tokenState = createQueryState([token], parameterIndex, tables);
 
       if (tokenState.text.length > 0) {
         if (!last) {

@@ -1,5 +1,7 @@
 import { State, Token, createQueryState } from './token';
 
+import type { Table } from '../TableType';
+
 export class CollectionToken extends Token {
   tokens: Token[];
 
@@ -9,8 +11,8 @@ export class CollectionToken extends Token {
     this.tokens = tokens;
   }
 
-  reduce(state: State, numberOfParameters: number) {
-    const tokensState = createQueryState(this.tokens, numberOfParameters);
+  reduce(state: State, numberOfParameters: number, tables: Table<any, any>[]) {
+    const tokensState = createQueryState(this.tokens, numberOfParameters, tables);
     state.parameters.push(...tokensState.parameters);
     state.text.push(...tokensState.text);
     return state;

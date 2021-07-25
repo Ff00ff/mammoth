@@ -34,7 +34,7 @@ export interface WithFn {
     W1 extends QueryFn<never>,
     N2 extends string,
     W2 extends QueryFn<{ [K in N1]: FromItem<W1> }>,
-    Q extends Query<any>
+    Q extends Query<any>,
   >(
     name1: N1,
     with1: W1,
@@ -49,7 +49,7 @@ export interface WithFn {
     W2 extends QueryFn<{ [K in N1]: FromItem<W1> }>,
     N3 extends string,
     W3 extends QueryFn<{ [K in N1]: FromItem<W1> } & { [K in N2]: FromItem<W2> }>,
-    Q extends Query<any>
+    Q extends Query<any>,
   >(
     name1: N1,
     with1: W1,
@@ -72,7 +72,7 @@ export interface WithFn {
     W4 extends QueryFn<
       { [K in N1]: FromItem<W1> } & { [K in N2]: FromItem<W2> } & { [K in N3]: FromItem<W3> }
     >,
-    Q extends Query<any>
+    Q extends Query<any>,
   >(
     name1: N1,
     with1: W1,
@@ -107,7 +107,7 @@ export interface WithFn {
         { [K in N3]: FromItem<W3> } &
         { [K in N4]: FromItem<W4> }
     >,
-    Q extends Query<any>
+    Q extends Query<any>,
   >(
     name1: N1,
     with1: W1,
@@ -153,7 +153,7 @@ export interface WithFn {
         { [K in N4]: FromItem<W4> } &
         { [K in N5]: FromItem<W5> }
     >,
-    Q extends Query<any>
+    Q extends Query<any>,
   >(
     name1: N1,
     with1: W1,
@@ -211,7 +211,7 @@ export interface WithFn {
         { [K in N5]: FromItem<W5> } &
         { [K in N6]: FromItem<W6> }
     >,
-    Q extends Query<any>
+    Q extends Query<any>,
   >(
     name1: N1,
     with1: W1,
@@ -282,7 +282,7 @@ export interface WithFn {
         { [K in N6]: FromItem<W6> } &
         { [K in N7]: FromItem<W7> }
     >,
-    Q extends Query<any>
+    Q extends Query<any>,
   >(
     name1: N1,
     with1: W1,
@@ -367,7 +367,7 @@ export interface WithFn {
         { [K in N7]: FromItem<W7> } &
         { [K in N8]: FromItem<W8> }
     >,
-    Q extends Query<any>
+    Q extends Query<any>,
   >(
     name1: N1,
     with1: W1,
@@ -467,7 +467,7 @@ export interface WithFn {
         { [K in N8]: FromItem<W8> } &
         { [K in N9]: FromItem<W9> }
     >,
-    Q extends Query<any>
+    Q extends Query<any>,
   >(
     name1: N1,
     with1: W1,
@@ -504,63 +504,65 @@ export interface WithFn {
   ): Q;
 }
 
-export const makeWith = (queryExecutor: QueryExecutorFn): WithFn => (...args: any[]) => {
-  const queries: any = {};
+export const makeWith =
+  (queryExecutor: QueryExecutorFn): WithFn =>
+  (...args: any[]) => {
+    const queries: any = {};
 
-  const createWith = (withFn: QueryFn<any>) => {
-    if (withFn instanceof Query) {
-      return withFn;
-    }
+    const createWith = (withFn: QueryFn<any>) => {
+      if (withFn instanceof Query) {
+        return withFn;
+      }
 
-    return withFn(queries);
-  };
-
-  const createFromItem = (name: string, query: Query<any>) => {
-    const fromItem = {
-      ...query.getReturningKeys().reduce((fromItem, key) => {
-        fromItem[key] = new Expression(
-          [new StringToken(`${wrapQuotes(name)}.${wrapQuotes(key)}`)],
-          key,
-        );
-        return fromItem;
-      }, {} as any),
-
-      getName() {
-        return name;
-      },
-
-      getOriginalName() {
-        return undefined;
-      },
+      return withFn(queries);
     };
 
-    return fromItem;
+    const createFromItem = (name: string, query: Query<any>) => {
+      const fromItem = {
+        ...query.getReturningKeys().reduce((fromItem, key) => {
+          fromItem[key] = new Expression(
+            [new StringToken(`${wrapQuotes(name)}.${wrapQuotes(key)}`)],
+            key,
+          );
+          return fromItem;
+        }, {} as any),
+
+        getName() {
+          return name;
+        },
+
+        getOriginalName() {
+          return undefined;
+        },
+      };
+
+      return fromItem;
+    };
+
+    const tokens: Token[] = [];
+
+    for (let i = 0; i < args.length - 1; i += 2) {
+      const name = args[i];
+      const withQuery = createWith(args[i + 1]);
+
+      tokens.push(
+        new CollectionToken([
+          new StringToken(wrapQuotes(name)),
+          new StringToken(`AS`),
+          new GroupToken(withQuery.toTokens()),
+        ]),
+      );
+
+      queries[name] = createFromItem(name, withQuery);
+    }
+
+    const callback = args[args.length - 1];
+
+    const query: Query<any> = callback(queries);
+
+    return new SelectQuery(queryExecutor, [], false, [
+      new StringToken(`WITH`),
+      new SeparatorToken(`,`, tokens),
+      ...query.toTokens(),
+    ]) as any;
   };
-
-  const tokens: Token[] = [];
-
-  for (let i = 0; i < args.length - 1; i += 2) {
-    const name = args[i];
-    const withQuery = createWith(args[i + 1]);
-
-    tokens.push(
-      new CollectionToken([
-        new StringToken(wrapQuotes(name)),
-        new StringToken(`AS`),
-        new GroupToken(withQuery.toTokens()),
-      ]),
-    );
-
-    queries[name] = createFromItem(name, withQuery);
-  }
-
-  const callback = args[args.length - 1];
-
-  const query: Query<any> = callback(queries);
-
-  return new SelectQuery(queryExecutor, [], false, [
-    new StringToken(`WITH`),
-    new SeparatorToken(`,`, tokens),
-    ...query.toTokens(),
-  ]) as any;
-};

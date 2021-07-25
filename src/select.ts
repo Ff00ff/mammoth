@@ -4,6 +4,7 @@ import {
   ParameterToken,
   SeparatorToken,
   StringToken,
+  TableToken,
   Token,
   createQueryState,
 } from './tokens';
@@ -187,24 +188,14 @@ export class SelectQuery<
     const table = fromItem as Table<any, any>;
 
     return this.newSelectQuery(
-      [...this.tokens, new StringToken(`FROM`), this.getTableStringToken(table)],
+      [...this.tokens, new StringToken(`FROM`), new TableToken(table)],
       table,
     ) as any;
   }
 
-  private getTableStringToken(table: Table<any, any>) {
-    if (table.getOriginalName()) {
-      return new StringToken(
-        `${wrapQuotes(table.getOriginalName())} ${wrapQuotes(table.getName())}`,
-      );
-    }
-
-    return new StringToken(wrapQuotes(table.getName()));
-  }
-
   join<T extends Table<any, any>>(table: T): Join<SelectQuery<Columns, IncludesStar>, T> {
     return this.newSelectQuery(
-      [...this.tokens, new StringToken(`JOIN`), this.getTableStringToken(table)],
+      [...this.tokens, new StringToken(`JOIN`), new TableToken(table)],
       table,
     ) as any;
   }
@@ -213,7 +204,7 @@ export class SelectQuery<
     table: JoinTable,
   ): Join<SelectQuery<Columns, IncludesStar>, JoinTable> {
     return this.newSelectQuery(
-      [...this.tokens, new StringToken(`INNER JOIN`), this.getTableStringToken(table)],
+      [...this.tokens, new StringToken(`INNER JOIN`), new TableToken(table)],
       table,
     ) as any;
   }
@@ -222,7 +213,7 @@ export class SelectQuery<
     table: JoinTable,
   ): LeftJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
     return this.newSelectQuery(
-      [...this.tokens, new StringToken(`LEFT OUTER JOIN`), this.getTableStringToken(table)],
+      [...this.tokens, new StringToken(`LEFT OUTER JOIN`), new TableToken(table)],
       table,
     ) as any;
   }
@@ -231,7 +222,7 @@ export class SelectQuery<
     table: JoinTable,
   ): LeftJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
     return this.newSelectQuery(
-      [...this.tokens, new StringToken(`LEFT JOIN`), this.getTableStringToken(table)],
+      [...this.tokens, new StringToken(`LEFT JOIN`), new TableToken(table)],
       table,
     ) as any;
   }
@@ -240,7 +231,7 @@ export class SelectQuery<
     table: JoinTable,
   ): RightJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
     return this.newSelectQuery(
-      [...this.tokens, new StringToken(`RIGHT OUTER JOIN`), this.getTableStringToken(table)],
+      [...this.tokens, new StringToken(`RIGHT OUTER JOIN`), new TableToken(table)],
       table,
     ) as any;
   }
@@ -249,7 +240,7 @@ export class SelectQuery<
     table: JoinTable,
   ): RightJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
     return this.newSelectQuery(
-      [...this.tokens, new StringToken(`RIGHT JOIN`), this.getTableStringToken(table)],
+      [...this.tokens, new StringToken(`RIGHT JOIN`), new TableToken(table)],
       table,
     ) as any;
   }
@@ -258,7 +249,7 @@ export class SelectQuery<
     table: JoinTable,
   ): FullJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
     return this.newSelectQuery(
-      [...this.tokens, new StringToken(`FULL OUTER JOIN`), this.getTableStringToken(table)],
+      [...this.tokens, new StringToken(`FULL OUTER JOIN`), new TableToken(table)],
       table,
     ) as any;
   }
@@ -267,7 +258,7 @@ export class SelectQuery<
     table: JoinTable,
   ): FullJoin<SelectQuery<Columns, IncludesStar>, JoinTable> {
     return this.newSelectQuery(
-      [...this.tokens, new StringToken(`FULL JOIN`), this.getTableStringToken(table)],
+      [...this.tokens, new StringToken(`FULL JOIN`), new TableToken(table)],
       table,
     ) as any;
   }
@@ -277,7 +268,7 @@ export class SelectQuery<
     table: Table<any, any>,
   ): Join<SelectQuery<Columns, IncludesStar>, JoinTable> {
     return this.newSelectQuery(
-      [...this.tokens, new StringToken(`CROSS JOIN`), this.getTableStringToken(table)],
+      [...this.tokens, new StringToken(`CROSS JOIN`), new TableToken(table)],
       table,
     ) as any;
   }
@@ -430,17 +421,19 @@ export const makeSelect =
   <T extends Selectable>(...columns: T[]) => {
     const includesStar = !!columns.find((column) => column instanceof Star);
 
-    const returningKeys = columns.map((column) => {
-      if (column instanceof Query) {
-        return column.getReturningKeys()[0];
-      }
+    const returningKeys = columns
+      .filter((column) => !(column instanceof Star))
+      .map((column) => {
+        if (column instanceof Query) {
+          return column.getReturningKeys()[0];
+        }
 
-      if (!column) {
-        throw new Error(`No column ${columns}`);
-      }
+        if (!column) {
+          throw new Error(`Column '${column}' not found in columns '${columns}'`);
+        }
 
-      return (column as any).getName();
-    });
+        return (column as any).getName();
+      });
 
     return new SelectQuery(queryExecutor, returningKeys, includesStar, [
       ...(initialTokens || []),

@@ -1,16 +1,16 @@
-import { Token } from './token';
+import { State, Token } from './token';
 
 export class StringToken extends Token {
-	string: string;
+  string: string;
 
-	constructor(string: string) {
-		super();
+  constructor(string: string) {
+    super();
 
-		this.string = string;
-	}
+    this.string = string;
+  }
 
-	reduce(state: any) {
-		state.text.push(this.string);
-		return state;
-	}
+  reduce(state: State) {
+    state.text.push(this.string);
+    return state;
+  }
 }

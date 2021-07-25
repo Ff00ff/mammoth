@@ -589,49 +589,6 @@ export const makeInsertInto =
     table: T,
     columnNames?: T extends Table<any, infer Columns> ? (keyof Columns)[] : never,
   ): T extends TableDefinition<any> ? never : InsertIntoResult<T> => {
-    // type Row = T extends Table<any, infer Columns>
-    //   ? {
-    //       [K in keyof PickByValue<
-    //         {
-    //           [K in keyof Columns]: Columns[K] extends Column<
-    //             any,
-    //             any,
-    //             any,
-    //             infer IsNotNull,
-    //             infer HasDefault,
-    //             any
-    //           >
-    //             ? HasDefault extends true
-    //               ? false
-    //               : IsNotNull
-    //             : never;
-    //         },
-    //         true
-    //       >]: Columns[K] extends Column<any, any, infer DataType, any, any, any> ? DataType : never;
-    //     } &
-    //       {
-    //         [K in keyof PickByValue<
-    //           {
-    //             [K in keyof Columns]: Columns[K] extends Column<
-    //               any,
-    //               any,
-    //               any,
-    //               infer IsNotNull,
-    //               infer HasDefault,
-    //               any
-    //             >
-    //               ? HasDefault extends true
-    //                 ? true
-    //                 : false
-    //               : never;
-    //           },
-    //           false
-    //         >]?: Columns[K] extends Column<any, any, infer DataType, any, any, any>
-    //           ? DataType | undefined
-    //           : never;
-    //       }
-    //   : never;
-
     return {
       select: makeSelect(queryExecutor, [
         new StringToken(`INSERT INTO`),

@@ -1,8 +1,8 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Is the typing broken or the SQL of a query wrong?
 title: ''
-labels: ''
+labels: bug
 assignees: ''
 
 ---

@@ -1,5 +1,6 @@
 // This is used so we can capture the Returning of every different query type without having to
 // specify every query seperately. The private property is used to simulate a nominal type so only
+import { GetResultType } from './config';
 import { ResultSet } from './result-set';
 import { Token } from './tokens';
 
@@ -8,7 +9,7 @@ export type SpecificQuery<
   Q extends Query<any>,
   Result = ResultSet<Q, false>,
 > = Result extends {
-  [K in keyof Result]: DataType | undefined;
+  [K in keyof Result]: GetResultType<DataType> | GetResultType<'Null'>;
 }
   ? Q
   : never;

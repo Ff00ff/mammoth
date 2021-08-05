@@ -1,3 +1,4 @@
+import { Expression, NumberExpression, SharedExpression } from '../expression';
 import { Star, raw, star, toSql } from '../sql-functions';
 import {
   any,
@@ -24,11 +25,12 @@ import {
   timestampWithTimeZone,
   uuid,
 } from '..';
+import { bigint, enumType, float4 } from '../data-types';
 
-import { Expression } from '../expression';
+import { Column } from '../column';
+import { GetSelectableName } from '../SelectFn';
 import { Query } from '../query';
 import { ResultSet } from '../result-set';
-import { enumType } from '../data-types';
 
 describe(`select`, () => {
   const foo = defineTable({
@@ -56,7 +58,11 @@ describe(`select`, () => {
     with: text(),
   });
 
-  const db = defineDb({ foo, bar, listItem, user }, () =>
+  const crate = defineTable({
+    float4: float4(),
+  });
+
+  const db = defineDb({ foo, bar, listItem, user, crate }, () =>
     Promise.resolve({ rows: [], affectedCount: 0 }),
   );
 
@@ -900,7 +906,7 @@ describe(`select`, () => {
     const query = db
       .select(db.foo.id, raw<number, true, 'something'>`something`)
       .from(db.foo)
-      .where(db.foo.id.eq('test-1').or(raw`1 = ${1}`.and(db.foo.id.eq(`test-2`))));
+      .where(db.foo.id.eq('test-1').or(raw<boolean>`1 = ${1}`.and(db.foo.id.eq(`test-2`))));
 
     expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
@@ -938,6 +944,28 @@ describe(`select`, () => {
       Object {
         "parameters": Array [],
         "text": "SELECT foo.id \\"name\\" FROM foo",
+      }
+    `);
+  });
+
+  it(`should union query`, () => {
+    const query = db.select(db.foo.id).from(db.foo).union(db.select(db.bar.id).from(db.bar));
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo UNION SELECT bar.id FROM bar",
+      }
+    `);
+  });
+
+  it(`should union all query`, () => {
+    const query = db.select(db.foo.id).from(db.foo).unionAll(db.select(db.bar.id).from(db.bar));
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id FROM foo UNION ALL SELECT bar.id FROM bar",
       }
     `);
   });

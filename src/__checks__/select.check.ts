@@ -5,7 +5,12 @@ import {
   count,
   defineDb,
   defineTable,
+  float4,
+  float8,
+  int4,
+  int8,
   integer,
+  numeric,
   raw,
   star,
   sum,
@@ -42,10 +47,31 @@ const bar = defineTable({
   fooId: uuid().references(foo, 'id'),
 });
 
+const buzz = defineTable({
+  id: uuid().primaryKey().default(`gen_random_uuid()`),
+  name: text(),
+  other: text().notNull(),
+});
+
+const crate = defineTable({
+  float4: float4(),
+  float8: float8(),
+  int4: int4(),
+  int8: int8(),
+  numeric: numeric(),
+});
+
+const ding = defineTable({
+  id: text().primaryKey(),
+  value: integer().default(`1`),
+});
+
 // @dts-jest:snap should output all columns and the data type
 toTableRow(foo);
 
-const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
+const db = defineDb({ foo, bar, buzz, crate, ding }, () =>
+  Promise.resolve({ rows: [], affectedCount: 0 }),
+);
 
 // @dts-jest:group select
 {
@@ -154,4 +180,28 @@ const db = defineDb({ foo, bar }, () => Promise.resolve({ rows: [], affectedCoun
 
   // @dts-jest:snap should select raw expression
   toSnap(db.select(db.foo.id, raw<number, false, `test`>`test`).from(db.foo));
+
+  // @dts-jest:snap should return nullable text when calling concat on nullable column
+  db.buzz.name.concat(db.buzz.other);
+
+  // @dts-jest:snap should return nullable text when calling concat with nullable input
+  db.buzz.other.concat(db.buzz.name);
+
+  // @dts-jest:snap float4 + float4 = float4
+  db.crate.float4.plus(db.crate.float4);
+
+  // @dts-jest:snap float4 + int4 = float8
+  db.crate.float4.plus(db.crate.int4);
+
+  // @dts-jest:snap float8 + int8 = float8
+  db.crate.float8.plus(db.crate.int8);
+
+  // @dts-jest:snap int8 + int4 = int8
+  db.crate.int8.plus(db.crate.int4);
+
+  // @dts-jest:snap int4 + int4 = int4
+  db.crate.int4.plus(db.crate.int4);
+
+  // @dts-jest:snap should select column with default which is nullable
+  toSnap(db.select(db.ding.value).from(db.ding));
 }

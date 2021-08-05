@@ -1,54 +1,71 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`select should convert null value to not null using coalesce (type) should match snapshot 1`] = `"{ coalesce: GetDataType<number, true>; }"`;
+exports[`select float4 + float4 = float4 (type) should match snapshot 1`] = `"NumberExpression<\\"Float4\\", false, \\"?column?\\">"`;
 
-exports[`select should not use in with wrong data type (type) should match snapshot 1`] = `
-"Argument of type 'SelectQuery<{ createDate: Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>; }, false>' is not assignable to parameter of type 'string[] | Expression<string, true, any>'.
-  Type 'SelectQuery<{ createDate: Column<\\"createDate\\", \\"foo\\", Date, true, any, undefined>; }, false>' is missing the following properties from type 'Expression<string, true, any>': name, nameIsAlias, _expressionBrand, unusedName, and 33 more."
+exports[`select float4 + int4 = float8 (type) should match snapshot 1`] = `"NumberExpression<\\"Float8\\", false, \\"?column?\\">"`;
+
+exports[`select float8 + int8 = float8 (type) should match snapshot 1`] = `"NumberExpression<\\"Float8\\", false, \\"?column?\\">"`;
+
+exports[`select int4 + int4 = int4 (type) should match snapshot 1`] = `"NumberExpression<\\"Int4\\", false, \\"?column?\\">"`;
+
+exports[`select int8 + int4 = int8 (type) should match snapshot 1`] = `"NumberExpression<\\"Int8\\", false, \\"?column?\\">"`;
+
+exports[`select should convert null value to not null using coalesce (type) should match snapshot 1`] = `
+"Argument of type 'Column<\\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to parameter of type 'number | NumberExpression<number, boolean, any>'.
+  Type 'Column<\\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to type 'NumberExpression<number, boolean, any>'.
+    The types returned by 'plus(...)' are incompatible between these types.
+      Type 'NumberExpression<\\"Int4\\", false, \\"?column?\\">' is not assignable to type 'NumberExpression<number, boolean, \\"?column?\\">'.
+        Type 'string' is not assignable to type 'number'."
 `;
+
+exports[`select should not use in with wrong data type (type) should match snapshot 1`] = `"any"`;
 
 exports[`select should return correct result in then (type) should match snapshot 1`] = `"{ id: string; }[]"`;
 
-exports[`select should return null and not null properties (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; createDate: GetDataType<Date, true>; value: GetDataType<number, false>; }"`;
+exports[`select should return null and not null properties (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; createDate: GetDataType<\\"Date\\", true>; value: GetDataType<\\"Int4\\", false>; }"`;
 
-exports[`select should return nullable properties of all sides because of full join (type) should match snapshot 1`] = `"{ value: GetDataType<number, false>; name: GetDataType<string, false>; startDate: GetDataType<Date, false>; }"`;
+exports[`select should return nullable properties of all sides because of full join (type) should match snapshot 1`] = `"{ value: GetDataType<\\"Int4\\", false>; name: GetDataType<\\"Text\\", false>; startDate: GetDataType<\\"Date\\", false>; }"`;
 
-exports[`select should return nullable properties of left joined columns (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; endDate: GetDataType<Date, false>; value: GetDataType<number, false>; }"`;
+exports[`select should return nullable properties of left joined columns (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; endDate: GetDataType<\\"Date\\", false>; value: GetDataType<\\"Int4\\", false>; }"`;
 
-exports[`select should return nullable properties of left side properties when right joining (type) should match snapshot 1`] = `"{ value: GetDataType<number, false>; name: GetDataType<string, false>; startDate: GetDataType<Date, true>; }"`;
+exports[`select should return nullable properties of left side properties when right joining (type) should match snapshot 1`] = `"{ value: GetDataType<\\"Int4\\", false>; name: GetDataType<\\"Text\\", false>; startDate: GetDataType<\\"Date\\", true>; }"`;
+
+exports[`select should return nullable text when calling concat on nullable column (type) should match snapshot 1`] = `"TextExpression<\\"Text\\", false, \\"?column?\\">"`;
+
+exports[`select should return nullable text when calling concat with nullable input (type) should match snapshot 1`] = `"TextExpression<\\"Text\\", false, \\"?column?\\">"`;
 
 exports[`select should return previous return value in then (type) should match snapshot 1`] = `"number"`;
 
-exports[`select should return renamed properties because of alias (type) should match snapshot 1`] = `"{ fooName: GetDataType<string, true>; fooValue: GetDataType<number, false>; }"`;
+exports[`select should return renamed properties because of alias (type) should match snapshot 1`] = `"{ fooName: GetDataType<\\"Text\\", true>; fooValue: GetDataType<\\"Int4\\", false>; }"`;
 
-exports[`select should select * and return nullable properties of left side properties when right joining (type) should match snapshot 1`] = `"{ id: GetDataType<string, false>; createDate: GetDataType<Date, false>; name: GetDataType<string, false>; value: GetDataType<number, false>; startDate: GetDataType<Date, true>; endDate: GetDataType<Date, true>; fooId: GetDataType<string, false>; }"`;
+exports[`select should select * and return nullable properties of left side properties when right joining (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true> | GetDataType<\\"Text\\", false>; createDate: GetDataType<\\"Date\\", false>; name: GetDataType<\\"Text\\", false>; value: GetDataType<\\"Int4\\", false>; startDate: GetDataType<\\"Date\\", true>; endDate: GetDataType<\\"Date\\", true>; fooId: GetDataType<\\"Text\\", false>; }"`;
 
-exports[`select should select * from foo (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; createDate: GetDataType<Date, true>; name: GetDataType<string, true>; value: GetDataType<number, false>; }"`;
+exports[`select should select * from foo (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; createDate: GetDataType<\\"Date\\", true>; name: GetDataType<\\"Text\\", true>; value: GetDataType<\\"Int4\\", false>; }"`;
 
-exports[`select should select * from foo left join bar (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; createDate: GetDataType<Date, true>; name: GetDataType<string, true>; value: GetDataType<number, false>; startDate: GetDataType<Date, false>; endDate: GetDataType<Date, false>; fooId: GetDataType<string, false>; }"`;
+exports[`select should select * from foo left join bar (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true> | GetDataType<\\"Text\\", false>; createDate: GetDataType<\\"Date\\", true>; name: GetDataType<\\"Text\\", true>; value: GetDataType<\\"Int4\\", false>; startDate: GetDataType<\\"Date\\", false>; endDate: GetDataType<\\"Date\\", false>; fooId: GetDataType<\\"Text\\", false>; }"`;
 
-exports[`select should select * from foo right join bar (type) should match snapshot 1`] = `"{ id: GetDataType<string, false>; createDate: GetDataType<Date, false>; name: GetDataType<string, false>; value: GetDataType<number, false>; startDate: GetDataType<Date, true>; endDate: GetDataType<Date, true>; fooId: GetDataType<string, false>; }"`;
+exports[`select should select * from foo right join bar (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true> | GetDataType<\\"Text\\", false>; createDate: GetDataType<\\"Date\\", false>; name: GetDataType<\\"Text\\", false>; value: GetDataType<\\"Int4\\", false>; startDate: GetDataType<\\"Date\\", true>; endDate: GetDataType<\\"Date\\", true>; fooId: GetDataType<\\"Text\\", false>; }"`;
 
-exports[`select should select aggregate subquery (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; count: GetDataType<string, true>; }"`;
+exports[`select should select aggregate subquery (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; count: GetDataType<\\"Int8\\", true>; }"`;
 
-exports[`select should select aggregate with alias (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; total: GetDataType<number, false>; }"`;
+exports[`select should select aggregate with alias (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; total: GetDataType<\\"Float4\\", false>; } | { id: GetDataType<\\"Text\\", true>; total: GetDataType<\\"Int8\\", false>; } | { id: GetDataType<\\"Text\\", true>; total: GetDataType<\\"Float8\\", false>; } | { id: GetDataType<\\"Text\\", true>; total: GetDataType<\\"Numeric\\", false>; }"`;
 
 exports[`select should select and await result set (type) should match snapshot 1`] = `"{ id: string; value: number; }[]"`;
 
 exports[`select should select array_agg (type) should match snapshot 1`] = `"{ arrayAgg: GetDataType<string[], false>; }"`;
 
-exports[`select should select case with correct type and alias (type) should match snapshot 1`] = `"{ bar: GetDataType<\\"A\\" | \\"B\\" | \\"C\\", true>; }"`;
+exports[`select should select case with correct type and alias (type) should match snapshot 1`] = `"{ bar: GetDataType<\\"B\\", true>; } | { bar: GetDataType<\\"A\\", true>; } | { bar: GetDataType<\\"C\\", true>; }"`;
 
-exports[`select should select expression (type) should match snapshot 1`] = `"{ \\"?column?\\": GetDataType<number, false>; }"`;
+exports[`select should select expression (type) should match snapshot 1`] = `"{ \\"?column?\\": GetDataType<\\"Int4\\", false>; }"`;
 
-exports[`select should select foo.* and ignore the rest (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; createDate: GetDataType<Date, true>; name: GetDataType<string, true>; value: GetDataType<number, false>; }"`;
+exports[`select should select foo.* and ignore the rest (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; createDate: GetDataType<\\"Date\\", true>; name: GetDataType<\\"Text\\", true>; value: GetDataType<\\"Int4\\", false>; }"`;
 
-exports[`select should select foo.* from foo (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; createDate: GetDataType<Date, true>; name: GetDataType<string, true>; value: GetDataType<number, false>; }"`;
+exports[`select should select foo.* from foo (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; createDate: GetDataType<\\"Date\\", true>; name: GetDataType<\\"Text\\", true>; value: GetDataType<\\"Int4\\", false>; }"`;
 
-exports[`select should select named expression (type) should match snapshot 1`] = `"{ test: GetDataType<number, false>; }"`;
+exports[`select should select named expression (type) should match snapshot 1`] = `"{ test: GetDataType<\\"Int4\\", false>; }"`;
 
-exports[`select should select null column in subquery (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; value: GetDataType<number, false>; }"`;
+exports[`select should select null column in subquery (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; value: GetDataType<\\"Int4\\", false>; }"`;
 
-exports[`select should select raw expression (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; test: GetDataType<number, false>; }"`;
+exports[`select should select raw expression (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; test: GetDataType<number, false>; }"`;
 
-exports[`should output all columns and the data type (type) should match snapshot 1`] = `"{ id: string; createDate: Date; name: string; value: number; }"`;
+exports[`should output all columns and the data type (type) should match snapshot 1`] = `"{ id: string; createDate: \\"Date\\"; name: string; value: number; }"`;

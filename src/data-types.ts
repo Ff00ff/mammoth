@@ -5,15 +5,43 @@ const variableLength = (string: string, ...n: (number | undefined)[]) =>
 
 const makeDataType = makeColumnDefinition;
 
-export type Int4 = number;
-export type Int8 = string;
-export type Float4 = number;
-// In pg, by default, double precision / float8s are parsed through `parseFloat()` JS global
-// func. This means we lose precision. We align the types with pg and these can be altered in
-// user-land.
-export type Float8 = number;
-export type Numeric = string;
+// If both are not null, the resulting type is also not null. But if any of the type is nullable,
+// the result may also be nullable.
+export type GetNotNull<Left, Right> = Left | Right extends true ? true : false;
+
+// When doing math on different numbers, the result is
+export type GetMostSignificantDataType<Left, Right> =
+  // Either one is Float8
+  Left & Right extends Float8
+    ? Float8
+    : // Both are float4
+    Left | Right extends Float4
+    ? Float4
+    : // Either one is float4
+    Left & Right extends Float4
+    ? Float8
+    : // Either one is numeric
+    Left & Right extends Numeric
+    ? Numeric
+    : // Either one is Int8
+    Left & Right extends Int8
+    ? Int8
+    : Int4;
+
+export type Int4 = 'Int4';
+export type Int8 = 'Int8';
+export type Float4 = 'Float4';
+export type Float8 = 'Float8';
+export type Numeric = 'Numeric';
 export type AnyNumber = Int4 | Int8 | Float4 | Float8 | Numeric;
+export type Text = 'Text';
+export type Date = 'Date';
+export type DateTime = 'DateTime';
+export type Any = AnyNumber | Text | Date | DateTime;
+
+export type ToPostgresDataType<T extends string> = T extends DateTime
+  ? 'timestamptz'
+  : Lowercase<T>;
 
 export function dataType<T>(dataType: string) {
   return makeDataType<T>(dataType);
@@ -29,6 +57,9 @@ export function bigint<T>(): ColumnDefinition<T>;
 export function bigint() {
   return makeDataType(`bigint`);
 }
+
+// Serial data types are automatically configured to have a default. This makes sure one does not
+// need to explicitly provide a value when inserting.
 export function bigserial(): ColumnDefinition<Int8, false, true>;
 export function bigserial<T>(): ColumnDefinition<T, false, true>;
 export function bigserial() {
@@ -38,6 +69,26 @@ export function serial8(): ColumnDefinition<Int8, false, true>;
 export function serial8<T>(): ColumnDefinition<T, false, true>;
 export function serial8() {
   return makeDataType(`serial8`);
+}
+export function serial(): ColumnDefinition<Int4, false, true>;
+export function serial<T>(): ColumnDefinition<T, false, true>;
+export function serial() {
+  return makeDataType(`serial`);
+}
+export function serial4(): ColumnDefinition<Int4, false, true>;
+export function serial4<T>(): ColumnDefinition<T, false, true>;
+export function serial4() {
+  return makeDataType(`serial4`);
+}
+export function smallserial(): ColumnDefinition<Int4, false, true>;
+export function smallserial<T>(): ColumnDefinition<T, false, true>;
+export function smallserial() {
+  return makeDataType(`smallserial`);
+}
+export function serial2(): ColumnDefinition<Int4, false, true>;
+export function serial2<T>(): ColumnDefinition<T, false, true>;
+export function serial2() {
+  return makeDataType(`serial2`);
 }
 
 export function bit(n?: number): ColumnDefinition<string>;
@@ -76,22 +127,22 @@ export function bytea() {
   return makeDataType(`bytea`);
 }
 
-export function character(n?: number): ColumnDefinition<string>;
+export function character(n?: number): ColumnDefinition<Text>;
 export function character<T>(n?: number): ColumnDefinition<T>;
 export function character(n?: number) {
   return makeDataType(variableLength(`character`, n));
 }
-export function char(n?: number): ColumnDefinition<string>;
+export function char(n?: number): ColumnDefinition<Text>;
 export function char<T>(n?: number): ColumnDefinition<T>;
 export function char(n?: number) {
   return makeDataType(variableLength(`char`, n));
 }
-export function characterVarying(n?: number): ColumnDefinition<string>;
+export function characterVarying(n?: number): ColumnDefinition<Text>;
 export function characterVarying<T>(n?: number): ColumnDefinition<T>;
 export function characterVarying(n?: number) {
   return makeDataType(variableLength(`character varying`, n));
 }
-export function varchar(n?: number): ColumnDefinition<string>;
+export function varchar(n?: number): ColumnDefinition<Text>;
 export function varchar<T>(n?: number): ColumnDefinition<T>;
 export function varchar(n?: number) {
   return makeDataType(variableLength(`varchar`, n));
@@ -108,12 +159,12 @@ export function cidr<T>(): ColumnDefinition<T>;
 export function cidr() {
   return makeDataType(`cidr`);
 }
-export function caseInsensitiveText(): ColumnDefinition<string>;
+export function caseInsensitiveText(): ColumnDefinition<Text>;
 export function caseInsensitiveText<T>(): ColumnDefinition<T>;
 export function caseInsensitiveText() {
   return makeDataType(`citext`);
 }
-export function citext(): ColumnDefinition<string>;
+export function citext(): ColumnDefinition<Text>;
 export function citext<T>(): ColumnDefinition<T>;
 export function citext() {
   return makeDataType(`citext`);
@@ -257,27 +308,7 @@ export function int2<T>(): ColumnDefinition<T>;
 export function int2() {
   return makeDataType(`int2`);
 }
-export function serial(): ColumnDefinition<Int4, false, true>;
-export function serial<T>(): ColumnDefinition<T, false, true>;
-export function serial() {
-  return makeDataType(`serial`);
-}
-export function serial4(): ColumnDefinition<Int4, false, true>;
-export function serial4<T>(): ColumnDefinition<T, false, true>;
-export function serial4() {
-  return makeDataType(`serial4`);
-}
-export function smallserial(): ColumnDefinition<Int4, false, true>;
-export function smallserial<T>(): ColumnDefinition<T, false, true>;
-export function smallserial() {
-  return makeDataType(`smallserial`);
-}
-export function serial2(): ColumnDefinition<Int4, false, true>;
-export function serial2<T>(): ColumnDefinition<T, false, true>;
-export function serial2() {
-  return makeDataType(`serial2`);
-}
-export function text(): ColumnDefinition<string>;
+export function text(): ColumnDefinition<Text>;
 export function text<T>(): ColumnDefinition<T>;
 export function text() {
   return makeDataType(`text`);
@@ -332,7 +363,7 @@ export function txidSnapshot<T>(): ColumnDefinition<T>;
 export function txidSnapshot() {
   return makeDataType(`txid_snapshot`);
 }
-export function uuid(): ColumnDefinition<string>;
+export function uuid(): ColumnDefinition<Text>;
 export function uuid<T>(): ColumnDefinition<T>;
 export function uuid() {
   return makeDataType(`uuid`);

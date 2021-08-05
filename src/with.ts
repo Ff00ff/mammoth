@@ -1,7 +1,7 @@
 import { CollectionToken, GroupToken, SeparatorToken, StringToken, Token } from './tokens';
+import { Expression, InternalExpression } from './expression';
 import { GetDataType, QueryExecutorFn } from './types';
 
-import { Expression } from './expression';
 import { Query } from './query';
 import { ResultSet } from './result-set';
 import { SelectQuery } from './select';
@@ -520,7 +520,7 @@ export const makeWith =
     const createFromItem = (name: string, query: Query<any>) => {
       const fromItem = {
         ...query.getReturningKeys().reduce((fromItem, key) => {
-          fromItem[key] = new Expression(
+          fromItem[key] = new InternalExpression(
             [new StringToken(`${wrapQuotes(name)}.${wrapQuotes(key)}`)],
             key,
           );

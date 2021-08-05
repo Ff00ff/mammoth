@@ -414,6 +414,14 @@ export class SelectQuery<
   skipLocked(): SelectQuery<Columns> {
     return this.newSelectQuery([...this.tokens, new StringToken(`SKIP LOCKED`)]);
   }
+
+  union(query: Query<any>): SelectQuery<Columns, IncludesStar> {
+    return this.newSelectQuery([...this.tokens, new StringToken(`UNION`), ...query.toTokens()]);
+  }
+
+  unionAll(query: Query<any>): SelectQuery<Columns, IncludesStar> {
+    return this.newSelectQuery([...this.tokens, new StringToken(`UNION ALL`), ...query.toTokens()]);
+  }
 }
 
 export const makeSelect =

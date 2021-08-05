@@ -1,7 +1,7 @@
+import { Expression, InternalExpression } from './expression';
 import { GroupToken, ParameterToken, SeparatorToken, StringToken, Token } from './tokens';
 import { toSnakeCase, wrapQuotes } from './naming';
 
-import { Expression } from './expression';
 import { TableDefinition } from './table';
 
 export interface ColumnDefinitionFormat {
@@ -21,19 +21,14 @@ export interface ColumnDefinition<
   DataType,
   IsNotNull extends boolean = false,
   HasDefault extends boolean = false,
+  IsPrimaryKey extends boolean = false,
 > {
-  notNull(): ColumnDefinition<DataType, true, HasDefault>;
-  primaryKey(): ColumnDefinition<DataType, true, HasDefault>;
-  // In most cases a default clause means you do not need to provide any value during insert. In
-  // theory however it's possible the default expression doesn't set a value in some case. In the
-  // case of a NOT NULL constraint this would mean you'd have to set a value when inserting. Because
-  // this is not neccesary in most of the cases we just assume a default expression will always set
-  // a value. You can opt out of this by setting `IsAlwaysSettingAValue` to false.
-  default<IsAlwaysSettingAValue extends boolean = true>(
-    expression: string,
-  ): ColumnDefinition<DataType, IsNotNull, IsAlwaysSettingAValue>;
-  check(expression: string): ColumnDefinition<DataType, IsNotNull, HasDefault>;
-  unique(): ColumnDefinition<DataType, IsNotNull, HasDefault>;
+  notNull(): ColumnDefinition<DataType, true, HasDefault, IsPrimaryKey>;
+  primaryKey(): ColumnDefinition<DataType, true, HasDefault, true>;
+
+  default(expression: string): ColumnDefinition<DataType, IsNotNull, true, IsPrimaryKey>;
+  check(expression: string): ColumnDefinition<DataType, IsNotNull, HasDefault, IsPrimaryKey>;
+  unique(): ColumnDefinition<DataType, IsNotNull, HasDefault, IsPrimaryKey>;
   references<
     T extends TableDefinition<any>,
     ColumnName extends T extends TableDefinition<infer Columns>
@@ -44,8 +39,10 @@ export interface ColumnDefinition<
   >(
     table: T,
     columnName: ColumnName,
-  ): ColumnDefinition<DataType, IsNotNull, HasDefault>;
-  referencesSelf(columnName: string): ColumnDefinition<DataType, IsNotNull, HasDefault>;
+  ): ColumnDefinition<DataType, IsNotNull, HasDefault, IsPrimaryKey>;
+  referencesSelf(
+    columnName: string,
+  ): ColumnDefinition<DataType, IsNotNull, HasDefault, IsPrimaryKey>;
 
   /** @internal */
   getDefinition(): ColumnDefinitionFormat;
@@ -139,14 +136,46 @@ export class ColumnSet<Columns> {
   }
 }
 
-export class Column<
+export interface SharedColumn<
   Name extends string,
   TableName,
   DataType,
   IsNotNull extends boolean,
   HasDefault extends boolean,
   JoinType,
-> extends Expression<DataType, IsNotNull, Name> {
+> {
+  as<AliasName extends string>(
+    alias: AliasName,
+  ): Column<AliasName, TableName, DataType, IsNotNull, HasDefault, JoinType>;
+
+  /** @internal */
+  toTokens(includeAlias?: boolean): Token[];
+
+  /** @internal */
+  getSnakeCaseName(): string;
+
+  /** @internal */
+  getName(): string;
+}
+
+export type Column<
+  Name extends string,
+  TableName,
+  DataType,
+  IsNotNull extends boolean,
+  HasDefault extends boolean,
+  JoinType,
+> = SharedColumn<Name, TableName, DataType, IsNotNull, HasDefault, JoinType> &
+  Expression<DataType, IsNotNull, Name>;
+
+export class InternalColumn<
+  Name extends string,
+  TableName,
+  DataType,
+  IsNotNull extends boolean,
+  HasDefault extends boolean,
+  JoinType,
+> extends InternalExpression<DataType, IsNotNull, Name> {
   private _columnBrand: any;
 
   /** @internal */
@@ -187,7 +216,7 @@ export class Column<
   as<AliasName extends string>(
     alias: AliasName,
   ): Column<AliasName, TableName, DataType, IsNotNull, HasDefault, JoinType> {
-    return new Column(alias, this.tableName, this.columnName as unknown as string);
+    return new InternalColumn(alias, this.tableName, this.columnName as unknown as string) as any;
   }
 
   /** @internal */

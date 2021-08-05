@@ -2,16 +2,15 @@ import type { Column } from './column';
 import { DeleteQuery } from './delete';
 import type { Expression } from './expression';
 import { GetDataType } from './types';
+import { GetResultType } from './config';
 import { InsertQuery } from './insert';
 import { Query } from './query';
 import { SelectQuery } from './select';
 import { UpdateQuery } from './update';
 
-// export class GetDataType<Type, IsNull> {
-//   private _!: Type & IsNull;
-// }
-
-export type ResultSetDataType<Type, IsNotNull> = IsNotNull extends true ? Type : Type | undefined;
+export type ResultSetDataType<Type, IsNotNull> = IsNotNull extends true
+  ? GetResultType<Type>
+  : GetResultType<Type> | GetResultType<'Null'>;
 
 // This is not ideal, but, using dts-jest and it's snapshotting it's not capable to snapshot an e.g.
 // optional number to `number | undefined`. Instead, it will snapshot to `number`. Because it's
@@ -48,7 +47,7 @@ export type ResultSet<T extends Query<any>, Test extends boolean> = T extends Se
           : Test extends true
           ? GetDataType<D, false>
           : ResultSetDataType<D, false>
-        : Returning[K] extends Expression<infer D, infer IsNotNull, any>
+        : Returning[K] extends Expression<infer D, infer IsNotNull, string>
         ? Test extends true
           ? GetDataType<D, IsNotNull>
           : ResultSetDataType<D, IsNotNull>

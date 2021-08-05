@@ -1,7 +1,6 @@
 import { BooleanQuery, Query } from './query';
+import { Expression, InternalExpression } from './expression';
 import { ParameterToken, StringToken, Token } from './tokens';
-
-import { Expression } from './expression';
 
 export class CaseStatement<DataType> {
   constructor(private readonly tokens: Token[]) {}
@@ -30,6 +29,6 @@ export class CaseStatement<DataType> {
   }
 
   end(): Expression<DataType, true, 'case'> {
-    return new Expression(this.tokens, `case`);
+    return new InternalExpression(this.tokens, `case`) as any;
   }
 }

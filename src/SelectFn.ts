@@ -1,23 +1,40 @@
+import {
+  BooleanExpression,
+  Expression,
+  NumberExpression,
+  RawExpression,
+  SharedExpression,
+  TextExpression,
+} from './expression';
 import { Column, ColumnSet } from './column';
 
-import { Expression } from './expression';
 import { SelectQuery } from './select';
 import { Star } from './sql-functions';
 
-export type GetSelectableName<S> = S extends Column<infer A2, string, any, boolean, boolean, any>
-  ? A2
-  : S extends Expression<any, boolean, infer A1>
-  ? A1
+export type GetSelectableName<S> = S extends Column<infer Name, string, any, boolean, boolean, any>
+  ? Name
+  : S extends NumberExpression<any, boolean, infer Name>
+  ? Name
+  : S extends TextExpression<any, boolean, infer Name>
+  ? Name
+  : S extends BooleanExpression<any, boolean, infer Name>
+  ? Name
+  : S extends RawExpression<any, boolean, infer Name>
+  ? Name
+  : S extends Expression<any, boolean, infer Name>
+  ? Name
   : S extends SelectQuery<infer Columns>
   ? keyof Columns // This only works if the query has one select clause
   : never;
 
 export type GetSelectable<C extends Selectable> = C extends ColumnSet<infer Columns>
   ? Columns
-  : { [K in GetSelectableName<C>]: C };
+  : GetSelectableName<C> extends string
+  ? { [K in GetSelectableName<C>]: C }
+  : never;
 
 export type Selectable =
-  | Expression<any, any, any>
+  | Expression<any, boolean, string>
   | SelectQuery<any>
   | Column<any, any, any, boolean, boolean, any>
   | ColumnSet<any>
@@ -41,7 +58,7 @@ type TupleToIntersection<T extends Array<any>> = UnboxIntersection<
 type ToColumns<T> = T extends { [column: string]: any } ? T : never;
 
 export interface SelectFn {
-  <Columns extends Array<Selectable>>(...columns: [...Columns]): SelectQuery<
+  <Columns extends Selectable[]>(...columns: [...Columns]): SelectQuery<
     ToColumns<TupleToIntersection<GetSelectables<Columns>>>,
     ContainsStar<Columns[number]>
   >;

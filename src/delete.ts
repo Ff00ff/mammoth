@@ -17,20 +17,22 @@ import type { Table } from './TableType';
 import type { TableDefinition } from './table';
 import { wrapQuotes } from './naming';
 
-export const makeDeleteFrom = (queryExecutor: QueryExecutorFn) => <T extends Table<any, any>>(
-  table: T,
-): T extends TableDefinition<any> ? never : DeleteQuery<T> => {
-  return new DeleteQuery<T>(queryExecutor, [], table, 'AFFECTED_COUNT', [
-    new StringToken(`DELETE FROM`),
-    new StringToken((table as Table<any, any>).getName()),
-  ]) as any;
-};
+export const makeDeleteFrom =
+  (queryExecutor: QueryExecutorFn) =>
+  <T extends Table<any, any>>(
+    table: T,
+  ): T extends TableDefinition<any> ? never : DeleteQuery<T> => {
+    return new DeleteQuery<T>(queryExecutor, [], table, 'AFFECTED_COUNT', [
+      new StringToken(`DELETE FROM`),
+      new StringToken((table as Table<any, any>).getName()),
+    ]) as any;
+  };
 
 // https://www.postgresql.org/docs/12/sql-delete.html
 export class DeleteQuery<
   T extends Table<any, any>,
   Returning = number,
-  TableColumns = T extends Table<any, infer Columns> ? Columns : never
+  TableColumns = T extends Table<any, infer Columns> ? Columns : never,
 > extends Query<Returning> {
   private _deleteQueryBrand: any;
 
@@ -110,7 +112,7 @@ export class DeleteQuery<
   returning<
     C1 extends keyof TableColumns,
     C2 extends keyof TableColumns,
-    C3 extends keyof TableColumns
+    C3 extends keyof TableColumns,
   >(
     column1: C1,
     column2: C2,
@@ -123,7 +125,7 @@ export class DeleteQuery<
     C1 extends keyof TableColumns,
     C2 extends keyof TableColumns,
     C3 extends keyof TableColumns,
-    C4 extends keyof TableColumns
+    C4 extends keyof TableColumns,
   >(
     column1: C1,
     column2: C2,
@@ -141,7 +143,7 @@ export class DeleteQuery<
     C2 extends keyof TableColumns,
     C3 extends keyof TableColumns,
     C4 extends keyof TableColumns,
-    C5 extends keyof TableColumns
+    C5 extends keyof TableColumns,
   >(
     column1: C1,
     column2: C2,
@@ -162,7 +164,7 @@ export class DeleteQuery<
     C3 extends keyof TableColumns,
     C4 extends keyof TableColumns,
     C5 extends keyof TableColumns,
-    C6 extends keyof TableColumns
+    C6 extends keyof TableColumns,
   >(
     column1: C1,
     column2: C2,
@@ -186,7 +188,7 @@ export class DeleteQuery<
     C4 extends keyof TableColumns,
     C5 extends keyof TableColumns,
     C6 extends keyof TableColumns,
-    C7 extends keyof TableColumns
+    C7 extends keyof TableColumns,
   >(
     column1: C1,
     column2: C2,
@@ -213,7 +215,7 @@ export class DeleteQuery<
     C5 extends keyof TableColumns,
     C6 extends keyof TableColumns,
     C7 extends keyof TableColumns,
-    C8 extends keyof TableColumns
+    C8 extends keyof TableColumns,
   >(
     column1: C1,
     column2: C2,
@@ -243,7 +245,7 @@ export class DeleteQuery<
     C6 extends keyof TableColumns,
     C7 extends keyof TableColumns,
     C8 extends keyof TableColumns,
-    C9 extends keyof TableColumns
+    C9 extends keyof TableColumns,
   >(
     column1: C1,
     column2: C2,
@@ -276,7 +278,7 @@ export class DeleteQuery<
     C7 extends keyof TableColumns,
     C8 extends keyof TableColumns,
     C9 extends keyof TableColumns,
-    C10 extends keyof TableColumns
+    C10 extends keyof TableColumns,
   >(
     column1: C1,
     column2: C2,

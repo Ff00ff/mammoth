@@ -1,4 +1,5 @@
 import {
+  Int4,
   count,
   defineDb,
   defineTable,
@@ -75,7 +76,7 @@ const db = defineDb({ foo, serialTest }, () => Promise.resolve({ rows: [], affec
 
   // @dts-jest:snap should insert with expression of the not-null correct type
   db.insertInto(db.serialTest).values({
-    value: raw<number, true>`get_value()`,
+    value: raw<Int4, true>`get_value()`,
   });
 
   // @dts-jest:snap should insert with expression of the nullable correct type

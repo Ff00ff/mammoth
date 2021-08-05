@@ -1,6 +1,6 @@
-import { Column, ColumnDefinition } from './column';
+import { ColumnDefinition, InternalColumn } from './column';
 
-import { Table } from './TableType';
+import { GetResultType } from './config';
 
 export type TableRow<T> = T extends TableDefinition<infer Columns>
   ? {
@@ -10,8 +10,8 @@ export type TableRow<T> = T extends TableDefinition<infer Columns>
         boolean
       >
         ? IsNotNull extends true
-          ? DataType
-          : DataType | undefined
+          ? GetResultType<DataType>
+          : GetResultType<DataType> | GetResultType<'Null'>
         : never;
     }
   : never;
@@ -22,44 +22,21 @@ export class TableDefinition<Columns> {
 
 export const makeTable = <
   TableName extends string,
-  TableDefinition extends { [column: string]: ColumnDefinition<any, any, any> }
+  TableDefinition extends { [column: string]: ColumnDefinition<any, any, any> },
 >(
   tableName: TableName,
   originalTableName: string | undefined,
   tableDefinition: TableDefinition,
 ) => {
   const columnNames = Object.keys(
-    (tableDefinition as unknown) as object,
+    tableDefinition as unknown as object,
   ) as (keyof TableDefinition)[];
 
-  const columns = columnNames.reduce(
-    (map, columnName) => {
-      const column = new Column(columnName as string, tableName, undefined) as any;
-      map[columnName] = column;
-      return map;
-    },
-    {} as Table<
-      TableName,
-      {
-        [K in keyof TableDefinition]: K extends string
-          ? Column<
-              K,
-              TableName,
-              TableDefinition[K] extends ColumnDefinition<infer DataType, any, any>
-                ? DataType
-                : never,
-              TableDefinition[K] extends ColumnDefinition<any, infer IsNotNull, any>
-                ? IsNotNull
-                : never,
-              TableDefinition[K] extends ColumnDefinition<any, any, infer HasDefault>
-                ? HasDefault
-                : never,
-              undefined
-            >
-          : never;
-      }
-    >,
-  );
+  const columns = columnNames.reduce((map, columnName) => {
+    const column = new InternalColumn(columnName as string, tableName, undefined) as any;
+    map[columnName] = column;
+    return map;
+  }, {} as any);
 
   const table = {
     ...columns,

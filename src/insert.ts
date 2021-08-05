@@ -14,6 +14,7 @@ import { SelectFn, makeSelect } from './select';
 import { Column } from './column';
 import { DeleteQuery } from './delete';
 import { Expression } from './expression';
+import { GetResultType } from './config';
 import { Query } from './query';
 import { ResultSet } from './result-set';
 import { Table } from './TableType';
@@ -326,8 +327,16 @@ export class InsertQuery<
                 any
               >
                 ? IsNotNull extends true
-                  ? DataType | Expression<DataType, IsNotNull, any> | Query<any>
-                  : DataType | undefined | Expression<DataType, IsNotNull, any> | Query<any>
+                  ?
+                      | GetResultType<DataType>
+                      | Expression<DataType, IsNotNull, any>
+                      | Expression<GetResultType<DataType>, IsNotNull, any>
+                      | Query<any>
+                  :
+                      | GetResultType<DataType>
+                      | GetResultType<'Null'>
+                      | Expression<DataType, IsNotNull, any>
+                      | Query<any>
                 : never;
             }
           : never,
@@ -429,8 +438,17 @@ export class InsertQuery<
                 any
               >
                 ? IsNotNull extends true
-                  ? DataType | Expression<DataType, IsNotNull, any> | Query<any>
-                  : DataType | undefined | Expression<DataType, IsNotNull, any> | Query<any>
+                  ?
+                      | GetResultType<DataType>
+                      | Expression<DataType, IsNotNull, any>
+                      | Expression<GetResultType<DataType>, IsNotNull, any>
+                      | Query<any>
+                  :
+                      | GetResultType<DataType>
+                      | GetResultType<'Null'>
+                      | Expression<DataType, IsNotNull, any>
+                      | Expression<GetResultType<DataType>, IsNotNull, any>
+                      | Query<any>
                 : never;
             }
           : never,
@@ -513,14 +531,20 @@ export interface InsertIntoResult<
           true
         >]: Columns[K] extends Column<any, any, infer DataType, boolean, any, any>
           ?
-              | DataType
+              | GetResultType<DataType>
               // This accepts nullable columns because one could select a nullable column but use
               // the where clause to filter out all the null values. This will be accepted at
               // runtime so we can't make a guarantee at build time. Unless we understand the where
               // clauses completely and are able to change the types when we do a .isNotNull() on a
               // column.
-              | Query<{ [key: string]: DataType | Expression<DataType, boolean, string> }>
+              | Query<{
+                  [key: string]:
+                    | GetResultType<DataType>
+                    | Expression<DataType, boolean, string>
+                    | Expression<GetResultType<DataType>, boolean, string>;
+                }>
               | Expression<DataType, boolean, string>
+              | Expression<GetResultType<DataType>, boolean, string>
           : never;
       } &
         {
@@ -542,10 +566,16 @@ export interface InsertIntoResult<
             false
           >]?: Columns[K] extends Column<any, any, infer DataType, boolean, any, any>
             ?
-                | DataType
-                | Query<{ [key: string]: DataType | Expression<DataType, boolean, string> }>
+                | GetResultType<DataType>
+                | Query<{
+                    [key: string]:
+                      | GetResultType<DataType>
+                      | Expression<DataType, boolean, string>
+                      | Expression<GetResultType<DataType>, boolean, string>;
+                  }>
                 | Expression<DataType, boolean, string>
-                | undefined
+                | Expression<GetResultType<DataType>, boolean, string>
+                | GetResultType<'Null'>
             : never;
         }
     : never,
@@ -571,8 +601,15 @@ export interface InsertIntoResult<
               any
             >
               ? IsNotNull extends true
-                ? DataType | Expression<DataType, boolean, any>
-                : DataType | undefined | Expression<DataType | undefined, boolean, any>
+                ?
+                    | GetResultType<DataType>
+                    | Expression<DataType, boolean, any>
+                    | Expression<GetResultType<DataType>, boolean, any>
+                :
+                    | GetResultType<DataType>
+                    | GetResultType<'Null'>
+                    | Expression<DataType | GetResultType<'Null'>, boolean, any>
+                    | Expression<GetResultType<DataType> | GetResultType<'Null'>, boolean, any>
               : never;
           }
         : never,
@@ -644,8 +681,19 @@ export const makeInsertInto =
                     any
                   >
                     ? IsNotNull extends true
-                      ? DataType | Expression<DataType, boolean, any>
-                      : DataType | undefined | Expression<DataType | undefined, boolean, any>
+                      ?
+                          | GetResultType<DataType>
+                          | Expression<DataType, boolean, any>
+                          | Expression<GetResultType<DataType>, boolean, any>
+                      :
+                          | GetResultType<DataType>
+                          | GetResultType<'Null'>
+                          | Expression<DataType | GetResultType<'Null'>, boolean, any>
+                          | Expression<
+                              GetResultType<DataType> | GetResultType<'Null'>,
+                              boolean,
+                              any
+                            >
                     : never;
                 }
               : never,

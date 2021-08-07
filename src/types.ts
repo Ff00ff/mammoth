@@ -19,3 +19,5 @@ export type QueryExecutorFn = (
   query: string,
   parameters: any[],
 ) => Promise<{ rows: any[]; affectedCount: number }>;
+
+export type Err<Message extends string> = {} & Message;

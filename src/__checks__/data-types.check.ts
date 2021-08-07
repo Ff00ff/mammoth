@@ -69,12 +69,13 @@ import {
   varbit,
   varchar,
   xml,
+  DefaultDbConfig,
 } from '../../.build';
 
 import { Query } from '../../.build/query';
 import { ResultSet } from '../../.build/result-set';
 
-const toSnap = <T extends Query<any>>(query: T): ResultSet<T, true> => {
+const toSnap = <T extends Query<any>>(query: T): ResultSet<DefaultDbConfig, T, true> => {
   return undefined as any;
 };
 

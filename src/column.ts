@@ -2,6 +2,7 @@ import { Expression, InternalExpression } from './expression';
 import { GroupToken, ParameterToken, SeparatorToken, StringToken, Token } from './tokens';
 import { toSnakeCase, wrapQuotes } from './naming';
 
+import { DbConfig } from './config';
 import { TableDefinition } from './table';
 
 export interface ColumnDefinitionFormat {
@@ -137,6 +138,7 @@ export class ColumnSet<Columns> {
 }
 
 export interface SharedColumn<
+  Config extends DbConfig,
   Name extends string,
   TableName,
   DataType,
@@ -146,7 +148,7 @@ export interface SharedColumn<
 > {
   as<AliasName extends string>(
     alias: AliasName,
-  ): Column<AliasName, TableName, DataType, IsNotNull, HasDefault, JoinType>;
+  ): Column<Config, AliasName, TableName, DataType, IsNotNull, HasDefault, JoinType>;
 
   /** @internal */
   toTokens(includeAlias?: boolean): Token[];
@@ -158,24 +160,28 @@ export interface SharedColumn<
   getName(): string;
 }
 
+export type AnyColumn = Column<any, any, any, any, any, any, any>;
+
 export type Column<
+  Config extends DbConfig,
   Name extends string,
   TableName,
   DataType,
   IsNotNull extends boolean,
   HasDefault extends boolean,
   JoinType,
-> = SharedColumn<Name, TableName, DataType, IsNotNull, HasDefault, JoinType> &
-  Expression<DataType, IsNotNull, Name>;
+> = SharedColumn<Config, Name, TableName, DataType, IsNotNull, HasDefault, JoinType> &
+  Expression<Config, DataType, IsNotNull, Name>;
 
 export class InternalColumn<
+  Config extends DbConfig,
   Name extends string,
   TableName,
   DataType,
   IsNotNull extends boolean,
   HasDefault extends boolean,
   JoinType,
-> extends InternalExpression<DataType, IsNotNull, Name> {
+> extends InternalExpression<Config, DataType, IsNotNull, Name> {
   private _columnBrand: any;
 
   /** @internal */
@@ -215,7 +221,7 @@ export class InternalColumn<
 
   as<AliasName extends string>(
     alias: AliasName,
-  ): Column<AliasName, TableName, DataType, IsNotNull, HasDefault, JoinType> {
+  ): Column<Config, AliasName, TableName, DataType, IsNotNull, HasDefault, JoinType> {
     return new InternalColumn(alias, this.tableName, this.columnName as unknown as string) as any;
   }
 

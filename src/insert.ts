@@ -1,3 +1,5 @@
+import { AnyColumn, Column } from './column';
+import { AnyTable, Table } from './TableType';
 import {
   CollectionToken,
   EmptyToken,
@@ -8,27 +10,26 @@ import {
   Token,
   createQueryState,
 } from './tokens';
+import { DbConfig, GetResultType } from './config';
 import { GetReturning, PickByValue, QueryExecutorFn, ResultType } from './types';
 import { SelectFn, makeSelect } from './select';
 
-import { Column } from './column';
 import { DeleteQuery } from './delete';
 import { Expression } from './expression';
-import { GetResultType } from './config';
 import { Query } from './query';
 import { ResultSet } from './result-set';
-import { Table } from './TableType';
 import { TableDefinition } from './table';
 import { UpdateQuery } from './update';
 import { wrapQuotes } from './naming';
 
 // https://www.postgresql.org/docs/12/sql-insert.html
 export class InsertQuery<
-  T extends Table<any, any>,
+  Config extends DbConfig,
+  T extends Table<any, any, any>,
   Returning = number,
-  TableColumns = T extends Table<any, infer Columns> ? Columns : never,
+  TableColumns = T extends Table<Config, any, infer Columns> ? Columns : never,
 > extends Query<Returning> {
-  private _insertQueryBrand: any;
+  private _insertQueryBrand!: ['insert', Config, T, Returning];
 
   /** @internal */
   getReturningKeys() {
@@ -50,7 +51,7 @@ export class InsertQuery<
       | ((
           value: Returning extends number
             ? Returning
-            : ResultSet<InsertQuery<T, Returning>, false>[],
+            : ResultSet<Config, InsertQuery<Config, T, Returning>, false>[],
         ) => Result1 | PromiseLike<Result1>)
       | undefined
       | null,
@@ -71,11 +72,11 @@ export class InsertQuery<
 
   returning<C1 extends keyof TableColumns>(
     column1: C1,
-  ): InsertQuery<T, GetReturning<TableColumns, C1>>;
+  ): InsertQuery<Config, T, GetReturning<TableColumns, C1>>;
   returning<C1 extends keyof TableColumns, C2 extends keyof TableColumns>(
     column1: C1,
     column2: C2,
-  ): InsertQuery<T, GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2>>;
+  ): InsertQuery<Config, T, GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2>>;
   returning<
     C1 extends keyof TableColumns,
     C2 extends keyof TableColumns,
@@ -85,6 +86,7 @@ export class InsertQuery<
     column2: C2,
     column3: C3,
   ): InsertQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2> & GetReturning<TableColumns, C3>
   >;
@@ -99,6 +101,7 @@ export class InsertQuery<
     column3: C3,
     column4: C4,
   ): InsertQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -118,6 +121,7 @@ export class InsertQuery<
     column4: C4,
     column5: C5,
   ): InsertQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -140,6 +144,7 @@ export class InsertQuery<
     column5: C5,
     column6: C6,
   ): InsertQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -165,6 +170,7 @@ export class InsertQuery<
     column6: C6,
     column7: C7,
   ): InsertQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -193,6 +199,7 @@ export class InsertQuery<
     column7: C7,
     column8: C8,
   ): InsertQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -224,6 +231,7 @@ export class InsertQuery<
     column8: C8,
     column9: C9,
   ): InsertQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -258,6 +266,7 @@ export class InsertQuery<
     column9: C9,
     column10: C10,
   ): InsertQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -277,7 +286,7 @@ export class InsertQuery<
       new SeparatorToken(
         `,`,
         columnNames.map((alias) => {
-          const column = (this.table as any)[alias] as Column<any, any, any, any, any, any>;
+          const column = (this.table as any)[alias] as AnyColumn;
 
           if (alias !== column.getSnakeCaseName()) {
             return new StringToken(`${column.getSnakeCaseName()} ${wrapQuotes(alias)}`);
@@ -289,7 +298,7 @@ export class InsertQuery<
     ]) as any;
   }
 
-  where(expression: Expression<boolean, boolean, string>) {
+  where(expression: Expression<Config, boolean, boolean, string>) {
     return new InsertQuery(this.queryExecutor, this.returningKeys, this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE`),
@@ -316,9 +325,10 @@ export class InsertQuery<
       },
 
       doUpdateSet(
-        values: T extends Table<any, infer Columns>
+        values: T extends Table<Config, any, infer Columns>
           ? {
               [K in keyof Columns]?: Columns[K] extends Column<
+                Config,
                 any,
                 any,
                 infer DataType,
@@ -328,14 +338,14 @@ export class InsertQuery<
               >
                 ? IsNotNull extends true
                   ?
-                      | GetResultType<DataType>
-                      | Expression<DataType, IsNotNull, any>
-                      | Expression<GetResultType<DataType>, IsNotNull, any>
+                      | GetResultType<Config, DataType>
+                      | Expression<Config, DataType, IsNotNull, any>
+                      | Expression<Config, GetResultType<Config, DataType>, IsNotNull, any>
                       | Query<any>
                   :
-                      | GetResultType<DataType>
-                      | GetResultType<'Null'>
-                      | Expression<DataType, IsNotNull, any>
+                      | GetResultType<Config, DataType>
+                      | GetResultType<Config, 'Null'>
+                      | Expression<Config, DataType, IsNotNull, any>
                       | Query<any>
                 : never;
             }
@@ -354,14 +364,7 @@ export class InsertQuery<
             new SeparatorToken(
               `,`,
               Object.keys(values).map((columnName) => {
-                const column = (self.table as any)[columnName] as Column<
-                  any,
-                  any,
-                  any,
-                  any,
-                  any,
-                  any
-                >;
+                const column = (self.table as any)[columnName] as AnyColumn;
                 const value = (values as any)[columnName];
 
                 if (
@@ -392,23 +395,23 @@ export class InsertQuery<
   }
 
   private getConflictTargetToken<
-    ColumnNames extends T extends Table<any, infer Columns> ? (keyof Columns)[] : never,
+    ColumnNames extends T extends Table<Config, any, infer Columns> ? (keyof Columns)[] : never,
   >(columnNames: ColumnNames): Token {
     if (columnNames.length === 0) return new EmptyToken();
     return new GroupToken([
       new SeparatorToken(
         ',',
         columnNames.map((columnName) => {
-          const column = (this.table as any)[columnName] as Column<any, any, any, any, any, any>;
+          const column = (this.table as any)[columnName] as AnyColumn;
           return new StringToken(column.getSnakeCaseName());
         }),
       ),
     ]);
   }
 
-  onConflict<ColumnNames extends T extends Table<any, infer Columns> ? (keyof Columns)[] : never>(
-    ...columnNames: ColumnNames
-  ) {
+  onConflict<
+    ColumnNames extends T extends Table<Config, any, infer Columns> ? (keyof Columns)[] : never,
+  >(...columnNames: ColumnNames) {
     const self = this;
     return {
       doNothing() {
@@ -427,9 +430,10 @@ export class InsertQuery<
       },
 
       doUpdateSet(
-        values: T extends Table<any, infer Columns>
+        values: T extends Table<Config, any, infer Columns>
           ? {
               [K in keyof Columns]?: Columns[K] extends Column<
+                Config,
                 any,
                 any,
                 infer DataType,
@@ -439,15 +443,15 @@ export class InsertQuery<
               >
                 ? IsNotNull extends true
                   ?
-                      | GetResultType<DataType>
-                      | Expression<DataType, IsNotNull, any>
-                      | Expression<GetResultType<DataType>, IsNotNull, any>
+                      | GetResultType<Config, DataType>
+                      | Expression<Config, DataType, IsNotNull, any>
+                      | Expression<Config, GetResultType<Config, DataType>, IsNotNull, any>
                       | Query<any>
                   :
-                      | GetResultType<DataType>
-                      | GetResultType<'Null'>
-                      | Expression<DataType, IsNotNull, any>
-                      | Expression<GetResultType<DataType>, IsNotNull, any>
+                      | GetResultType<Config, DataType>
+                      | GetResultType<Config, 'Null'>
+                      | Expression<Config, DataType, IsNotNull, any>
+                      | Expression<Config, GetResultType<Config, DataType>, IsNotNull, any>
                       | Query<any>
                 : never;
             }
@@ -466,14 +470,7 @@ export class InsertQuery<
             new SeparatorToken(
               `,`,
               Object.keys(values).map((columnName) => {
-                const column = (self.table as any)[columnName] as Column<
-                  any,
-                  any,
-                  any,
-                  any,
-                  any,
-                  any
-                >;
+                const column = (self.table as any)[columnName] as AnyColumn;
                 const value = (values as any)[columnName];
 
                 if (
@@ -510,12 +507,14 @@ export class InsertQuery<
 }
 
 export interface InsertIntoResult<
-  T extends Table<any, any>,
-  Row = T extends Table<any, infer Columns>
+  Config extends DbConfig,
+  T extends AnyTable,
+  Row = T extends Table<Config, any, infer Columns>
     ? {
         [K in keyof PickByValue<
           {
             [K in keyof Columns]: Columns[K] extends Column<
+              Config,
               any,
               any,
               any,
@@ -529,9 +528,9 @@ export interface InsertIntoResult<
               : never;
           },
           true
-        >]: Columns[K] extends Column<any, any, infer DataType, boolean, any, any>
+        >]: Columns[K] extends Column<Config, any, any, infer DataType, boolean, any, any>
           ?
-              | GetResultType<DataType>
+              | GetResultType<Config, DataType>
               // This accepts nullable columns because one could select a nullable column but use
               // the where clause to filter out all the null values. This will be accepted at
               // runtime so we can't make a guarantee at build time. Unless we understand the where
@@ -539,18 +538,19 @@ export interface InsertIntoResult<
               // column.
               | Query<{
                   [key: string]:
-                    | GetResultType<DataType>
-                    | Expression<DataType, boolean, string>
-                    | Expression<GetResultType<DataType>, boolean, string>;
+                    | GetResultType<Config, DataType>
+                    | Expression<Config, DataType, boolean, string>
+                    | Expression<Config, GetResultType<Config, DataType>, boolean, string>;
                 }>
-              | Expression<DataType, boolean, string>
-              | Expression<GetResultType<DataType>, boolean, string>
+              | Expression<Config, DataType, boolean, string>
+              | Expression<Config, GetResultType<Config, DataType>, boolean, string>
           : never;
       } &
         {
           [K in keyof PickByValue<
             {
               [K in keyof Columns]: Columns[K] extends Column<
+                Config,
                 any,
                 any,
                 any,
@@ -564,35 +564,36 @@ export interface InsertIntoResult<
                 : never;
             },
             false
-          >]?: Columns[K] extends Column<any, any, infer DataType, boolean, any, any>
+          >]?: Columns[K] extends Column<Config, any, any, infer DataType, boolean, any, any>
             ?
-                | GetResultType<DataType>
+                | GetResultType<Config, DataType>
                 | Query<{
                     [key: string]:
-                      | GetResultType<DataType>
-                      | Expression<DataType, boolean, string>
-                      | Expression<GetResultType<DataType>, boolean, string>;
+                      | GetResultType<Config, DataType>
+                      | Expression<Config, DataType, boolean, string>
+                      | Expression<Config, GetResultType<Config, DataType>, boolean, string>;
                   }>
-                | Expression<DataType, boolean, string>
-                | Expression<GetResultType<DataType>, boolean, string>
-                | GetResultType<'Null'>
+                | Expression<Config, DataType, boolean, string>
+                | Expression<Config, GetResultType<Config, DataType>, boolean, string>
+                | GetResultType<Config, 'Null'>
             : never;
         }
     : never,
 > {
-  select: SelectFn;
+  select: SelectFn<Config>;
 
-  deleteFrom<DeleteTable extends Table<any, any>>(
+  deleteFrom<DeleteTable extends AnyTable>(
     deleteTable: DeleteTable,
-  ): DeleteQuery<DeleteTable, number>;
+  ): DeleteQuery<Config, DeleteTable, number>;
 
-  update<UpdateTable extends Table<any, any>>(
+  update<UpdateTable extends AnyTable>(
     updateTable: UpdateTable,
   ): {
     set(
-      values: UpdateTable extends Table<any, infer Columns>
+      values: UpdateTable extends Table<Config, any, infer Columns>
         ? {
             [K in keyof Columns]?: Columns[K] extends Column<
+              Config,
               any,
               any,
               infer DataType,
@@ -602,39 +603,44 @@ export interface InsertIntoResult<
             >
               ? IsNotNull extends true
                 ?
-                    | GetResultType<DataType>
-                    | Expression<DataType, boolean, any>
-                    | Expression<GetResultType<DataType>, boolean, any>
+                    | GetResultType<Config, DataType>
+                    | Expression<Config, DataType, boolean, any>
+                    | Expression<Config, GetResultType<Config, DataType>, boolean, any>
                 :
-                    | GetResultType<DataType>
-                    | GetResultType<'Null'>
-                    | Expression<DataType | GetResultType<'Null'>, boolean, any>
-                    | Expression<GetResultType<DataType> | GetResultType<'Null'>, boolean, any>
+                    | GetResultType<Config, DataType>
+                    | GetResultType<Config, 'Null'>
+                    | Expression<Config, DataType | GetResultType<Config, 'Null'>, boolean, any>
+                    | Expression<
+                        Config,
+                        GetResultType<Config, DataType> | GetResultType<Config, 'Null'>,
+                        boolean,
+                        any
+                      >
               : never;
           }
         : never,
-    ): UpdateQuery<UpdateTable, number>;
+    ): UpdateQuery<Config, UpdateTable, number>;
   };
 
-  defaultValues(): InsertQuery<T, number>;
-  values(values: Row | Row[]): InsertQuery<T, number>;
+  defaultValues(): InsertQuery<Config, T, number>;
+  values(values: Row | Row[]): InsertQuery<Config, T, number>;
 }
 
 export const makeInsertInto =
-  (queryExecutor: QueryExecutorFn) =>
-  <T extends Table<any, any>>(
+  <Config extends DbConfig>(queryExecutor: QueryExecutorFn) =>
+  <T extends AnyTable>(
     table: T,
-    columnNames?: T extends Table<any, infer Columns> ? (keyof Columns)[] : never,
-  ): T extends TableDefinition<any> ? never : InsertIntoResult<T> => {
+    columnNames?: T extends Table<Config, any, infer Columns> ? (keyof Columns)[] : never,
+  ): T extends TableDefinition<any> ? never : InsertIntoResult<Config, T> => {
     return {
       select: makeSelect(queryExecutor, [
         new StringToken(`INSERT INTO`),
-        new StringToken((table as Table<any, any>).getName()),
+        new StringToken((table as AnyTable).getName()),
         new GroupToken([
           new SeparatorToken(
             `,`,
             columnNames?.map((columnName) => {
-              const column = (table as any)[columnName] as Column<any, any, any, any, any, any>;
+              const column = (table as any)[columnName] as AnyColumn;
 
               return new StringToken(column.getSnakeCaseName());
             }) || [],
@@ -642,37 +648,38 @@ export const makeInsertInto =
         ]),
       ]),
 
-      deleteFrom<DeleteTable extends Table<any, any>>(deleteTable: DeleteTable) {
-        return new DeleteQuery<DeleteTable, number>(
+      deleteFrom<DeleteTable extends AnyTable>(deleteTable: DeleteTable) {
+        return new DeleteQuery<Config, DeleteTable, number>(
           queryExecutor,
           [],
           deleteTable,
           'AFFECTED_COUNT',
           [
             new StringToken(`INSERT INTO`),
-            new StringToken((table as Table<any, any>).getName()),
+            new StringToken((table as AnyTable).getName()),
             new GroupToken([
               new SeparatorToken(
                 `,`,
                 columnNames!.map((columnName) => {
-                  const column = (table as any)[columnName] as Column<any, any, any, any, any, any>;
+                  const column = (table as any)[columnName] as AnyColumn;
 
                   return new StringToken(column.getSnakeCaseName());
                 }),
               ),
             ]),
             new StringToken(`DELETE FROM`),
-            new StringToken((deleteTable as Table<any, any>).getName()),
+            new StringToken((deleteTable as AnyTable).getName()),
           ],
         );
       },
 
-      update<UpdateTable extends Table<any, any>>(updateTable: UpdateTable) {
+      update<UpdateTable extends AnyTable>(updateTable: UpdateTable) {
         return {
           set(
-            values: UpdateTable extends Table<any, infer Columns>
+            values: UpdateTable extends Table<Config, any, infer Columns>
               ? {
                   [K in keyof Columns]?: Columns[K] extends Column<
+                    Config,
                     any,
                     any,
                     infer DataType,
@@ -682,51 +689,50 @@ export const makeInsertInto =
                   >
                     ? IsNotNull extends true
                       ?
-                          | GetResultType<DataType>
-                          | Expression<DataType, boolean, any>
-                          | Expression<GetResultType<DataType>, boolean, any>
+                          | GetResultType<Config, DataType>
+                          | Expression<Config, DataType, boolean, any>
+                          | Expression<Config, GetResultType<Config, DataType>, boolean, any>
                       :
-                          | GetResultType<DataType>
-                          | GetResultType<'Null'>
-                          | Expression<DataType | GetResultType<'Null'>, boolean, any>
+                          | GetResultType<Config, DataType>
+                          | GetResultType<Config, 'Null'>
                           | Expression<
-                              GetResultType<DataType> | GetResultType<'Null'>,
+                              Config,
+                              DataType | GetResultType<Config, 'Null'>,
+                              boolean,
+                              any
+                            >
+                          | Expression<
+                              Config,
+                              GetResultType<Config, DataType> | GetResultType<Config, 'Null'>,
                               boolean,
                               any
                             >
                     : never;
                 }
               : never,
-          ): UpdateQuery<T, number> {
+          ): UpdateQuery<Config, T, number> {
             const keys = Object.keys(values);
 
             return new UpdateQuery(queryExecutor, [], table, 'AFFECTED_COUNT', [
               new StringToken(`INSERT INTO`),
-              new StringToken((table as Table<any, any>).getName()),
+              new StringToken((table as AnyTable).getName()),
               new GroupToken([
                 new SeparatorToken(
                   `,`,
                   columnNames!.map((columnName) => {
-                    const column = (table as any)[columnName] as Column<
-                      any,
-                      any,
-                      any,
-                      any,
-                      any,
-                      any
-                    >;
+                    const column = (table as any)[columnName] as AnyColumn;
 
                     return new StringToken(column.getSnakeCaseName());
                   }),
                 ),
               ]),
               new StringToken(`UPDATE`),
-              new StringToken((updateTable as Table<any, any>).getName()),
+              new StringToken((updateTable as AnyTable).getName()),
               new StringToken(`SET`),
               new SeparatorToken(
                 `,`,
                 keys.map((key) => {
-                  const column = (table as any)[key] as Column<any, any, any, any, any, any>;
+                  const column = (table as any)[key] as AnyColumn;
                   const value = (values as any)[key];
 
                   return new CollectionToken([
@@ -746,7 +752,7 @@ export const makeInsertInto =
       defaultValues() {
         return new InsertQuery(queryExecutor, [], table, 'AFFECTED_COUNT', [
           new StringToken(`INSERT INTO`),
-          new StringToken((table as Table<any, any>).getName()),
+          new StringToken((table as AnyTable).getName()),
           new StringToken(`DEFAULT VALUES`),
         ]);
       },
@@ -755,18 +761,18 @@ export const makeInsertInto =
       // required. Even though not strictly correct: we also assume a column containing a default
       // clause is not required. This is so you do not need to specify an undefined id when inserting
       // a row.
-      values(listOrItem: object | object[]): InsertQuery<T, number> {
+      values(listOrItem: object | object[]): InsertQuery<Config, T, number> {
         const list = Array.isArray(listOrItem) ? listOrItem : [listOrItem];
         const [firstItem] = list;
 
         return new InsertQuery(queryExecutor, [], table, 'AFFECTED_COUNT', [
           new StringToken(`INSERT INTO`),
-          new StringToken((table as Table<any, any>).getName()),
+          new StringToken((table as AnyTable).getName()),
           new GroupToken([
             new SeparatorToken(
               `,`,
               Object.keys(firstItem).map((columnName) => {
-                const column = (table as any)[columnName] as Column<any, any, any, any, any, any>;
+                const column = (table as any)[columnName] as AnyColumn;
 
                 return new StringToken(column.getSnakeCaseName());
               }),

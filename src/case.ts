@@ -2,14 +2,18 @@ import { BooleanQuery, Query } from './query';
 import { Expression, InternalExpression } from './expression';
 import { ParameterToken, StringToken, Token } from './tokens';
 
-export class CaseStatement<DataType> {
+import { DbConfig } from './config';
+
+export class CaseStatement<Config extends DbConfig, DataType> {
   constructor(private readonly tokens: Token[]) {}
 
-  when<Q extends Query<any>>(expression: Expression<boolean, boolean, string> | BooleanQuery<Q>) {
+  when<Q extends Query<any>>(
+    expression: Expression<Config, boolean, boolean, string> | BooleanQuery<Config, Q>,
+  ) {
     const self = this;
     return {
       then<T>(result: T) {
-        return new CaseStatement<DataType | T>([
+        return new CaseStatement<Config, DataType | T>([
           ...self.tokens,
           new StringToken(`WHEN`),
           ...expression.toTokens(),
@@ -21,14 +25,14 @@ export class CaseStatement<DataType> {
   }
 
   else<T>(result: T) {
-    return new CaseStatement<DataType | T>([
+    return new CaseStatement<Config, DataType | T>([
       ...this.tokens,
       new StringToken(`ELSE`),
       new ParameterToken(result),
     ]);
   }
 
-  end(): Expression<DataType, true, 'case'> {
+  end(): Expression<Config, DataType, true, 'case'> {
     return new InternalExpression(this.tokens, `case`) as any;
   }
 }

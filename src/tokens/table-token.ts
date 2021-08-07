@@ -1,10 +1,10 @@
 import { State, Token } from './token';
 
-import { Table } from '../TableType';
+import { AnyTable } from '../TableType';
 import { wrapQuotes } from '../naming';
 
 export class TableToken extends Token {
-  constructor(private readonly table: Table<any, any>) {
+  constructor(private readonly table: AnyTable) {
     super();
   }
 

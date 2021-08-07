@@ -17,16 +17,20 @@ import {
   text,
   timestampWithTimeZone,
   uuid,
+  DbConfig,
+  GetMostSignificantDataType,
+  Float4,
+  DefaultDbConfig,
 } from '../../.build';
 
 import { Query } from '../../.build/query';
 import { ResultSet } from '../../.build/result-set';
 
-const toSnap = <T extends Query<any>>(query: T): ResultSet<T, true> => {
+const toSnap = <T extends Query<any>>(query: T): ResultSet<DefaultDbConfig, T, true> => {
   return undefined as any;
 };
 
-const toTableRow = <T>(table: T): TableRow<T> => {
+const toTableRow = <T>(table: T): TableRow<DefaultDbConfig, T> => {
   return undefined as any;
 };
 
@@ -117,6 +121,12 @@ const db = defineDb({ foo, bar, buzz, crate, ding }, () =>
   // @dts-jest:snap should convert null value to not null using coalesce
   toSnap(db.select(coalesce(db.foo.value, 1)).from(db.foo));
 
+  // @dts-jest:snap should convert not convert null value to not null using null in coalesce
+  toSnap(db.select(coalesce(db.foo.value, 1 as null | number)).from(db.foo));
+
+  // @dts-jest:snap coalesce should not convert to not null when passing another nullable value
+  toSnap(db.select(coalesce(db.foo.value, db.foo.value)).from(db.foo));
+
   // @dts-jest:snap should select foo.* from foo
   toSnap(db.select(star(db.foo)).from(db.foo));
 
@@ -187,9 +197,6 @@ const db = defineDb({ foo, bar, buzz, crate, ding }, () =>
   // @dts-jest:snap should return nullable text when calling concat with nullable input
   db.buzz.other.concat(db.buzz.name);
 
-  // @dts-jest:snap float4 + float4 = float4
-  db.crate.float4.plus(db.crate.float4);
-
   // @dts-jest:snap float4 + int4 = float8
   db.crate.float4.plus(db.crate.int4);
 
@@ -204,4 +211,8 @@ const db = defineDb({ foo, bar, buzz, crate, ding }, () =>
 
   // @dts-jest:snap should select column with default which is nullable
   toSnap(db.select(db.ding.value).from(db.ding));
+
+  const result = db.crate.float4.plus(db.crate.float4);
+  // @dts-jest:snap float4 + float4 = float4
+  result;
 }

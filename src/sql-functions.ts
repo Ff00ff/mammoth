@@ -10,7 +10,9 @@ import {
   createQueryState,
 } from './tokens';
 import { Any, AnyNumber, Int4, Int8, Text, ToPostgresDataType } from './data-types';
+import { AnyTable, Table } from './TableType';
 import {
+  AnyExpression,
   DefaultExpression,
   Expression,
   InternalDefaultExpression,
@@ -19,14 +21,13 @@ import {
 } from './expression';
 
 import type { ColumnSet } from './column';
-import { GetResultType } from './config';
+import { DbConfig, DefaultDbConfig, GetResultType } from './config';
 import { Query } from './query';
-import { Table } from './TableType';
 
 export class Star {
   private _starBrand: any;
 
-  constructor(private readonly table?: Table<any, any>) {}
+  constructor(private readonly table?: AnyTable) {}
 
   toTokens() {
     if (this.table) {
@@ -41,10 +42,22 @@ export class Star {
   }
 }
 
-export function raw<DataType, IsNotNull extends boolean = false, Name extends string = '?column?'>(
+export const now = <Config extends DbConfig = DefaultDbConfig>(): Expression<
+  Config,
+  Date,
+  true,
+  'now'
+> => new InternalExpression([new StringToken(`NOW()`)], 'now') as any;
+
+export function raw<
+  DataType,
+  IsNotNull extends boolean = false,
+  Name extends string = '?column?',
+  Config extends DbConfig = DefaultDbConfig,
+>(
   strings: TemplateStringsArray,
   ...parameters: any[]
-): Expression<DataType, IsNotNull, Name> {
+): Expression<Config, DataType, IsNotNull, Name> {
   const tokens = strings.flatMap((string, index) => {
     if (index === strings.length - 1) {
       return [new StringToken(string)];
@@ -57,11 +70,23 @@ export function raw<DataType, IsNotNull extends boolean = false, Name extends st
   return new InternalExpression(tokens, '' as any) as any;
 }
 
+export const count = <Config extends DbConfig = DefaultDbConfig>(
+  expression?: AnyExpression,
+): Expression<Config, Int8, true, 'count'> => {
+  if (!expression) {
+    return new InternalExpression([new StringToken(`COUNT(*)`)], 'count');
+  }
+
+  const tokens = expression.toTokens();
+
+  return new InternalExpression([new StringToken(`COUNT`), new GroupToken(tokens)], 'count');
+};
+
 export function star(): Star;
-export function star<T extends Table<any, any>>(
+export function star<T extends AnyTable>(
   table: T,
-): T extends Table<any, infer Columns> ? ColumnSet<Columns> : never;
-export function star(table?: Table<any, any>) {
+): T extends Table<any, any, infer Columns> ? ColumnSet<Columns> : never;
+export function star(table?: AnyTable) {
   if (table) {
     return new Star(table) as any;
   }
@@ -69,11 +94,11 @@ export function star(table?: Table<any, any>) {
   return new Star();
 }
 
-export const stringAgg = (
-  expression: Expression<Text, boolean, any>,
+export const stringAgg = <Config extends DbConfig>(
+  expression: Expression<Config, Text, boolean, any>,
   delimiter: string,
-  ...orderBy: Expression<any, any, any>[]
-): Expression<Text, false, 'stringAgg'> => {
+  ...orderBy: AnyExpression[]
+): Expression<Config, Text, false, 'stringAgg'> => {
   return new InternalExpression(
     [
       new StringToken(`string_agg`),
@@ -99,82 +124,73 @@ export const stringAgg = (
   );
 };
 
-export const bitAnd = <T extends AnyNumber>(
-  expression: Expression<T, boolean, any>,
-): Expression<T, false, 'bitAnd'> =>
+export const bitAnd = <Config extends DbConfig, T extends AnyNumber>(
+  expression: Expression<Config, T, boolean, any>,
+): Expression<Config, T, false, 'bitAnd'> =>
   new InternalExpression(
     [new StringToken(`bit_and`), new GroupToken(expression.toTokens(false))],
     'bitAnd',
   ) as any;
-export const bitOr = <T extends AnyNumber>(
-  expression: Expression<T, boolean, any>,
-): Expression<T, false, 'bitOr'> =>
-  new InternalExpression<T, false, 'bitOr'>(
+
+export const bitOr = <Config extends DbConfig, T extends AnyNumber>(
+  expression: Expression<Config, T, boolean, any>,
+): Expression<Config, T, false, 'bitOr'> =>
+  new InternalExpression<Config, T, false, 'bitOr'>(
     [new StringToken(`bit_or`), new GroupToken(expression.toTokens(false))],
     'bitOr',
   ) as any;
 
-export const boolAnd = (
-  expression: Expression<boolean, boolean, any>,
-): Expression<number, false, 'boolAnd'> =>
-  new InternalExpression<number, false, 'boolAnd'>(
+export const boolAnd = <Config extends DbConfig>(
+  expression: Expression<Config, boolean, boolean, any>,
+): Expression<Config, number, false, 'boolAnd'> =>
+  new InternalExpression<Config, number, false, 'boolAnd'>(
     [new StringToken(`bool_and`), new GroupToken(expression.toTokens(false))],
     'boolAnd',
   );
 
-export const boolOr = (
-  expression: Expression<boolean, boolean, any>,
-): Expression<number, false, 'boolOr'> =>
-  new InternalExpression<number, false, 'boolOr'>(
+export const boolOr = <Config extends DbConfig>(
+  expression: Expression<Config, boolean, boolean, any>,
+): Expression<Config, number, false, 'boolOr'> =>
+  new InternalExpression<Config, number, false, 'boolOr'>(
     [new StringToken(`bool_or`), new GroupToken(expression.toTokens(false))],
     'boolOr',
   );
 
-export const every = (
-  expression: Expression<boolean, boolean, any>,
-): Expression<number, false, 'every'> =>
-  new InternalExpression<number, false, 'every'>(
+export const every = <Config extends DbConfig>(
+  expression: Expression<Config, boolean, boolean, any>,
+): Expression<Config, number, false, 'every'> =>
+  new InternalExpression<Config, number, false, 'every'>(
     [new StringToken(`every`), new GroupToken(expression.toTokens(false))],
     'every',
   );
 
-export const arrayAgg = <DataType>(
-  expression: Expression<DataType, boolean, any>,
-): Expression<GetResultType<DataType>[], false, 'arrayAgg'> =>
+export const arrayAgg = <Config extends DbConfig, DataType>(
+  expression: Expression<Config, DataType, boolean, any>,
+): Expression<Config, GetResultType<Config, DataType>[], false, 'arrayAgg'> =>
   new InternalExpression(
     [new StringToken(`array_agg`), new GroupToken(expression.toTokens(false))],
     'arrayAgg',
   ) as any;
 
-export const count = (expression?: Expression<any, any, any>): Expression<Int8, true, 'count'> => {
-  if (!expression) {
-    return new InternalExpression([new StringToken(`COUNT(*)`)], 'count');
-  }
-
-  const tokens = expression.toTokens();
-
-  return new InternalExpression([new StringToken(`COUNT`), new GroupToken(tokens)], 'count');
-};
-
-export const min = <DataType>(
-  expression: Expression<DataType, boolean, any>,
-): Expression<DataType, false, 'min'> =>
-  new InternalExpression<DataType, false, 'min'>(
+export const min = <Config extends DbConfig, DataType>(
+  expression: Expression<Config, DataType, boolean, any>,
+): Expression<Config, DataType, false, 'min'> =>
+  new InternalExpression<Config, DataType, false, 'min'>(
     [new StringToken(`MIN`), new GroupToken(expression.toTokens())],
     'min',
   ) as any;
 
-export const max = <DataType>(
-  expression: Expression<DataType, boolean, any>,
-): Expression<DataType, false, 'max'> =>
+export const max = <Config extends DbConfig, DataType>(
+  expression: Expression<Config, DataType, boolean, any>,
+): Expression<Config, DataType, false, 'max'> =>
   new InternalExpression(
     [new StringToken(`MAX`), new GroupToken(expression.toTokens())],
     'max',
   ) as any;
 
-export const avg = <T extends AnyNumber>(
-  expression: Expression<T, boolean, any>,
-): Expression<T, false, 'avg'> =>
+export const avg = <Config extends DbConfig, T extends AnyNumber>(
+  expression: Expression<Config, T, boolean, any>,
+): Expression<Config, T, false, 'avg'> =>
   new InternalExpression(
     [new StringToken(`AVG`), new GroupToken(expression.toTokens())],
     'avg',
@@ -182,87 +198,92 @@ export const avg = <T extends AnyNumber>(
 
 // Selecting the sum of an int4 results in a int8, but selecting the sum of any other data type
 // doesn't seem to change the return type at all.
-export const sum = <T extends AnyNumber>(
-  expression: Expression<T, boolean, any>,
-): Expression<T extends Int4 ? Int8 : T, false, 'sum'> =>
-  new InternalExpression<T, false, 'sum'>(
+export const sum = <Config extends DbConfig, T extends AnyNumber>(
+  expression: Expression<Config, T, boolean, any>,
+): Expression<Config, T extends Int4 ? Int8 : T, false, 'sum'> =>
+  new InternalExpression<Config, T, false, 'sum'>(
     [new StringToken(`SUM`), new GroupToken(expression.toTokens())],
     'sum',
   ) as any;
 
-export const xmlagg = <DataType>(
-  expression: Expression<DataType, boolean, any>,
-): Expression<number, false, 'xmlagg'> =>
-  new InternalExpression<number, false, 'xmlagg'>(
+export const xmlagg = <Config extends DbConfig, DataType>(
+  expression: Expression<Config, DataType, boolean, any>,
+): Expression<Config, number, false, 'xmlagg'> =>
+  new InternalExpression<Config, number, false, 'xmlagg'>(
     [new StringToken(`xmlagg`), new GroupToken(expression.toTokens())],
     'xmlagg',
   );
 
-export const not = (expression: Expression<boolean, boolean, string>): DefaultExpression<boolean> =>
-  new InternalDefaultExpression<boolean>([
+export const not = <Config extends DbConfig>(
+  expression: Expression<Config, boolean, boolean, string>,
+): DefaultExpression<Config, boolean> =>
+  new InternalDefaultExpression([
     new StringToken(`NOT`),
     new GroupToken(expression.toTokens()),
   ]) as any;
 
-export const and = (expression: Expression<boolean, boolean, string>): DefaultExpression<boolean> =>
-  new InternalDefaultExpression<boolean>([
+export const and = <Config extends DbConfig>(
+  expression: Expression<Config, boolean, boolean, string>,
+): DefaultExpression<Config, boolean> =>
+  new InternalDefaultExpression([
     new StringToken(`AND`),
     new GroupToken(expression.toTokens()),
   ]) as any;
 
-export const or = (expression: Expression<boolean, boolean, string>): DefaultExpression<boolean> =>
-  new InternalDefaultExpression<boolean>([
+export const or = <Config extends DbConfig>(
+  expression: Expression<Config, boolean, boolean, string>,
+): DefaultExpression<Config, boolean> =>
+  new InternalDefaultExpression([
     new StringToken(`OR`),
     new GroupToken(expression.toTokens()),
   ]) as any;
 
-export const group = (
-  expression: Expression<boolean, boolean, string>,
-): DefaultExpression<boolean> =>
-  new InternalDefaultExpression<boolean>([new GroupToken(expression.toTokens())]) as any;
+export const group = <Config extends DbConfig>(
+  expression: Expression<Config, boolean, boolean, string>,
+): DefaultExpression<Config, boolean> =>
+  new InternalDefaultExpression([new GroupToken(expression.toTokens())]) as any;
 
-export const any = <T>(array: T[]): RawExpression<T, true, '?column?'> =>
+export const any = <Config extends DbConfig, T>(
+  array: T[],
+): RawExpression<Config, T, true, '?column?'> =>
   new InternalDefaultExpression([
     new StringToken(`ANY`),
     new GroupToken([new ParameterToken(array)]),
   ]) as any;
 
-export const now = (): Expression<Date, true, 'now'> =>
-  new InternalExpression([new StringToken(`NOW()`)], 'now');
-
-export const exists = (
-  expression: Expression<any, any, any> | Query<any>,
-): DefaultExpression<boolean> =>
+export const exists = <Config extends DbConfig>(
+  expression: AnyExpression | Query<any>,
+): DefaultExpression<Config, boolean> =>
   new InternalDefaultExpression([new StringToken(`EXISTS`), new GroupToken(expression.toTokens())]);
 
-export const andNotExists = (
-  expression: Expression<any, any, any> | Query<any>,
-): DefaultExpression<boolean> =>
+export const andNotExists = <Config extends DbConfig>(
+  expression: Expression<Config, any, any, any> | Query<any>,
+): DefaultExpression<Config, boolean> =>
   new InternalDefaultExpression([
     new StringToken(`AND NOT EXISTS`),
     new GroupToken(expression.toTokens()),
   ]);
 
-export const andExists = (
-  expression: Expression<any, any, any> | Query<any>,
-): DefaultExpression<boolean> =>
+export const andExists = <Config extends DbConfig>(
+  expression: Expression<Config, any, any, any> | Query<any>,
+): DefaultExpression<Config, boolean> =>
   new InternalDefaultExpression([
     new StringToken(`AND EXISTS`),
     new GroupToken(expression.toTokens()),
   ]);
 
-export const notExists = (
-  expression: Expression<any, any, any> | Query<any>,
-): DefaultExpression<boolean> =>
+export const notExists = <Config extends DbConfig>(
+  expression: Expression<Config, any, any, any> | Query<any>,
+): DefaultExpression<Config, boolean> =>
   new InternalDefaultExpression([
     new StringToken(`NOT EXISTS`),
     new GroupToken(expression.toTokens()),
   ]);
 
 // TODO: it's still possible for coalesce to return nullable. It depends on the input.
-export const coalesce = <DataType>(
-  ...expressions: (Expression<DataType, boolean, any> | GetResultType<DataType>)[]
-): Expression<DataType, true, 'coalesce'> => {
+export const coalesce = <Config extends DbConfig, DataType>(
+  ...expressions: (Expression<Config, DataType, boolean, any> | GetResultType<Config, DataType>)[]
+): Expression<Config, DataType, false, 'coalesce'> => {
   return new InternalExpression(
     [
       new StringToken(`coalesce`),
@@ -281,10 +302,15 @@ export const coalesce = <DataType>(
   ) as any;
 };
 
-export const cast = <T extends Any, IsNotNull extends boolean, Name extends string>(
-  expression: Expression<any, IsNotNull, Name>,
+export const cast = <
+  Config extends DbConfig,
+  T extends Any,
+  IsNotNull extends boolean,
+  Name extends string,
+>(
+  expression: Expression<Config, any, IsNotNull, Name>,
   dataType: ToPostgresDataType<T>,
-): Expression<T, IsNotNull, Name> =>
+): Expression<Config, T, IsNotNull, Name> =>
   new InternalExpression(
     [
       new StringToken(`CAST`),

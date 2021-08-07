@@ -1,8 +1,8 @@
-import type { Table } from '../TableType';
+import type { AnyTable } from '../TableType';
 import type { TableToken } from './table-token';
 
 export abstract class Token {
-  abstract reduce(state: any, numberOfParameters: number, tables: Table<any, any>[]): any;
+  abstract reduce(state: any, numberOfParameters: number, tables: AnyTable[]): any;
 }
 
 export interface State {
@@ -13,7 +13,7 @@ export interface State {
 export const createQueryState = (
   tokens: Token[],
   currentParameterIndex: number = 0,
-  existingTables?: Table<any, any>[],
+  existingTables?: AnyTable[],
 ): State => {
   const initialState = {
     text: [],

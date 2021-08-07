@@ -1,4 +1,5 @@
 import {
+  AnyExpression,
   BooleanExpression,
   Expression,
   NumberExpression,
@@ -6,24 +7,33 @@ import {
   SharedExpression,
   TextExpression,
 } from './expression';
-import { Column, ColumnSet } from './column';
+import { AnyColumn, Column, ColumnSet } from './column';
 
 import { SelectQuery } from './select';
 import { Star } from './sql-functions';
+import { DbConfig } from './config';
 
-export type GetSelectableName<S> = S extends Column<infer Name, string, any, boolean, boolean, any>
+export type GetSelectableName<S> = S extends Column<
+  any,
+  infer Name,
+  string,
+  any,
+  boolean,
+  boolean,
+  any
+>
   ? Name
-  : S extends NumberExpression<any, boolean, infer Name>
+  : S extends NumberExpression<any, any, boolean, infer Name>
   ? Name
-  : S extends TextExpression<any, boolean, infer Name>
+  : S extends TextExpression<any, any, boolean, infer Name>
   ? Name
-  : S extends BooleanExpression<any, boolean, infer Name>
+  : S extends BooleanExpression<any, any, boolean, infer Name>
   ? Name
-  : S extends RawExpression<any, boolean, infer Name>
+  : S extends RawExpression<any, any, boolean, infer Name>
   ? Name
-  : S extends Expression<any, boolean, infer Name>
+  : S extends Expression<any, any, boolean, infer Name>
   ? Name
-  : S extends SelectQuery<infer Columns>
+  : S extends SelectQuery<any, infer Columns>
   ? keyof Columns // This only works if the query has one select clause
   : never;
 
@@ -34,9 +44,9 @@ export type GetSelectable<C extends Selectable> = C extends ColumnSet<infer Colu
   : never;
 
 export type Selectable =
-  | Expression<any, boolean, string>
-  | SelectQuery<any>
-  | Column<any, any, any, boolean, boolean, any>
+  | AnyExpression
+  | SelectQuery<any, any, boolean>
+  | AnyColumn
   | ColumnSet<any>
   | Star;
 
@@ -57,8 +67,9 @@ type TupleToIntersection<T extends Array<any>> = UnboxIntersection<
 >;
 type ToColumns<T> = T extends { [column: string]: any } ? T : never;
 
-export interface SelectFn {
+export interface SelectFn<Config extends DbConfig> {
   <Columns extends Selectable[]>(...columns: [...Columns]): SelectQuery<
+    Config,
     ToColumns<TupleToIntersection<GetSelectables<Columns>>>,
     ContainsStar<Columns[number]>
   >;

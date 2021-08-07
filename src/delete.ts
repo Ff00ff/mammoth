@@ -1,3 +1,5 @@
+import { AnyColumn, Column } from './column';
+import type { AnyTable, Table } from './TableType';
 import {
   CollectionToken,
   GroupToken,
@@ -9,30 +11,30 @@ import {
 } from './tokens';
 import type { GetReturning, QueryExecutorFn, ResultType } from './types';
 
-import { Column } from './column';
+import { DbConfig } from './config';
 import { Expression } from './expression';
 import { Query } from './query';
 import type { ResultSet } from './result-set';
-import type { Table } from './TableType';
 import type { TableDefinition } from './table';
 import { wrapQuotes } from './naming';
 
 export const makeDeleteFrom =
-  (queryExecutor: QueryExecutorFn) =>
-  <T extends Table<any, any>>(
+  <Config extends DbConfig>(queryExecutor: QueryExecutorFn) =>
+  <T extends AnyTable>(
     table: T,
-  ): T extends TableDefinition<any> ? never : DeleteQuery<T> => {
-    return new DeleteQuery<T>(queryExecutor, [], table, 'AFFECTED_COUNT', [
+  ): T extends TableDefinition<any> ? never : DeleteQuery<Config, T> => {
+    return new DeleteQuery<Config, T>(queryExecutor, [], table, 'AFFECTED_COUNT', [
       new StringToken(`DELETE FROM`),
-      new StringToken((table as Table<any, any>).getName()),
+      new StringToken((table as AnyTable).getName()),
     ]) as any;
   };
 
 // https://www.postgresql.org/docs/12/sql-delete.html
 export class DeleteQuery<
-  T extends Table<any, any>,
+  Config extends DbConfig,
+  T extends AnyTable,
   Returning = number,
-  TableColumns = T extends Table<any, infer Columns> ? Columns : never,
+  TableColumns = T extends Table<any, any, infer Columns> ? Columns : never,
 > extends Query<Returning> {
   private _deleteQueryBrand: any;
 
@@ -54,7 +56,9 @@ export class DeleteQuery<
   then<Result1, Result2 = never>(
     onFulfilled?:
       | ((
-          value: Returning extends number ? number : ResultSet<DeleteQuery<T, Returning>, false>[],
+          value: Returning extends number
+            ? number
+            : ResultSet<Config, DeleteQuery<Config, T, Returning>, false>[],
         ) => Result1 | PromiseLike<Result1>)
       | undefined
       | null,
@@ -73,7 +77,7 @@ export class DeleteQuery<
       .catch(onRejected);
   }
 
-  using(...fromItems: Table<any, any>[]): DeleteQuery<T, Returning> {
+  using(...fromItems: AnyTable[]): DeleteQuery<Config, T, Returning> {
     return new DeleteQuery(this.queryExecutor, [], this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`USING`),
@@ -86,7 +90,9 @@ export class DeleteQuery<
     ]);
   }
 
-  where(condition: Expression<boolean, boolean, string>): DeleteQuery<T, Returning> {
+  where(
+    condition: Expression<Config, boolean, boolean, string>,
+  ): DeleteQuery<Config, T, Returning> {
     return new DeleteQuery(this.queryExecutor, [], this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE`),
@@ -94,7 +100,7 @@ export class DeleteQuery<
     ]);
   }
 
-  whereCurrentOf(cursorName: string): DeleteQuery<T, Returning> {
+  whereCurrentOf(cursorName: string): DeleteQuery<Config, T, Returning> {
     return new DeleteQuery(this.queryExecutor, [], this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE CURRENT OF`),
@@ -102,13 +108,17 @@ export class DeleteQuery<
     ]);
   }
 
-  returning<C1 extends keyof (T extends Table<string, infer Columns> ? Columns : never)>(
+  returning<C1 extends keyof (T extends Table<Config, string, infer Columns> ? Columns : never)>(
     column1: C1,
-  ): DeleteQuery<T, GetReturning<T extends Table<string, infer Columns> ? Columns : never, C1>>;
+  ): DeleteQuery<
+    Config,
+    T,
+    GetReturning<T extends Table<Config, string, infer Columns> ? Columns : never, C1>
+  >;
   returning<C1 extends keyof TableColumns, C2 extends keyof TableColumns>(
     column1: C1,
     column2: C2,
-  ): DeleteQuery<T, GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2>>;
+  ): DeleteQuery<Config, T, GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2>>;
   returning<
     C1 extends keyof TableColumns,
     C2 extends keyof TableColumns,
@@ -118,6 +128,7 @@ export class DeleteQuery<
     column2: C2,
     column3: C3,
   ): DeleteQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2> & GetReturning<TableColumns, C3>
   >;
@@ -132,6 +143,7 @@ export class DeleteQuery<
     column3: C3,
     column4: C4,
   ): DeleteQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -151,6 +163,7 @@ export class DeleteQuery<
     column4: C4,
     column5: C5,
   ): DeleteQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -173,6 +186,7 @@ export class DeleteQuery<
     column5: C5,
     column6: C6,
   ): DeleteQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -198,6 +212,7 @@ export class DeleteQuery<
     column6: C6,
     column7: C7,
   ): DeleteQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -226,6 +241,7 @@ export class DeleteQuery<
     column7: C7,
     column8: C8,
   ): DeleteQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -257,6 +273,7 @@ export class DeleteQuery<
     column8: C8,
     column9: C9,
   ): DeleteQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -291,6 +308,7 @@ export class DeleteQuery<
     column9: C9,
     column10: C10,
   ): DeleteQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -310,7 +328,7 @@ export class DeleteQuery<
       new SeparatorToken(
         `,`,
         columnNames.map((alias) => {
-          const column = (this.table as any)[alias] as Column<any, any, any, any, any, any>;
+          const column = (this.table as any)[alias] as AnyColumn;
 
           if (alias !== column.getSnakeCaseName()) {
             return new StringToken(`${wrapQuotes(column.getSnakeCaseName())} ${wrapQuotes(alias)}`);

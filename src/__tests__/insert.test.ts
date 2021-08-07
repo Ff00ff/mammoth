@@ -1,4 +1,14 @@
-import { defineDb, defineTable, integer, text, timestampWithTimeZone, toSql, uuid } from '..';
+import {
+  bootstrap,
+  // defineDb,
+  defineTable,
+  integer,
+  text,
+  timestampWithTimeZone,
+  toSql,
+  uuid,
+} from '..';
+import { DefaultDbConfig } from '../config';
 
 import { raw } from '../sql-functions';
 
@@ -9,6 +19,8 @@ describe(`insert`, () => {
     name: text().notNull(),
     value: integer(),
   });
+
+  const { defineDb } = bootstrap<DefaultDbConfig>();
 
   const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 

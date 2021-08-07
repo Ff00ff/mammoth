@@ -1,12 +1,12 @@
 import { State, Token, createQueryState } from './token';
 
 import { CollectionToken } from './collection-token';
-import { Column } from '../column';
+import { AnyColumn } from '../column';
 import { SeparatorToken } from './separator-token';
-import type { Table } from '../TableType';
+import type { AnyTable } from '../TableType';
 
 export class TableStarToken extends Token {
-  constructor(private readonly table: Table<any, any>) {
+  constructor(private readonly table: AnyTable) {
     super();
   }
 
@@ -19,9 +19,7 @@ export class TableStarToken extends Token {
             .filter((name) => ![`as`, `getName`, `getOriginalName`].includes(name))
             .map((columnName) => this.table[columnName])
             .map((column) => {
-              return new CollectionToken(
-                (column as Column<any, any, any, any, any, any>).toTokens(true),
-              );
+              return new CollectionToken((column as AnyColumn).toTokens(true));
             }),
         ),
       ],

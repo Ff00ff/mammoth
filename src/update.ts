@@ -1,3 +1,5 @@
+import { AnyColumn, Column } from './column';
+import { AnyTable, Table } from './TableType';
 import {
   CollectionToken,
   ParameterToken,
@@ -6,21 +8,20 @@ import {
   Token,
   createQueryState,
 } from './tokens';
+import { DbConfig, GetResultType } from './config';
 import { GetReturning, QueryExecutorFn, ResultType } from './types';
 
-import { Column } from './column';
 import { Expression } from './expression';
-import { GetResultType } from './config';
 import { Query } from './query';
 import { ResultSet } from './result-set';
-import { Table } from './TableType';
 import { wrapQuotes } from './naming';
 
 // https://www.postgresql.org/docs/12/sql-update.html
 export class UpdateQuery<
-  T extends Table<any, any>,
+  Config extends DbConfig,
+  T extends AnyTable,
   Returning = number,
-  TableColumns = T extends Table<any, infer Columns> ? Columns : never,
+  TableColumns = T extends Table<Config, any, infer Columns> ? Columns : never,
 > extends Query<Returning> {
   private _updateQueryBrand: any;
 
@@ -44,7 +45,7 @@ export class UpdateQuery<
       | ((
           value: Returning extends number
             ? Returning
-            : ResultSet<UpdateQuery<T, Returning>, false>[],
+            : ResultSet<Config, UpdateQuery<Config, T, Returning>, false>[],
         ) => Result1 | PromiseLike<Result1>)
       | undefined
       | null,
@@ -63,7 +64,9 @@ export class UpdateQuery<
       .catch(onRejected);
   }
 
-  where(condition: Expression<boolean, boolean, string>): UpdateQuery<T, Returning> {
+  where(
+    condition: Expression<Config, boolean, boolean, string>,
+  ): UpdateQuery<Config, T, Returning> {
     return new UpdateQuery(this.queryExecutor, this.returningKeys, this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`WHERE`),
@@ -79,7 +82,7 @@ export class UpdateQuery<
     ]);
   }
 
-  from(fromItem: Table<any, any>): UpdateQuery<T, Returning> {
+  from(fromItem: AnyTable): UpdateQuery<Config, T, Returning> {
     return new UpdateQuery(this.queryExecutor, this.returningKeys, this.table, this.resultType, [
       ...this.tokens,
       new StringToken(`FROM`),
@@ -93,11 +96,11 @@ export class UpdateQuery<
 
   returning<C1 extends keyof TableColumns>(
     column1: C1,
-  ): UpdateQuery<T, GetReturning<TableColumns, C1>>;
+  ): UpdateQuery<Config, T, GetReturning<TableColumns, C1>>;
   returning<C1 extends keyof TableColumns, C2 extends keyof TableColumns>(
     column1: C1,
     column2: C2,
-  ): UpdateQuery<T, GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2>>;
+  ): UpdateQuery<Config, T, GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2>>;
   returning<
     C1 extends keyof TableColumns,
     C2 extends keyof TableColumns,
@@ -107,6 +110,7 @@ export class UpdateQuery<
     column2: C2,
     column3: C3,
   ): UpdateQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> & GetReturning<TableColumns, C2> & GetReturning<TableColumns, C3>
   >;
@@ -121,6 +125,7 @@ export class UpdateQuery<
     column3: C3,
     column4: C4,
   ): UpdateQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -140,6 +145,7 @@ export class UpdateQuery<
     column4: C4,
     column5: C5,
   ): UpdateQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -162,6 +168,7 @@ export class UpdateQuery<
     column5: C5,
     column6: C6,
   ): UpdateQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -187,6 +194,7 @@ export class UpdateQuery<
     column6: C6,
     column7: C7,
   ): UpdateQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -215,6 +223,7 @@ export class UpdateQuery<
     column7: C7,
     column8: C8,
   ): UpdateQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -246,6 +255,7 @@ export class UpdateQuery<
     column8: C8,
     column9: C9,
   ): UpdateQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -280,6 +290,7 @@ export class UpdateQuery<
     column9: C9,
     column10: C10,
   ): UpdateQuery<
+    Config,
     T,
     GetReturning<TableColumns, C1> &
       GetReturning<TableColumns, C2> &
@@ -299,7 +310,7 @@ export class UpdateQuery<
       new SeparatorToken(
         `,`,
         columnNames.map((alias) => {
-          const column = (this.table as any)[alias] as Column<any, any, any, any, any, any>;
+          const column = (this.table as any)[alias] as AnyColumn;
 
           if (alias !== column.getSnakeCaseName()) {
             return new StringToken(`${wrapQuotes(column.getSnakeCaseName())} ${wrapQuotes(alias)}`);
@@ -318,9 +329,9 @@ export class UpdateQuery<
 }
 
 export const makeUpdate =
-  (queryExecutor: QueryExecutorFn) =>
-  <T extends Table<any, any>>(table: T) => {
-    const getTableStringToken = (table: Table<any, any>) => {
+  <Config extends DbConfig>(queryExecutor: QueryExecutorFn) =>
+  <T extends AnyTable>(table: T) => {
+    const getTableStringToken = (table: AnyTable) => {
       if (table.getOriginalName()) {
         return new StringToken(
           `${wrapQuotes(table.getOriginalName())} ${wrapQuotes(table.getName())}`,
@@ -332,9 +343,10 @@ export const makeUpdate =
 
     return {
       set(
-        values: T extends Table<any, infer Columns>
+        values: T extends Table<Config, any, infer Columns>
           ? {
               [K in keyof Columns]?: Columns[K] extends Column<
+                Config,
                 any,
                 any,
                 infer DataType,
@@ -344,18 +356,23 @@ export const makeUpdate =
               >
                 ? IsNotNull extends true
                   ?
-                      | GetResultType<DataType>
-                      | Expression<DataType, boolean, any>
-                      | Expression<GetResultType<DataType>, boolean, any>
+                      | GetResultType<Config, DataType>
+                      | Expression<Config, DataType, boolean, any>
+                      | Expression<Config, GetResultType<Config, DataType>, boolean, any>
                   :
-                      | GetResultType<DataType>
-                      | GetResultType<'Null'>
-                      | Expression<DataType | GetResultType<'Null'>, boolean, any>
-                      | Expression<GetResultType<DataType> | GetResultType<'Null'>, boolean, any>
+                      | GetResultType<Config, DataType>
+                      | GetResultType<Config, 'Null'>
+                      | Expression<Config, DataType | GetResultType<Config, 'Null'>, boolean, any>
+                      | Expression<
+                          Config,
+                          GetResultType<Config, DataType> | GetResultType<Config, 'Null'>,
+                          boolean,
+                          any
+                        >
                 : never;
             }
           : never,
-      ): UpdateQuery<T, number> {
+      ): UpdateQuery<Config, T, number> {
         const keys = Object.keys(values);
 
         return new UpdateQuery(queryExecutor, [], table, 'AFFECTED_COUNT', [
@@ -365,7 +382,7 @@ export const makeUpdate =
           new SeparatorToken(
             `,`,
             keys.map((key) => {
-              const column = (table as any)[key] as Column<any, any, any, any, any, any>;
+              const column = (table as any)[key] as AnyColumn;
               const value = (values as any)[key];
 
               return new CollectionToken([

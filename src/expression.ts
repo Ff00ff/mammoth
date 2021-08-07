@@ -8,204 +8,244 @@ import {
   StringToken,
   Token,
 } from './tokens';
+import { DbConfig, GetResultType } from './config';
 
-import { GetResultType } from './config';
 import { wrapQuotes } from './naming';
 
-export interface SharedExpression<DataType, IsNotNull extends boolean, Name extends string> {
+export interface SharedExpression<
+  Config extends DbConfig,
+  DataType,
+  IsNotNull extends boolean,
+  Name extends string,
+> {
   /** @internal */
   toTokens(includeAlias?: boolean): Token[];
 
   /** @internal */
   getName(): string;
 
-  as<AliasName extends string>(name: AliasName): Expression<DataType, IsNotNull, AliasName>;
+  as<AliasName extends string>(name: AliasName): Expression<Config, DataType, IsNotNull, AliasName>;
 
-  isNull(): DefaultExpression<boolean>;
-  isNotNull(): DefaultExpression<boolean>;
+  isNull(): DefaultExpression<Config, boolean>;
+  isNotNull(): DefaultExpression<Config, boolean>;
 
-  isDistinctFrom(a: DataType): DefaultExpression<boolean>;
-  isNotDistinctFrom(a: DataType): DefaultExpression<boolean>;
+  isDistinctFrom(a: DataType): DefaultExpression<Config, boolean>;
+  isNotDistinctFrom(a: DataType): DefaultExpression<Config, boolean>;
 
   eq<RightNotNull extends boolean>(
-    value: Expression<DataType, RightNotNull, any>,
-  ): DefaultExpression<boolean, GetNotNull<IsNotNull, RightNotNull>>;
+    value: Expression<Config, DataType, RightNotNull, any>,
+  ): DefaultExpression<Config, boolean, GetNotNull<IsNotNull, RightNotNull>>;
   eq<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<GetResultType<DataType>, boolean, any>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
-  ): DefaultExpression<boolean>;
+      | GetResultType<Config, DataType>
+      | Expression<Config, GetResultType<Config, DataType>, boolean, any>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
+  ): DefaultExpression<Config, boolean>;
   ne<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
-  ): DefaultExpression<boolean>;
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
+  ): DefaultExpression<Config, boolean>;
   gt<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
-  ): DefaultExpression<boolean>;
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
+  ): DefaultExpression<Config, boolean>;
   gte<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
-  ): DefaultExpression<boolean>;
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
+  ): DefaultExpression<Config, boolean>;
   lt<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
-  ): DefaultExpression<boolean>;
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
+  ): DefaultExpression<Config, boolean>;
   lte<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
-  ): DefaultExpression<boolean>;
-  orderBy(...expressions: Expression<any, any, any>[]): DefaultExpression<DataType, IsNotNull>;
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
+  ): DefaultExpression<Config, boolean>;
+  orderBy(
+    ...expressions: Expression<any, any, any, any>[]
+  ): DefaultExpression<Config, DataType, IsNotNull>;
 
   // TODO
-  asc(): DefaultExpression<DataType, IsNotNull>;
-  desc(): DefaultExpression<DataType, IsNotNull>;
-  nullsFirst(): DefaultExpression<DataType, IsNotNull>;
-  nullsLast(): DefaultExpression<DataType, IsNotNull>;
+  asc(): DefaultExpression<Config, DataType, IsNotNull>;
+  desc(): DefaultExpression<Config, DataType, IsNotNull>;
+  nullsFirst(): DefaultExpression<Config, DataType, IsNotNull>;
+  nullsLast(): DefaultExpression<Config, DataType, IsNotNull>;
   in<Q extends Query<any>>(
     array:
-      | SpecificQuery<DataType, Q>
-      | GetResultType<DataType>[]
-      | Expression<DataType, IsNotNull, any>,
-  ): DefaultExpression<boolean>;
+      | SpecificQuery<Config, DataType, Q>
+      | GetResultType<Config, DataType>[]
+      | Expression<Config, DataType, IsNotNull, any>,
+  ): DefaultExpression<Config, boolean>;
   notIn(
-    array: GetResultType<DataType>[] | Expression<DataType, IsNotNull, any> | Query<any>,
-  ): DefaultExpression<boolean>;
+    array:
+      | GetResultType<Config, DataType>[]
+      | Expression<Config, DataType, IsNotNull, any>
+      | Query<any>,
+  ): DefaultExpression<Config, boolean>;
 }
-export interface TextExpression<DataType, IsNotNull extends boolean, Name extends string>
-  extends SharedExpression<DataType, IsNotNull, Name> {
+export interface TextExpression<
+  Config extends DbConfig,
+  DataType,
+  IsNotNull extends boolean,
+  Name extends string,
+> extends SharedExpression<Config, DataType, IsNotNull, Name> {
   concat<RightIsNotNull extends boolean>(
-    value: GetResultType<DataType> | Expression<DataType, RightIsNotNull, any>,
-  ): DefaultExpression<DataType, GetNotNull<IsNotNull, RightIsNotNull>>;
-  like(value: GetResultType<DataType>): DefaultExpression<boolean>;
-  ilike(value: GetResultType<DataType>): DefaultExpression<boolean>;
+    value: GetResultType<Config, DataType> | Expression<Config, DataType, RightIsNotNull, any>,
+  ): DefaultExpression<Config, DataType, GetNotNull<IsNotNull, RightIsNotNull>>;
+  like(value: GetResultType<Config, DataType>): DefaultExpression<Config, boolean>;
+  ilike(value: GetResultType<Config, DataType>): DefaultExpression<Config, boolean>;
 }
-export interface NumberExpression<DataType, IsNotNull extends boolean, Name extends string>
-  extends SharedExpression<DataType, IsNotNull, Name> {
+export interface NumberExpression<
+  Config extends DbConfig,
+  DataType,
+  IsNotNull extends boolean,
+  Name extends string,
+> extends SharedExpression<Config, DataType, IsNotNull, Name> {
   plus<T extends AnyNumber, RightIsNotNull extends boolean>(
-    expression: Expression<T, RightIsNotNull, any>,
+    expression: Expression<Config, T, RightIsNotNull, any>,
   ): DefaultExpression<
+    Config,
     GetMostSignificantDataType<DataType, T>,
     GetNotNull<IsNotNull, RightIsNotNull>
   >;
-  plus(value: GetResultType<AnyNumber>): DefaultExpression<DataType, IsNotNull>;
+  plus(value: GetResultType<Config, AnyNumber>): DefaultExpression<Config, DataType, IsNotNull>;
 
   minus<T extends AnyNumber, RightIsNotNull extends boolean>(
-    expression: Expression<T, RightIsNotNull, any>,
+    expression: Expression<Config, T, RightIsNotNull, any>,
   ): DefaultExpression<
+    Config,
     GetMostSignificantDataType<DataType, T>,
     GetNotNull<IsNotNull, RightIsNotNull>
   >;
   minus<T extends AnyNumber>(
-    value: GetResultType<T>,
-  ): DefaultExpression<GetMostSignificantDataType<DataType, T>, IsNotNull>;
+    value: GetResultType<Config, T>,
+  ): DefaultExpression<Config, GetMostSignificantDataType<DataType, T>, IsNotNull>;
 
   multiply<T extends AnyNumber, RightIsNotNull extends boolean>(
-    expression: Expression<T, RightIsNotNull, any>,
+    expression: Expression<Config, T, RightIsNotNull, any>,
   ): DefaultExpression<
+    Config,
     GetMostSignificantDataType<DataType, T>,
     GetNotNull<IsNotNull, RightIsNotNull>
   >;
   multiply<T extends AnyNumber>(
-    value: GetResultType<T>,
-  ): DefaultExpression<GetMostSignificantDataType<DataType, T>, IsNotNull>;
+    value: GetResultType<Config, T>,
+  ): DefaultExpression<Config, GetMostSignificantDataType<DataType, T>, IsNotNull>;
 
   divide<T extends AnyNumber, RightIsNotNull extends boolean>(
-    expression: Expression<T, RightIsNotNull, any>,
+    expression: Expression<Config, T, RightIsNotNull, any>,
   ): DefaultExpression<
+    Config,
     GetMostSignificantDataType<DataType, T>,
     GetNotNull<IsNotNull, RightIsNotNull>
   >;
   divide<T extends AnyNumber>(
-    value: GetResultType<T>,
-  ): DefaultExpression<GetMostSignificantDataType<DataType, T>, IsNotNull>;
+    value: GetResultType<Config, T>,
+  ): DefaultExpression<Config, GetMostSignificantDataType<DataType, T>, IsNotNull>;
 
   // TODO: these should only be available on integers
   modulo<T extends AnyNumber, RightIsNotNull extends boolean>(
-    expression: Expression<T, RightIsNotNull, any>,
+    expression: Expression<Config, T, RightIsNotNull, any>,
   ): DefaultExpression<
+    Config,
     GetMostSignificantDataType<DataType, T>,
     GetNotNull<IsNotNull, RightIsNotNull>
   >;
   modulo<T extends AnyNumber>(
-    value: GetResultType<T>,
-  ): DefaultExpression<GetMostSignificantDataType<DataType, T>, IsNotNull>;
+    value: GetResultType<Config, T>,
+  ): DefaultExpression<Config, GetMostSignificantDataType<DataType, T>, IsNotNull>;
 
-  between(a: GetResultType<DataType>, b: GetResultType<DataType>): DefaultExpression<boolean>;
+  between(
+    a: GetResultType<Config, DataType>,
+    b: GetResultType<Config, DataType>,
+  ): DefaultExpression<Config, boolean>;
   betweenSymmetric(
-    a: GetResultType<DataType>,
-    b: GetResultType<DataType>,
-  ): DefaultExpression<boolean>;
+    a: GetResultType<Config, DataType>,
+    b: GetResultType<Config, DataType>,
+  ): DefaultExpression<Config, boolean>;
 }
-export interface BooleanExpression<DataType, IsNotNull extends boolean, Name extends string> {
+export interface BooleanExpression<
+  Config extends DbConfig,
+  DataType,
+  IsNotNull extends boolean,
+  Name extends string,
+> {
   /** @internal */
   toTokens(includeAlias?: boolean): Token[];
 
   /** @internal */
   getName(): string;
 
-  as<AliasName extends string>(name: AliasName): Expression<DataType, IsNotNull, AliasName>;
+  as<AliasName extends string>(name: AliasName): Expression<Config, DataType, IsNotNull, AliasName>;
 
-  or(query: BooleanQuery<Query<any>>): DefaultExpression<boolean, IsNotNull>;
+  or(query: BooleanQuery<Config, Query<any>>): DefaultExpression<Config, boolean, IsNotNull>;
   or<RightIsNotNull extends boolean>(
-    expression: Expression<boolean, RightIsNotNull, any>,
-  ): DefaultExpression<boolean, GetNotNull<IsNotNull, RightIsNotNull>>;
+    expression: Expression<Config, boolean, RightIsNotNull, any>,
+  ): DefaultExpression<Config, boolean, GetNotNull<IsNotNull, RightIsNotNull>>;
 
-  and(query: BooleanQuery<Query<any>>): DefaultExpression<boolean, IsNotNull>;
+  and(query: BooleanQuery<Config, Query<any>>): DefaultExpression<Config, boolean, IsNotNull>;
   and<RightIsNotNull extends boolean>(
-    expression: Expression<boolean, RightIsNotNull, any>,
-  ): DefaultExpression<boolean, GetNotNull<IsNotNull, RightIsNotNull>>;
+    expression: Expression<Config, boolean, RightIsNotNull, any>,
+  ): DefaultExpression<Config, boolean, GetNotNull<IsNotNull, RightIsNotNull>>;
 
-  andNotExists(query: Query<any>): DefaultExpression<boolean, IsNotNull>;
+  andNotExists(query: Query<any>): DefaultExpression<Config, boolean, IsNotNull>;
   andNotExists<RightIsNotNull extends boolean>(
-    expression: Expression<boolean, RightIsNotNull, any>,
-  ): DefaultExpression<boolean, GetNotNull<IsNotNull, RightIsNotNull>>;
+    expression: Expression<Config, boolean, RightIsNotNull, any>,
+  ): DefaultExpression<Config, boolean, GetNotNull<IsNotNull, RightIsNotNull>>;
 
-  andExists(query: Query<any>): DefaultExpression<boolean, IsNotNull>;
+  andExists(query: Query<any>): DefaultExpression<Config, boolean, IsNotNull>;
   andExists<RightIsNotNull extends boolean>(
-    expression: Expression<boolean, RightIsNotNull, any>,
-  ): DefaultExpression<boolean, GetNotNull<IsNotNull, RightIsNotNull>>;
+    expression: Expression<Config, boolean, RightIsNotNull, any>,
+  ): DefaultExpression<Config, boolean, GetNotNull<IsNotNull, RightIsNotNull>>;
 }
 
 // This is used when the data type is not one of the default types. In that case we fall back to
 // include all expression functions.
-export interface RawExpression<DataType, IsNotNull extends boolean, Name extends string>
-  extends TextExpression<DataType, IsNotNull, Name>,
-    NumberExpression<DataType, IsNotNull, Name> {}
+export interface RawExpression<
+  Config extends DbConfig,
+  DataType,
+  IsNotNull extends boolean,
+  Name extends string,
+> extends TextExpression<Config, DataType, IsNotNull, Name>,
+    NumberExpression<Config, DataType, IsNotNull, Name> {}
 
 export type Expression<
+  Config extends DbConfig,
   DataType,
   IsNotNull extends boolean,
   Name extends string,
 > = DataType extends boolean
-  ? BooleanExpression<DataType, IsNotNull, Name>
+  ? BooleanExpression<Config, DataType, IsNotNull, Name>
   : DataType extends AnyNumber
-  ? NumberExpression<DataType, IsNotNull, Name>
+  ? NumberExpression<Config, DataType, IsNotNull, Name>
   : DataType extends Text
-  ? TextExpression<DataType, IsNotNull, Name>
+  ? TextExpression<Config, DataType, IsNotNull, Name>
   : DataType extends number
-  ? NumberExpression<DataType, IsNotNull, Name>
+  ? NumberExpression<Config, DataType, IsNotNull, Name>
   : DataType extends string
-  ? TextExpression<DataType, IsNotNull, Name>
-  : RawExpression<DataType, IsNotNull, Name>;
+  ? TextExpression<Config, DataType, IsNotNull, Name>
+  : RawExpression<Config, DataType, IsNotNull, Name>;
 
-export class InternalExpression<DataType, IsNotNull extends boolean, Name extends string>
-  implements
-    TextExpression<DataType, IsNotNull, Name>,
-    NumberExpression<DataType, IsNotNull, Name>,
-    BooleanExpression<DataType, IsNotNull, Name>
+export class InternalExpression<
+  Config extends DbConfig,
+  DataType,
+  IsNotNull extends boolean,
+  Name extends string,
+> implements
+    TextExpression<Config, DataType, IsNotNull, Name>,
+    NumberExpression<Config, DataType, IsNotNull, Name>,
+    BooleanExpression<Config, DataType, IsNotNull, Name>
 {
   private _expressionBrand!: ['expression', DataType, IsNotNull, Name];
 
@@ -228,7 +268,10 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
   ) {}
 
   private getDataTypeTokens(
-    value: GetResultType<DataType> | Expression<DataType, boolean, any> | Query<any>,
+    value:
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | Query<any>,
   ) {
     if (
       value &&
@@ -257,7 +300,7 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
     return new CollectionToken(newTokens);
   }
 
-  or(expression: Expression<boolean, any, any> | BooleanQuery<Query<any>>) {
+  or(expression: Expression<any, boolean, any, any> | BooleanQuery<Config, Query<any>>) {
     return new InternalDefaultExpression([
       ...this.tokens,
       new StringToken(`OR`),
@@ -265,7 +308,7 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
     ]) as any;
   }
 
-  and(expression: Expression<boolean, any, any> | BooleanQuery<Query<any>>) {
+  and(expression: Expression<any, boolean, any, any> | BooleanQuery<Config, Query<any>>) {
     return new InternalDefaultExpression([
       ...this.tokens,
       new StringToken(`AND`),
@@ -273,7 +316,7 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
     ]) as any;
   }
 
-  andNotExists(expression: Expression<any, any, any> | Query<any>) {
+  andNotExists(expression: Expression<any, any, any, any> | Query<any>) {
     return new InternalDefaultExpression([
       ...this.tokens,
       new StringToken(`AND NOT EXISTS`),
@@ -281,7 +324,7 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
     ]) as any;
   }
 
-  andExists(expression: Expression<any, any, any> | Query<any>) {
+  andExists(expression: Expression<any, any, any, any> | Query<any>) {
     return new InternalDefaultExpression([
       ...this.tokens,
       new StringToken(`AND EXISTS`),
@@ -411,7 +454,7 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
     ]) as any;
   }
 
-  between(a: GetResultType<DataType>, b: GetResultType<DataType>) {
+  between(a: GetResultType<Config, DataType>, b: GetResultType<Config, DataType>) {
     return new InternalDefaultExpression([
       ...this.tokens,
       new StringToken(`BETWEEN`),
@@ -421,7 +464,7 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
     ]);
   }
 
-  betweenSymmetric(a: GetResultType<DataType>, b: GetResultType<DataType>) {
+  betweenSymmetric(a: GetResultType<Config, DataType>, b: GetResultType<Config, DataType>) {
     return new InternalDefaultExpression([
       ...this.tokens,
       new StringToken(`BETWEEN SYMMETRIC`),
@@ -447,7 +490,7 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
     ]);
   }
 
-  like(value: GetResultType<DataType>) {
+  like(value: GetResultType<Config, DataType>) {
     return new InternalDefaultExpression([
       ...this.tokens,
       new StringToken(`LIKE`),
@@ -455,7 +498,7 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
     ]);
   }
 
-  ilike(value: GetResultType<DataType>) {
+  ilike(value: GetResultType<Config, DataType>) {
     return new InternalDefaultExpression([
       ...this.tokens,
       new StringToken(`ILIKE`),
@@ -465,9 +508,9 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
 
   eq<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
   ) {
     return new InternalDefaultExpression([
       ...this.tokens,
@@ -478,9 +521,9 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
 
   ne<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
   ) {
     return new InternalDefaultExpression([
       ...this.tokens,
@@ -491,9 +534,9 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
 
   gt<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
   ) {
     return new InternalDefaultExpression([
       ...this.tokens,
@@ -504,9 +547,9 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
 
   gte<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
   ) {
     return new InternalDefaultExpression([
       ...this.tokens,
@@ -517,9 +560,9 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
 
   lt<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
   ) {
     return new InternalDefaultExpression([
       ...this.tokens,
@@ -530,9 +573,9 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
 
   lte<Q extends Query<any>>(
     value:
-      | GetResultType<DataType>
-      | Expression<DataType, boolean, any>
-      | SpecificQuery<DataType, Q>,
+      | GetResultType<Config, DataType>
+      | Expression<Config, DataType, boolean, any>
+      | SpecificQuery<Config, DataType, Q>,
   ) {
     return new InternalDefaultExpression([
       ...this.tokens,
@@ -542,7 +585,7 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
   }
 
   orderBy(...expressions: any[]) {
-    return new InternalDefaultExpression<DataType, IsNotNull>([
+    return new InternalDefaultExpression([
       ...this.tokens,
       new StringToken(`ORDER BY`),
       new SeparatorToken(
@@ -564,17 +607,20 @@ export class InternalExpression<DataType, IsNotNull extends boolean, Name extend
   }
 }
 
-export type DefaultExpression<DataType, IsNotNull extends boolean = true> = Expression<
-  DataType,
-  IsNotNull,
-  '?column?'
->;
-
-export class InternalDefaultExpression<
+export type DefaultExpression<
+  Config extends DbConfig,
   DataType,
   IsNotNull extends boolean = true,
-> extends InternalExpression<DataType, IsNotNull, '?column?'> {
+> = Expression<Config, DataType, IsNotNull, '?column?'>;
+
+export class InternalDefaultExpression<
+  Config extends DbConfig,
+  DataType,
+  IsNotNull extends boolean = true,
+> extends InternalExpression<Config, DataType, IsNotNull, '?column?'> {
   constructor(tokens: Token[]) {
     super(tokens, '?column?');
   }
 }
+
+export type AnyExpression = Expression<any, any, any, any>;

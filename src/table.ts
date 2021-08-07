@@ -1,8 +1,8 @@
 import { ColumnDefinition, InternalColumn } from './column';
 
-import { GetResultType } from './config';
+import { DbConfig, GetResultType } from './config';
 
-export type TableRow<T> = T extends TableDefinition<infer Columns>
+export type TableRow<Config extends DbConfig, T> = T extends TableDefinition<infer Columns>
   ? {
       [K in keyof Columns]: Columns[K] extends ColumnDefinition<
         infer DataType,
@@ -10,8 +10,8 @@ export type TableRow<T> = T extends TableDefinition<infer Columns>
         boolean
       >
         ? IsNotNull extends true
-          ? GetResultType<DataType>
-          : GetResultType<DataType> | GetResultType<'Null'>
+          ? GetResultType<Config, DataType>
+          : GetResultType<Config, DataType> | GetResultType<Config, 'Null'>
         : never;
     }
   : never;

@@ -1,8 +1,12 @@
 import { Column } from './column';
+import { DbConfig } from './config';
 
-export type Table<TableName, Columns> = Columns & InternalTable<TableName, Columns>;
+export type AnyTable = Table<any, any, any>;
 
-export interface InternalTable<TableName, Columns> {
+export type Table<Config extends DbConfig, TableName, Columns> = Columns &
+  InternalTable<Config, TableName, Columns>;
+
+export interface InternalTable<Config extends DbConfig, TableName, Columns> {
   /** @internal */
   _tableBrand: any;
 
@@ -14,12 +18,12 @@ export interface InternalTable<TableName, Columns> {
 
   // Because we use the column's table name to determine whether the data type should be nullable
   // when joining, we change the column's table name to the alias.
-  as<T>(
-    alias: T,
-  ): Table<
+  as<T>(alias: T): Table<
+    Config,
     T,
     {
       [K in keyof Columns]: Columns[K] extends Column<
+        Config,
         infer Name,
         string,
         infer DataType,
@@ -27,7 +31,7 @@ export interface InternalTable<TableName, Columns> {
         infer HasDefault,
         infer JoinType
       >
-        ? Column<Name, T, DataType, IsNotNull, HasDefault, JoinType>
+        ? Column<Config, Name, T, DataType, IsNotNull, HasDefault, JoinType>
         : never;
     }
   >;

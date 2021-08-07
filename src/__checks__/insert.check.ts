@@ -9,12 +9,13 @@ import {
   text,
   timestampWithTimeZone,
   uuid,
+  DefaultDbConfig,
 } from '../../.build';
 
 import { Query } from '../../.build/query';
 import { ResultSet } from '../../.build/result-set';
 
-const toSnap = <T extends Query<any>>(query: T): ResultSet<T, true> => {
+const toSnap = <T extends Query<any>>(query: T): ResultSet<DefaultDbConfig, T, true> => {
   return undefined as any;
 };
 
@@ -72,6 +73,16 @@ const db = defineDb({ foo, serialTest }, () => Promise.resolve({ rows: [], affec
   // @dts-jest:snap should insert without explicit value for column serial
   db.insertInto(db.serialTest).values({
     value: 123,
+  });
+
+  // @dts-jest:snap should insert by setting value to null
+  db.insertInto(db.serialTest).values({
+    value: null,
+  });
+
+  db.insertInto(db.serialTest).values({
+    // @dts-jest:snap:fail should not insert by setting value to undefined
+    value: undefined,
   });
 
   // @dts-jest:snap should insert with expression of the not-null correct type

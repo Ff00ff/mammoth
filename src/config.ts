@@ -1,8 +1,4 @@
-// This is an empty interface which can be extended in user-land to override the types in the
-// fallback db config.
-export interface DefaultDbConfig {}
-
-export interface FallbackDbConfig {
+export interface DefaultDbConfig {
   Null: null;
   Int4: number;
   Int8: string;
@@ -13,14 +9,27 @@ export interface FallbackDbConfig {
   Float8: number;
   Numeric: string;
   Text: string;
+  // In default pg this will be changed to string soon, right?
+  Date: Date;
+  DateTime: Date;
+  Time: string;
 }
 
-type GetSingleResultType<T> = Extract<keyof DefaultDbConfig, T> extends never
-  ? T extends keyof FallbackDbConfig
-    ? FallbackDbConfig[T]
-    : T
-  : DefaultDbConfig[Extract<keyof DefaultDbConfig, T>];
+export interface DbConfig {
+  Null: any;
+  Int4: any;
+  Int8: any;
+  Float4: any;
+  Float8: any;
+  Numeric: any;
+  Text: any;
+  Date: any;
+  DateTime: any;
+  Time: any;
+}
 
-export type GetResultType<T> = T extends Array<any>
-  ? GetSingleResultType<T[number]>[]
-  : GetSingleResultType<T>;
+type GetSingleResultType<Config extends DbConfig, T> = T extends keyof Config ? Config[T] : T;
+
+export type GetResultType<Config extends DbConfig, T> = T extends Array<any>
+  ? GetSingleResultType<Config, T[number]>[]
+  : GetSingleResultType<Config, T>;

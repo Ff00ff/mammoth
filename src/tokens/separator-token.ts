@@ -1,6 +1,6 @@
 import { State, Token, createQueryState } from './token';
 
-import type { Table } from '../TableType';
+import type { AnyTable } from '../TableType';
 
 export type Separator = ',';
 
@@ -15,7 +15,7 @@ export class SeparatorToken extends Token {
     this.tokens = tokens;
   }
 
-  reduce(state: State, numberOfParameters: number, tables: Table<any, any>[]) {
+  reduce(state: State, numberOfParameters: number, tables: AnyTable[]) {
     const length = this.tokens.length;
     let parameterIndex = numberOfParameters;
     this.tokens.forEach((token, index) => {

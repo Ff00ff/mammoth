@@ -802,19 +802,6 @@ describe(`select`, () => {
   });
 
   it(`should select and not exists`, () => {
-    const test = db.select(db.listItem.isGreat, db.listItem.isGreat.as(`right`)).from(db.listItem);
-
-    type A = 'a' | 'b';
-    type B = { [K in A]: K };
-
-    type BooleanQuery<Q extends Query<any>> = ResultSet<Q, false> extends {
-      [K in keyof ResultSet<Q, false>]: boolean;
-    }
-      ? true
-      : false;
-
-    type Is = BooleanQuery<typeof test>;
-
     const query = db
       .select(db.foo.id)
       .from(db.foo)

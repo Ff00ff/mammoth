@@ -1,24 +1,32 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`select float4 + float4 = float4 (type) should match snapshot 1`] = `"NumberExpression<\\"Float4\\", false, \\"?column?\\">"`;
+exports[`select coalesce should not convert to not null when passing another nullable value (type) should match snapshot 1`] = `"Argument of type 'Column<DefaultDbConfig, \\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to parameter of type 'number | NumberExpression<DefaultDbConfig, number, boolean, any>'."`;
 
-exports[`select float4 + int4 = float8 (type) should match snapshot 1`] = `"NumberExpression<\\"Float8\\", false, \\"?column?\\">"`;
+exports[`select float4 + float4 = float4 (type) should match snapshot 1`] = `"NumberExpression<DefaultDbConfig, \\"Float4\\", false, \\"?column?\\">"`;
 
-exports[`select float8 + int8 = float8 (type) should match snapshot 1`] = `"NumberExpression<\\"Float8\\", false, \\"?column?\\">"`;
+exports[`select float4 + int4 = float8 (type) should match snapshot 1`] = `"NumberExpression<DefaultDbConfig, \\"Float8\\", false, \\"?column?\\">"`;
 
-exports[`select int4 + int4 = int4 (type) should match snapshot 1`] = `"NumberExpression<\\"Int4\\", false, \\"?column?\\">"`;
+exports[`select float8 + int8 = float8 (type) should match snapshot 1`] = `"NumberExpression<DefaultDbConfig, \\"Float8\\", false, \\"?column?\\">"`;
 
-exports[`select int8 + int4 = int8 (type) should match snapshot 1`] = `"NumberExpression<\\"Int8\\", false, \\"?column?\\">"`;
+exports[`select int4 + int4 = int4 (type) should match snapshot 1`] = `"NumberExpression<DefaultDbConfig, \\"Int4\\", false, \\"?column?\\">"`;
+
+exports[`select int8 + int4 = int8 (type) should match snapshot 1`] = `"NumberExpression<DefaultDbConfig, \\"Int8\\", false, \\"?column?\\">"`;
+
+exports[`select should convert not convert null value to not null using null in coalesce (type) should match snapshot 1`] = `"Argument of type 'Column<DefaultDbConfig, \\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to parameter of type 'number | NumberExpression<DefaultDbConfig, number, boolean, any>'."`;
 
 exports[`select should convert null value to not null using coalesce (type) should match snapshot 1`] = `
-"Argument of type 'Column<\\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to parameter of type 'number | NumberExpression<number, boolean, any>'.
-  Type 'Column<\\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to type 'NumberExpression<number, boolean, any>'.
-    The types returned by 'plus(...)' are incompatible between these types.
-      Type 'NumberExpression<\\"Int4\\", false, \\"?column?\\">' is not assignable to type 'NumberExpression<number, boolean, \\"?column?\\">'.
-        Type 'string' is not assignable to type 'number'."
+"Argument of type 'Column<DefaultDbConfig, \\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to parameter of type 'number | NumberExpression<DefaultDbConfig, number, boolean, any>'.
+  Type 'Column<DefaultDbConfig, \\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to type 'NumberExpression<DefaultDbConfig, number, boolean, any>'.
+    The types of 'plus(...).as(...).isDistinctFrom' are incompatible between these types.
+      Type '(a: \\"Int4\\") => BooleanExpression<DefaultDbConfig, false, true, \\"?column?\\"> | BooleanExpression<DefaultDbConfig, true, true, \\"?column?\\">' is not assignable to type '(a: number) => BooleanExpression<DefaultDbConfig, false, true, \\"?column?\\"> | BooleanExpression<DefaultDbConfig, true, true, \\"?column?\\">'.
+        Types of parameters 'a' and 'a' are incompatible.
+          Type 'number' is not assignable to type '\\"Int4\\"'."
 `;
 
-exports[`select should not use in with wrong data type (type) should match snapshot 1`] = `"any"`;
+exports[`select should not use in with wrong data type (type) should match snapshot 1`] = `
+"Argument of type 'SelectQuery<DefaultDbConfig, { createDate: Column<DefaultDbConfig, \\"createDate\\", \\"foo\\", \\"Date\\", true, true, undefined>; }, false>' is not assignable to parameter of type 'TextExpression<DefaultDbConfig, \\"Text\\", true, any> | string[]'.
+  Type 'SelectQuery<DefaultDbConfig, { createDate: Column<DefaultDbConfig, \\"createDate\\", \\"foo\\", \\"Date\\", true, true, undefined>; }, false>' is missing the following properties from type 'string[]': length, pop, push, concat, and 25 more."
+`;
 
 exports[`select should return correct result in then (type) should match snapshot 1`] = `"{ id: string; }[]"`;
 
@@ -30,9 +38,9 @@ exports[`select should return nullable properties of left joined columns (type) 
 
 exports[`select should return nullable properties of left side properties when right joining (type) should match snapshot 1`] = `"{ value: GetDataType<\\"Int4\\", false>; name: GetDataType<\\"Text\\", false>; startDate: GetDataType<\\"Date\\", true>; }"`;
 
-exports[`select should return nullable text when calling concat on nullable column (type) should match snapshot 1`] = `"TextExpression<\\"Text\\", false, \\"?column?\\">"`;
+exports[`select should return nullable text when calling concat on nullable column (type) should match snapshot 1`] = `"TextExpression<DefaultDbConfig, \\"Text\\", false, \\"?column?\\">"`;
 
-exports[`select should return nullable text when calling concat with nullable input (type) should match snapshot 1`] = `"TextExpression<\\"Text\\", false, \\"?column?\\">"`;
+exports[`select should return nullable text when calling concat with nullable input (type) should match snapshot 1`] = `"TextExpression<DefaultDbConfig, \\"Text\\", false, \\"?column?\\">"`;
 
 exports[`select should return previous return value in then (type) should match snapshot 1`] = `"number"`;
 
@@ -56,6 +64,8 @@ exports[`select should select array_agg (type) should match snapshot 1`] = `"{ a
 
 exports[`select should select case with correct type and alias (type) should match snapshot 1`] = `"{ bar: GetDataType<\\"B\\", true>; } | { bar: GetDataType<\\"A\\", true>; } | { bar: GetDataType<\\"C\\", true>; }"`;
 
+exports[`select should select column with default which is nullable (type) should match snapshot 1`] = `"{ value: GetDataType<\\"Int4\\", false>; }"`;
+
 exports[`select should select expression (type) should match snapshot 1`] = `"{ \\"?column?\\": GetDataType<\\"Int4\\", false>; }"`;
 
 exports[`select should select foo.* and ignore the rest (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; createDate: GetDataType<\\"Date\\", true>; name: GetDataType<\\"Text\\", true>; value: GetDataType<\\"Int4\\", false>; }"`;
@@ -68,4 +78,4 @@ exports[`select should select null column in subquery (type) should match snapsh
 
 exports[`select should select raw expression (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; test: GetDataType<number, false>; }"`;
 
-exports[`should output all columns and the data type (type) should match snapshot 1`] = `"{ id: string; createDate: \\"Date\\"; name: string; value: number; }"`;
+exports[`should output all columns and the data type (type) should match snapshot 1`] = `"{ id: string; createDate: Date; name: string; value: number; }"`;

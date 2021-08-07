@@ -1,6 +1,7 @@
-import { Expression, NumberExpression, SharedExpression } from '../expression';
-import { Star, raw, star, toSql } from '../sql-functions';
 import {
+  raw,
+  star,
+  toSql,
   any,
   arrayAgg,
   avg,
@@ -24,13 +25,9 @@ import {
   text,
   timestampWithTimeZone,
   uuid,
+  enumType,
+  float4,
 } from '..';
-import { bigint, enumType, float4 } from '../data-types';
-
-import { Column } from '../column';
-import { GetSelectableName } from '../SelectFn';
-import { Query } from '../query';
-import { ResultSet } from '../result-set';
 
 describe(`select`, () => {
   const foo = defineTable({
@@ -261,10 +258,12 @@ describe(`select`, () => {
   });
 
   it(`should select where any with empty set`, () => {
+    // We must explicitly type the empty array, because the type cannot be inferred
+    const array: string[] = [];
     const query = db
       .select(db.foo.id)
       .from(db.foo)
-      .where(db.foo.name.eq(any([])));
+      .where(db.foo.name.eq(any(array)));
 
     expect(toSql(query)).toMatchInlineSnapshot(`
       Object {

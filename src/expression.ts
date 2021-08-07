@@ -1,4 +1,12 @@
-import { AnyNumber, GetMostSignificantDataType, GetNotNull, Int4, Int8, Text } from './data-types';
+import {
+  AnyNumber,
+  GetMostSignificantDataType,
+  GetNotNull,
+  Int4,
+  Int8,
+  Text,
+  Uuid,
+} from './data-types';
 import { BooleanQuery, Query, SpecificQuery } from './query';
 import {
   CollectionToken,
@@ -11,6 +19,9 @@ import {
 import { DbConfig, GetResultType } from './config';
 
 import { wrapQuotes } from './naming';
+import { Column } from './column';
+import { Err, GetDataType } from './types';
+import { TableDefinition } from './table';
 
 export interface SharedExpression<
   Config extends DbConfig,
@@ -220,6 +231,33 @@ export interface RawExpression<
 > extends TextExpression<Config, DataType, IsNotNull, Name>,
     NumberExpression<Config, DataType, IsNotNull, Name> {}
 
+export interface UuidExpression<
+  Config extends DbConfig,
+  TD,
+  IsNotNull extends boolean,
+  Name extends string,
+> extends Omit<SharedExpression<Config, Uuid<TD>, IsNotNull, Name>, 'eq'> {
+  eq(value: GetResultType<Config, Uuid<TD>>): DefaultExpression<Config, boolean, IsNotNull>;
+  eq<RightExpression extends UuidExpression<Config, any, any, any>>(
+    expression: RightExpression,
+  ): RightExpression extends UuidExpression<
+    Config,
+    infer RightTableDefinition,
+    infer RightIsNotNull,
+    any
+  >
+    ? RightTableDefinition extends TableDefinition<infer RightColumns>
+      ? TD extends TableDefinition<infer LeftColumns>
+        ? [LeftColumns] extends [RightColumns]
+          ? [RightColumns] extends [LeftColumns]
+            ? DefaultExpression<Config, boolean, GetNotNull<IsNotNull, RightIsNotNull>>
+            : Err<'not the right references'>
+          : Err<'not the right references'>
+        : Err<'no left table definition found in uuid'>
+      : Err<'no right table definition found in uuid'>
+    : Err<'no uuid expression'>;
+}
+
 export type Expression<
   Config extends DbConfig,
   DataType,
@@ -235,6 +273,8 @@ export type Expression<
   ? NumberExpression<Config, DataType, IsNotNull, Name>
   : DataType extends string
   ? TextExpression<Config, DataType, IsNotNull, Name>
+  : DataType extends Uuid<infer TableDefinition>
+  ? UuidExpression<Config, TableDefinition, IsNotNull, Name>
   : RawExpression<Config, DataType, IsNotNull, Name>;
 
 export class InternalExpression<

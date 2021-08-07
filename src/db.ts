@@ -15,6 +15,7 @@ import { makeTruncate } from './truncate';
 import { makeUpdate } from './update';
 import { makeWith } from './with';
 import { toSnakeCase } from './naming';
+import { Uuid } from './data-types';
 
 const createTables = <
   Config extends DbConfig,
@@ -34,8 +35,17 @@ const createTables = <
                 Config,
                 K,
                 TableName,
-                ColumnDefinitions[K] extends ColumnDefinition<infer DataType, any, any, any>
-                  ? DataType
+                ColumnDefinitions[K] extends ColumnDefinition<
+                  infer DataType,
+                  any,
+                  any,
+                  infer IsPrimaryKey
+                >
+                  ? DataType extends Uuid<any>
+                    ? IsPrimaryKey extends true
+                      ? Uuid<TableDefinitions[TableName]>
+                      : DataType
+                    : DataType
                   : never,
                 ColumnDefinitions[K] extends ColumnDefinition<any, infer IsNotNull, any>
                   ? IsNotNull

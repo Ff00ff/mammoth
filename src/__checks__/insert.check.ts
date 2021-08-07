@@ -46,13 +46,13 @@ const db = defineDb({ foo, serialTest }, () => Promise.resolve({ rows: [], affec
   // @dts-jest:snap should insert default column
   toSnap(db.insertInto(db.foo).values({ name: `Test`, createDate: new Date() }));
 
-  // @dts-jest:fail:snap should not insert unknown column
+  // @dts-jest:fail should not insert unknown column
   toSnap(db.insertInto(db.foo).values({ name: `Test`, asd: `Test` }));
 
-  // @dts-jest:fail:snap should not insert invalid type in known column
+  // @dts-jest:fail should not insert invalid type in known column
   toSnap(db.insertInto(db.foo).values({ name: 123 }));
 
-  // @dts-jest:fail:snap should not insert multiple rows with invalid colums
+  // @dts-jest:fail should not insert multiple rows with invalid colums
   toSnap(db.insertInto(db.foo).values([{ name: `Test` }, { name: `Test 2`, asd: 123 }]));
 
   db.insertInto(db.foo)

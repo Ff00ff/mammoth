@@ -2,9 +2,9 @@
 
 exports[`update should update and await affected count (type) should match snapshot 1`] = `"number"`;
 
-exports[`update should update and returning id (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; }"`;
+exports[`update should update and returning id (type) should match snapshot 1`] = `"{ id: GetDataType<Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>, true>; }"`;
 
-exports[`update should update and returning two columns (type) should match snapshot 1`] = `"{ id: GetDataType<\\"Text\\", true>; name: GetDataType<\\"Text\\", true>; }"`;
+exports[`update should update and returning two columns (type) should match snapshot 1`] = `"{ id: GetDataType<Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>, true>; name: GetDataType<\\"Text\\", true>; }"`;
 
 exports[`update should update without returning and return number (type) should match snapshot 1`] = `"number"`;
 

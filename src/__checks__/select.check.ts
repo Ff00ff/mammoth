@@ -17,12 +17,10 @@ import {
   text,
   timestampWithTimeZone,
   uuid,
-  DbConfig,
-  GetMostSignificantDataType,
-  Float4,
   DefaultDbConfig,
 } from '../../.build';
 
+import { Expression } from '../../.build/expression';
 import { Query } from '../../.build/query';
 import { ResultSet } from '../../.build/result-set';
 
@@ -31,6 +29,14 @@ const toSnap = <T extends Query<any>>(query: T): ResultSet<DefaultDbConfig, T, t
 };
 
 const toTableRow = <T>(table: T): TableRow<DefaultDbConfig, T> => {
+  return undefined as any;
+};
+
+const toDataType = <T extends Expression<any, any, boolean, string>>(
+  expression: T,
+): T extends Expression<any, infer DataType, infer IsNotNull, any>
+  ? [DataType, IsNotNull, T]
+  : 'not an expression' => {
   return undefined as any;
 };
 
@@ -100,6 +106,9 @@ const db = defineDb({ foo, bar, buzz, crate, ding }, () =>
   // @dts-jest:snap should return nullable properties of all sides because of full join
   toSnap(db.select(db.foo.name, db.bar.startDate, db.bar.value).from(db.foo).fullJoin(db.bar));
 
+  // @dts-jest:fail should not join on wrong reference
+  toSnap(db.select(db.foo.id).from(db.foo).innerJoin(db.bar).on(db.bar.id.eq(db.foo.id)));
+
   // @dts-jest:snap should select expression
   toSnap(db.select(db.foo.value.plus(1)).from(db.foo));
 
@@ -137,13 +146,13 @@ const db = defineDb({ foo, bar, buzz, crate, ding }, () =>
   toSnap(db.select(star()).from(db.foo).leftJoin(db.bar).on(db.bar.fooId.eq(db.foo.id)));
 
   // @dts-jest:snap should select * from foo right join bar
-  toSnap(db.select(star()).from(db.foo).rightJoin(db.bar).on(db.bar.fooId.eq(db.foo.id)));
+  toSnap(db.select(star()).from(db.foo).rightJoin(db.bar).on(db.foo.id.eq(db.bar.fooId)));
 
   toSnap(
     db
       .select(db.foo.id)
       .from(db.foo)
-      // @dts-jest:fail:snap should not use in with wrong data type
+      // @dts-jest:fail should not use in with wrong data type
       .where(db.foo.id.in(db.select(db.foo.createDate).from(db.foo))),
   );
 
@@ -209,10 +218,9 @@ const db = defineDb({ foo, bar, buzz, crate, ding }, () =>
   // @dts-jest:snap int4 + int4 = int4
   db.crate.int4.plus(db.crate.int4);
 
+  // @dts-jest:snap float4 + float4 = float4
+  toDataType(db.crate.float4.plus(db.crate.float4));
+
   // @dts-jest:snap should select column with default which is nullable
   toSnap(db.select(db.ding.value).from(db.ding));
-
-  const result = db.crate.float4.plus(db.crate.float4);
-  // @dts-jest:snap float4 + float4 = float4
-  result;
 }

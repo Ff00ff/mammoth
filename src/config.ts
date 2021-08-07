@@ -1,3 +1,5 @@
+import { Uuid } from './data-types';
+
 export interface DefaultDbConfig {
   Null: null;
   Int4: number;
@@ -28,7 +30,11 @@ export interface DbConfig {
   Time: any;
 }
 
-type GetSingleResultType<Config extends DbConfig, T> = T extends keyof Config ? Config[T] : T;
+type GetSingleResultType<Config extends DbConfig, T> = T extends Uuid<any>
+  ? string
+  : T extends keyof Config
+  ? Config[T]
+  : T;
 
 export type GetResultType<Config extends DbConfig, T> = T extends Array<any>
   ? GetSingleResultType<Config, T[number]>[]

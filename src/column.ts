@@ -4,6 +4,7 @@ import { toSnakeCase, wrapQuotes } from './naming';
 
 import { DbConfig } from './config';
 import { TableDefinition } from './table';
+import { Uuid } from './data-types';
 
 export interface ColumnDefinitionFormat {
   dataType: string;
@@ -40,7 +41,12 @@ export interface ColumnDefinition<
   >(
     table: T,
     columnName: ColumnName,
-  ): ColumnDefinition<DataType, IsNotNull, HasDefault, IsPrimaryKey>;
+  ): ColumnDefinition<
+    DataType extends Uuid<any> ? Uuid<T> : DataType,
+    IsNotNull,
+    HasDefault,
+    IsPrimaryKey
+  >;
   referencesSelf(
     columnName: string,
   ): ColumnDefinition<DataType, IsNotNull, HasDefault, IsPrimaryKey>;

@@ -7,26 +7,33 @@ const makeDataType = makeColumnDefinition;
 
 // If both are not null, the resulting type is also not null. But if any of the type is nullable,
 // the result may also be nullable.
-export type GetNotNull<Left, Right> = Left | Right extends true ? true : false;
+export type GetNotNull<Left, Right> = Right extends true
+  ? Left extends true
+    ? true
+    : false
+  : false;
 
-// When doing math on different numbers, the result is
-export type GetMostSignificantDataType<Left, Right> =
-  // Either one is Float8
-  Left & Right extends Float8
-    ? Float8
-    : // Both are float4
-    Left | Right extends Float4
+export type GetMostSignificantDataType<Left, Right> = Left & Right extends Float8
+  ? Float8
+  : Left extends Float4
+  ? Right extends Float4
     ? Float4
-    : // Either one is float4
-    Left & Right extends Float4
+    : Left & Right extends Float4
     ? Float8
-    : // Either one is numeric
-    Left & Right extends Numeric
+    : Left & Right extends Numeric
     ? Numeric
-    : // Either one is Int8
-    Left & Right extends Int8
+    : Left & Right extends Int8
     ? Int8
-    : Int4;
+    : Int4
+  : Left & Right extends Float4
+  ? Float8
+  : Left & Right extends Numeric
+  ? Numeric
+  : Left & Right extends Int8
+  ? Int8
+  : Int4;
+
+type SymbolMapTag = { readonly symbol: unique symbol };
 
 export type Int4 = 'Int4';
 export type Int8 = 'Int8';
@@ -38,6 +45,11 @@ export type Text = 'Text';
 export type Date = 'Date';
 export type DateTime = 'DateTime';
 export type Any = AnyNumber | Text | Date | DateTime;
+export type Uuid<T> = InternalUuid<T>;
+
+export class InternalUuid<T> {
+  private _uuidBrand!: ['uuid', T];
+}
 
 export type ToPostgresDataType<T extends string> = T extends DateTime
   ? 'timestamptz'
@@ -363,7 +375,7 @@ export function txidSnapshot<T>(): ColumnDefinition<T>;
 export function txidSnapshot() {
   return makeDataType(`txid_snapshot`);
 }
-export function uuid(): ColumnDefinition<Text>;
+export function uuid(): ColumnDefinition<Uuid<unknown>>;
 export function uuid<T>(): ColumnDefinition<T>;
 export function uuid() {
   return makeDataType(`uuid`);

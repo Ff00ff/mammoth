@@ -4,7 +4,7 @@ import { ParameterToken, StringToken, Token } from './tokens';
 
 import { DbConfig } from './config';
 
-export class CaseStatement<Config extends DbConfig, DataType> {
+export class CaseStatement<Config extends DbConfig, DataType, IsNotNull extends boolean = false> {
   constructor(private readonly tokens: Token[]) {}
 
   when<Q extends Query<any>>(
@@ -25,14 +25,14 @@ export class CaseStatement<Config extends DbConfig, DataType> {
   }
 
   else<T>(result: T) {
-    return new CaseStatement<Config, DataType | T>([
+    return new CaseStatement<Config, DataType | T, true>([
       ...this.tokens,
       new StringToken(`ELSE`),
       new ParameterToken(result),
     ]);
   }
 
-  end(): Expression<Config, DataType, true, 'case'> {
+  end(): Expression<Config, DataType, IsNotNull, 'case'> {
     return new InternalExpression(this.tokens, `case`) as any;
   }
 }

@@ -4,10 +4,14 @@ on:
   pull_request:
     branches:
       - '*'
+    paths:
+      - "workspaces/mammoth/**"
   push:
     branches:
       - '*'
       - '!master'
+    paths:
+      - "workspaces/mammoth/**"
 
 env:
   NODE_VERSION: 12.x
@@ -22,6 +26,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm install
+      - run: cd ./workspaces/mammoth
       - run: npm run build
       - run: npm test -- --coverage
         env:

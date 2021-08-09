@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    paths:
+      - "workspaces/mammoth/**"
 
 env:
   NODE_VERSION: 12.x
@@ -18,6 +20,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm install
+      - run: cd workspaces/mammoth
       - run: npm run build
       - run: npm test -- --coverage
         env:
@@ -26,7 +29,14 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: JS-DevTools/npm-publish@v1
+      - id: publish
+        uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_AUTH_TOKEN }}
           access: public
+          # First figure out if the new workspaces set up is working correctly before enabling auto
+          # npm publish again
+          dry-run: true
+      - if: steps.publish.outputs.type != 'none'
+        run: |
+          echo "Version changed: ${{ steps.publish.outputs.old-version }} => ${{ steps.publish.outputs.version }}"

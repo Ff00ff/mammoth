@@ -1,0 +1,46 @@
+{
+  "name": "@ff00ff/mammoth",
+  "license": "MIT",
+  "version": "2.0.0-beta.7",
+  "main": "./.build/index.js",
+  "types": "./.build/index.d.ts",
+  "keywords": [
+    "typescript",
+    "postgres",
+    "query",
+    "builder",
+    "sql",
+    "typed",
+    "database",
+    "orm"
+  ],
+  "files": [
+    ".build"
+  ],
+  "scripts": {
+    "test": "jest",
+    "prebuild": "rm -rf .build && rm -rf coverage",
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "__tests__",
+      "__checks__"
+    ],
+    "testPathIgnorePatterns": [
+      "/\\.build/",
+      "/node_modules/",
+      "helpers"
+    ],
+    "testRegex": "/__tests__|__checks__/.*\\.(test|check)\\.ts$",
+    "transform": {
+      "\\.check\\.ts$": "dts-jest/transform",
+      "\\.ts$": "ts-jest"
+    }
+  }
+}

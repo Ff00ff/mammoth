@@ -318,7 +318,7 @@ export class InsertQuery<
           [
             ...self.tokens,
             new StringToken(`ON CONFLICT ON CONSTRAINT`),
-            new ParameterToken(constraintName),
+            new StringToken(constraintName),
             new StringToken(`DO NOTHING`),
           ],
         );
@@ -359,7 +359,7 @@ export class InsertQuery<
           [
             ...self.tokens,
             new StringToken(`ON CONFLICT ON CONSTRAINT`),
-            new ParameterToken(constraintName),
+            new StringToken(constraintName),
             new StringToken(`DO UPDATE SET`),
             new SeparatorToken(
               `,`,

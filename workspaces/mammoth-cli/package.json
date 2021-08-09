@@ -1,0 +1,74 @@
+{
+  "name": "@ff00ff/mammoth-cli",
+  "version": "1.0.0-beta.8",
+  "author": "Martijn de Haan @martijndeh",
+  "bin": {
+    "mammoth": "./bin/run"
+  },
+  "bugs": "https://github.com/ff00ff/mammoth/issues",
+  "dependencies": {
+    "@oclif/command": "^1.8.0",
+    "@oclif/config": "^1.17.0",
+    "@oclif/plugin-help": "^3.2.1",
+    "@pgql/parse": "^1.2.6",
+    "chalk": "^4.1.0",
+    "figures": "^3.2.0",
+    "fs-extra": "^9.0.1",
+    "pg": "^8.4.1",
+    "pg-connection-string": "^2.4.0",
+    "pg-error-snippet": "0.0.2",
+    "pgsql-parser": "^0.8.1",
+    "spinnies": "^0.5.1",
+    "ts-node": "^9.1.1",
+    "tslib": "^1.14.1"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "files": [
+    "/bin",
+    "/lib",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json",
+    "/tsconfig.json"
+  ],
+  "homepage": "https://mammoth.tools",
+  "keywords": [
+    "oclif"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "oclif": {
+    "commands": "./lib/commands",
+    "bin": "mammoth",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
+  },
+  "repository": "ff00ff/mammoth-cli",
+  "scripts": {
+    "postpack": "rm -f oclif.manifest.json",
+    "prepack": "rm -rf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "test": "jest",
+    "version": "oclif-dev readme && git add README.md"
+  },
+  "types": "lib/index.d.ts",
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "__tests__"
+    ],
+    "testPathIgnorePatterns": [
+      "/\\.build/",
+      "/node_modules/",
+      "helpers"
+    ],
+    "testRegex": "/__tests__/.*\\.test\\.ts$",
+    "transform": {
+      "\\.ts$": "ts-jest"
+    }
+  }
+}

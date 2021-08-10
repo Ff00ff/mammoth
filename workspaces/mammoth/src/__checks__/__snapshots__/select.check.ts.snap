@@ -21,11 +21,11 @@ exports[`select should convert null value to not null using coalesce (type) shou
 
 exports[`select should return correct result in then (type) should match snapshot 1`] = `"{ id: string; }[]"`;
 
-exports[`select should return null and not null properties (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; createDate: \\"Date\\"; value: Maybe<\\"Int4\\">; }"`;
+exports[`select should return null and not null properties (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; createDate: \\"Date\\"; value: Maybe<\\"Int4\\">; }"`;
 
 exports[`select should return nullable properties of all sides because of full join (type) should match snapshot 1`] = `"{ value: Maybe<\\"Int4\\">; name: Maybe<\\"Text\\">; startDate: Maybe<\\"Date\\">; }"`;
 
-exports[`select should return nullable properties of left joined columns (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; endDate: Maybe<\\"Date\\">; value: Maybe<\\"Int4\\">; }"`;
+exports[`select should return nullable properties of left joined columns (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; endDate: Maybe<\\"Date\\">; value: Maybe<\\"Int4\\">; }"`;
 
 exports[`select should return nullable properties of left side properties when right joining (type) should match snapshot 1`] = `"{ value: Maybe<\\"Int4\\">; name: Maybe<\\"Text\\">; startDate: \\"Date\\"; }"`;
 
@@ -37,17 +37,17 @@ exports[`select should return previous return value in then (type) should match 
 
 exports[`select should return renamed properties because of alias (type) should match snapshot 1`] = `"{ fooName: \\"Text\\"; fooValue: Maybe<\\"Int4\\">; }"`;
 
-exports[`select should select * and return nullable properties of left side properties when right joining (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; createDate: Maybe<\\"Date\\">; name: Maybe<\\"Text\\">; value: Maybe<\\"Int4\\">; startDate: \\"Date\\"; endDate: \\"Date\\"; fooId: Maybe<Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>>; }"`;
+exports[`select should select * and return nullable properties of left side properties when right joining (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; createDate: Maybe<\\"Date\\">; name: Maybe<\\"Text\\">; value: Maybe<\\"Int4\\">; startDate: \\"Date\\"; endDate: \\"Date\\"; fooId: Maybe<Uuid<\\"..\\">>; }"`;
 
-exports[`select should select * from foo (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; createDate: \\"Date\\"; name: \\"Text\\"; value: Maybe<\\"Int4\\">; }"`;
+exports[`select should select * from foo (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; createDate: \\"Date\\"; name: \\"Text\\"; value: Maybe<\\"Int4\\">; }"`;
 
-exports[`select should select * from foo left join bar (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; createDate: \\"Date\\"; name: \\"Text\\"; value: Maybe<\\"Int4\\">; startDate: Maybe<\\"Date\\">; endDate: Maybe<\\"Date\\">; fooId: Maybe<Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>>; }"`;
+exports[`select should select * from foo left join bar (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; createDate: \\"Date\\"; name: \\"Text\\"; value: Maybe<\\"Int4\\">; startDate: Maybe<\\"Date\\">; endDate: Maybe<\\"Date\\">; fooId: Maybe<Uuid<\\"..\\">>; }"`;
 
-exports[`select should select * from foo right join bar (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; createDate: Maybe<\\"Date\\">; name: Maybe<\\"Text\\">; value: Maybe<\\"Int4\\">; startDate: \\"Date\\"; endDate: \\"Date\\"; fooId: Maybe<Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>>; }"`;
+exports[`select should select * from foo right join bar (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; createDate: Maybe<\\"Date\\">; name: Maybe<\\"Text\\">; value: Maybe<\\"Int4\\">; startDate: \\"Date\\"; endDate: \\"Date\\"; fooId: Maybe<Uuid<\\"..\\">>; }"`;
 
-exports[`select should select aggregate subquery (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; count: \\"Int8\\" | Maybe<\\"Int8\\">; }"`;
+exports[`select should select aggregate subquery (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; count: \\"Int8\\" | Maybe<\\"Int8\\">; }"`;
 
-exports[`select should select aggregate with alias (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; total: Maybe<\\"Float4\\">; } | { id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; total: Maybe<\\"Int8\\">; } | { id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; total: Maybe<\\"Float8\\">; } | { id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; total: Maybe<\\"Numeric\\">; }"`;
+exports[`select should select aggregate with alias (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; total: Maybe<\\"Float4\\">; } | { id: Uuid<\\"..\\">; total: Maybe<\\"Int8\\">; } | { id: Uuid<\\"..\\">; total: Maybe<\\"Float8\\">; } | { id: Uuid<\\"..\\">; total: Maybe<\\"Numeric\\">; }"`;
 
 exports[`select should select and await result set (type) should match snapshot 1`] = `"{ id: string; value: number; }[]"`;
 
@@ -59,16 +59,16 @@ exports[`select should select column with default which is nullable (type) shoul
 
 exports[`select should select expression (type) should match snapshot 1`] = `"{ \\"?column?\\": Maybe<\\"Int4\\">; }"`;
 
-exports[`select should select foo.* and ignore the rest (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; createDate: \\"Date\\"; name: \\"Text\\"; value: Maybe<\\"Int4\\">; }"`;
+exports[`select should select foo.* and ignore the rest (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; createDate: \\"Date\\"; name: \\"Text\\"; value: Maybe<\\"Int4\\">; }"`;
 
-exports[`select should select foo.* from foo (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; createDate: \\"Date\\"; name: \\"Text\\"; value: Maybe<\\"Int4\\">; }"`;
+exports[`select should select foo.* from foo (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; createDate: \\"Date\\"; name: \\"Text\\"; value: Maybe<\\"Int4\\">; }"`;
 
 exports[`select should select named expression (type) should match snapshot 1`] = `"{ test: Maybe<\\"Int4\\">; }"`;
 
-exports[`select should select null column in subquery (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; value: Maybe<\\"Int4\\">; }"`;
+exports[`select should select null column in subquery (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; value: Maybe<\\"Int4\\">; }"`;
 
-exports[`select should select raw expression (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; test: Maybe<number>; }"`;
+exports[`select should select raw expression (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; test: Maybe<number>; }"`;
 
-exports[`select should select using get column helper (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; } | { createDate: \\"Date\\"; } | { value: Maybe<\\"Int4\\">; } | { name: \\"Text\\"; }"`;
+exports[`select should select using get column helper (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; } | { createDate: \\"Date\\"; } | { value: Maybe<\\"Int4\\">; } | { name: \\"Text\\"; }"`;
 
 exports[`should output all columns and the data type (type) should match snapshot 1`] = `"{ id: string; createDate: Date; name: string; value: number; }"`;

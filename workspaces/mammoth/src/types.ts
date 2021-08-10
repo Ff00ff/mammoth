@@ -1,3 +1,5 @@
+import { Uuid } from './data-types';
+
 export type ResultType = 'ROWS' | 'AFFECTED_COUNT';
 
 export type PickByValue<T, ValueType> = Pick<
@@ -15,14 +17,16 @@ export class Maybe<T> {
   private _!: T;
 }
 
+export type StripTableDefinitionFromUuid<T> = T extends Uuid<any> ? Uuid<'..'> : T;
+
 // This is used to create a snapshot of the data type without erasing null or undefined. If the type
 // is nullabe (not not null) the type is wrapped in a Maybe<T> helper class which is written in the
 // snapshot as-is.
 export type GetDataType<Type, IsNotNull extends boolean> = [IsNotNull] extends [true]
   ? [true] extends [IsNotNull]
-    ? Type
-    : Maybe<Type>
-  : Maybe<Type>;
+    ? StripTableDefinitionFromUuid<Type>
+    : Maybe<StripTableDefinitionFromUuid<Type>>
+  : Maybe<StripTableDefinitionFromUuid<Type>>;
 
 export type QueryExecutorFn = (
   query: string,

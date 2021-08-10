@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - master
-    paths:
-      - workspaces/mammoth/**
+    # paths:
+    #   - workspaces/mammoth/**
 
 jobs:
   build:

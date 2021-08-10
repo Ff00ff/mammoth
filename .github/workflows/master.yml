@@ -1,4 +1,4 @@
-name: Lint, build & test
+name: "Mammoth: lint, build & test"
 
 on:
   push:
@@ -33,5 +33,7 @@ jobs:
           # npm publish again
           dry-run: true
       - if: steps.publish.outputs.type != 'none'
-        run: |
-          echo "Version changed: ${{ steps.publish.outputs.old-version }} => ${{ steps.publish.outputs.version }}"
+        uses: mathieudutour/github-tag-action@v5.6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          custom_tag: mammoth/${{ steps.publish.outputs.version }}

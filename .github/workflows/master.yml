@@ -29,9 +29,6 @@ jobs:
           access: public
           tag: beta
           package: workspaces/mammoth/package.json
-          # First figure out if the new workspaces set up is working correctly before enabling auto
-          # npm publish again
-          dry-run: true
       - if: steps.publish.outputs.type != 'none'
         uses: mathieudutour/github-tag-action@v5.6
         with:

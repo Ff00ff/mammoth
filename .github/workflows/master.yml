@@ -21,7 +21,7 @@ jobs:
       - uses: coverallsapp/github-action@v1.1.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          base-path: ./workspaces/mammoth
+          path-to-lcov: ./workspaces/mammoth/coverage/lcov.info
       - id: publish
         uses: JS-DevTools/npm-publish@v1
         with:

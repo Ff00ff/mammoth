@@ -22,6 +22,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./workspaces/mammoth/coverage/lcov.info
+          base-path: ./workspaces/mammoth
       - id: publish
         uses: JS-DevTools/npm-publish@v1
         with:

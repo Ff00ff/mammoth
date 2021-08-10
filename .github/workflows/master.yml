@@ -36,4 +36,5 @@ jobs:
         uses: mathieudutour/github-tag-action@v5.6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          custom_tag: mammoth/${{ steps.publish.outputs.version }}
+          custom_tag: mammoth/v${{ steps.publish.outputs.version }}
+          tag_prefix: ''

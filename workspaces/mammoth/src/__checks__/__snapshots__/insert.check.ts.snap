@@ -20,20 +20,6 @@ exports[`insert check should insert without explicit value for column serial (ty
 
 exports[`insert check should insert-returning and await rows (type) should match snapshot 1`] = `"{ name: string; }[]"`;
 
-exports[`insert check should not insert by setting value to undefined (type) should match snapshot 1`] = `"undefined"`;
-
-exports[`insert check should not insert invalid type in known column (type) should match snapshot 1`] = `"Type 'number' is not assignable to type 'string | TextExpression<DefaultDbConfig, \\"Text\\", boolean, string> | TextExpression<DefaultDbConfig, string, boolean, string> | Query<...>'."`;
-
-exports[`insert check should not insert multiple rows with invalid colums (type) should match snapshot 1`] = `
-"Type '{ name: string; asd: number; }' is not assignable to type '{ name: string | TextExpression<DefaultDbConfig, \\"Text\\", boolean, string> | TextExpression<DefaultDbConfig, string, boolean, string> | Query<...>; } & { ...; }'.
-  Object literal may only specify known properties, and 'asd' does not exist in type '{ name: string | TextExpression<DefaultDbConfig, \\"Text\\", boolean, string> | TextExpression<DefaultDbConfig, string, boolean, string> | Query<...>; } & { ...; }'."
-`;
-
-exports[`insert check should not insert unknown column (type) should match snapshot 1`] = `
-"Argument of type '{ name: string; asd: string; }' is not assignable to parameter of type '({ name: string | TextExpression<DefaultDbConfig, \\"Text\\", boolean, string> | TextExpression<DefaultDbConfig, string, boolean, string> | Query<...>; } & { ...; }) | ({ ...; } & { ...; })[]'.
-  Object literal may only specify known properties, and 'asd' does not exist in type '({ name: string | TextExpression<DefaultDbConfig, \\"Text\\", boolean, string> | TextExpression<DefaultDbConfig, string, boolean, string> | Query<...>; } & { ...; }) | ({ ...; } & { ...; })[]'."
-`;
-
 exports[`insert check should not insert with wrong type of expression (type) should match snapshot 1`] = `
 "Type 'TextExpression<DefaultDbConfig, string, false, \\"?column?\\">' is not assignable to type 'number | NumberExpression<DefaultDbConfig, \\"Int4\\", boolean, string> | NumberExpression<DefaultDbConfig, number, boolean, string> | Query<...>'.
   Type 'TextExpression<DefaultDbConfig, string, false, \\"?column?\\">' is missing the following properties from type 'NumberExpression<DefaultDbConfig, number, boolean, string>': plus, minus, multiply, divide, and 3 more."

@@ -2,10 +2,6 @@
 
 exports[`select coalesce should not convert to not null when passing another nullable value (type) should match snapshot 1`] = `"Argument of type 'Column<DefaultDbConfig, \\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to parameter of type 'number | NumberExpression<DefaultDbConfig, number, boolean, any>'."`;
 
-exports[`select float4 + float4 = float4 (type) should match snapshot 1`] = `"[\\"Float4\\", false, NumberExpression<DefaultDbConfig, \\"Float4\\", false, \\"?column?\\">]"`;
-
-exports[`select float4 + int4 = float8 (type) should match snapshot 1`] = `"NumberExpression<DefaultDbConfig, \\"Float8\\", false, \\"?column?\\">`;
-
 exports[`select float8 + int8 = float8 (type) should match snapshot 1`] = `"NumberExpression<DefaultDbConfig, \\"Float8\\", false, \\"?column?\\">"`;
 
 exports[`select int4 + int4 = int4 (type) should match snapshot 1`] = `"NumberExpression<DefaultDbConfig, \\"Int4\\", false, \\"?column?\\">"`;

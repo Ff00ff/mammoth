@@ -18,6 +18,7 @@ import {
   timestampWithTimeZone,
   uuid,
   DefaultDbConfig,
+  GetColumn,
 } from '../../.build';
 
 import { Expression } from '../../.build/expression';
@@ -82,6 +83,10 @@ toTableRow(foo);
 const db = defineDb({ foo, bar, buzz, crate, ding }, () =>
   Promise.resolve({ rows: [], affectedCount: 0 }),
 );
+
+const selectFromFoo = <T extends GetColumn<typeof db.foo>[]>(...columns: [...T]) => {
+  return db.select(...columns).from(db.foo);
+};
 
 // @dts-jest:group select
 {
@@ -225,4 +230,7 @@ const db = defineDb({ foo, bar, buzz, crate, ding }, () =>
 
   // @dts-jest:snap should select column with default which is nullable
   toSnap(db.select(db.ding.value).from(db.ding));
+
+  // @dts-jest:snap should select using get column helper
+  toSnap(selectFromFoo(db.foo.id, db.foo.createDate));
 }

@@ -5,35 +5,30 @@ on:
     branches:
       - master
     paths:
-      - "workspaces/mammoth/**"
-
-env:
-  NODE_VERSION: 12.x
+      - workspaces/mammoth/**
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm install
-      - run: cd workspaces/mammoth
-      - run: npm run build
-      - run: npm test -- --coverage
-        env:
-          CI: true
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
+          node-version: 16
+      - run: npm ci
+      - run: npm run build -w @ff00ff/mammoth
+      - run: npm test -w @ff00ff/mammoth -- --coverage
+      - uses: coverallsapp/github-action@v1.1.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          base-path: workspaces/mammoth
       - id: publish
         uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_AUTH_TOKEN }}
           access: public
+          tag: beta
+          package: workspaces/mammoth/package.json
           # First figure out if the new workspaces set up is working correctly before enabling auto
           # npm publish again
           dry-run: true

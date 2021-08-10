@@ -376,7 +376,7 @@ export class InsertQuery<
                   return new CollectionToken([
                     new StringToken(column.getSnakeCaseName()),
                     new StringToken(`=`),
-                    // TODO: should we add a group here-o?
+                    // TODO: should we add a group here?
                     ...value.toTokens(),
                   ]);
                 } else {
@@ -482,7 +482,7 @@ export class InsertQuery<
                   return new CollectionToken([
                     new StringToken(column.getSnakeCaseName()),
                     new StringToken(`=`),
-                    // TODO: should we add a group here-o?
+                    // TODO: should we add a group here?
                     ...value.toTokens(),
                   ]);
                 } else {

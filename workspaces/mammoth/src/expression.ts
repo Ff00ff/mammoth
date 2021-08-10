@@ -87,7 +87,6 @@ export interface SharedExpression<
     ...expressions: Expression<any, any, any, any>[]
   ): DefaultExpression<Config, DataType, IsNotNull>;
 
-  // TODO
   asc(): DefaultExpression<Config, DataType, IsNotNull>;
   desc(): DefaultExpression<Config, DataType, IsNotNull>;
   nullsFirst(): DefaultExpression<Config, DataType, IsNotNull>;
@@ -165,7 +164,6 @@ export interface NumberExpression<
     value: GetResultType<Config, T>,
   ): DefaultExpression<Config, GetMostSignificantDataType<DataType, T>, IsNotNull>;
 
-  // TODO: these should only be available on integers
   modulo<T extends AnyNumber, RightIsNotNull extends boolean>(
     expression: Expression<Config, T, RightIsNotNull, any>,
   ): DefaultExpression<

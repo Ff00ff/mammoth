@@ -4,4 +4,4 @@ exports[`delete should delete and await affected row count (type) should match s
 
 exports[`delete should delete and await rows (type) should match snapshot 1`] = `"{ id: string; }[]"`;
 
-exports[`delete should delete and returning id (type) should match snapshot 1`] = `"{ id: GetDataType<Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>, true>; }"`;
+exports[`delete should delete and returning id (type) should match snapshot 1`] = `"{ id: Uuid<TableDefinition<{ id: ColumnDefinition<Uuid<unknown>, true, true, true>; createDate: ColumnDefinition<\\"Date\\", true, true, false>; name: ColumnDefinition<\\"Text\\", true, false, false>; value: ColumnDefinition<\\"Int4\\", false, false, false>; }>>; }"`;

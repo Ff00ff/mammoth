@@ -1,6 +1,6 @@
 import { CollectionToken, GroupToken, SeparatorToken, StringToken, Token } from './tokens';
 import { Expression, InternalExpression } from './expression';
-import { GetDataType, QueryExecutorFn } from './types';
+import { GetDataType, Maybe, QueryExecutorFn } from './types';
 
 import { DbConfig } from './config';
 import { Query } from './query';
@@ -21,9 +21,9 @@ type FromItemQuery<
   Q,
   Result = Q extends Query<any> ? ResultSet<Config, Q, true> : never,
 > = {
-  [K in keyof Result]: Result[K] extends GetDataType<infer DataType, infer IsNotNull>
-    ? Expression<Config, DataType, IsNotNull, K extends string ? K : never>
-    : never;
+  [K in keyof Result]: Result[K] extends Maybe<infer DataType>
+    ? Expression<Config, DataType, false, K extends string ? K : never>
+    : Expression<Config, Result[K], true, K extends string ? K : never>;
 };
 
 type QueryFn<T> = Query<any> | ((args: T) => Query<any>);

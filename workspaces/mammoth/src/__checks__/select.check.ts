@@ -1,4 +1,6 @@
 import {
+  DefaultDbConfig,
+  GetColumn,
   TableRow,
   arrayAgg,
   coalesce,
@@ -17,8 +19,6 @@ import {
   text,
   timestampWithTimeZone,
   uuid,
-  DefaultDbConfig,
-  GetColumn,
 } from '../../.build';
 
 import { Expression } from '../../.build/expression';
@@ -85,7 +85,7 @@ const db = defineDb({ foo, bar, buzz, crate, ding }, () =>
 );
 
 const selectFromFoo = <T extends GetColumn<typeof db.foo>[]>(...columns: [...T]) => {
-  return db.select(...columns).from(db.foo);
+  return db.select<T>(...columns).from(db.foo);
 };
 
 // @dts-jest:group select

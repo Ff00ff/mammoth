@@ -69,6 +69,6 @@ exports[`select should select null column in subquery (type) should match snapsh
 
 exports[`select should select raw expression (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; test: Maybe<number>; }"`;
 
-exports[`select should select using get column helper (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; } | { createDate: \\"Date\\"; } | { value: Maybe<\\"Int4\\">; } | { name: \\"Text\\"; }"`;
+exports[`select should select using get column helper (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; createDate: \\"Date\\"; }"`;
 
 exports[`should output all columns and the data type (type) should match snapshot 1`] = `"{ id: string; createDate: Date; name: string; value: number; }"`;

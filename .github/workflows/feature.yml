@@ -1,11 +1,6 @@
 name: Lint, build & test
 
 on:
-  pull_request:
-    branches:
-      - '*'
-    paths:
-      - "workspaces/mammoth/**"
   push:
     branches:
       - '*'

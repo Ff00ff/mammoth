@@ -55,7 +55,7 @@ describe(`ddl`, () => {
     expect(toSql(query)).toMatchInlineSnapshot(`
 Object {
   "parameters": Array [],
-  "text": "CREATE TABLE test (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), value int4 CHECK (value > 0), short_description text NOT NULL, PRIMARY KEY (id), UNIQUE (name), CHECK (name <> 'Wes'), CONSTRAINT \\"shouldWrapInQuotes\\" FOREIGN KEY (id) REFERENCES another_table (another_id))",
+  "text": "CREATE TABLE test (id uuid, value int4, short_description text, PRIMARY KEY (id), UNIQUE (name), CHECK (name <> 'Wes'), CONSTRAINT \\"shouldWrapInQuotes\\" FOREIGN KEY (foo_id) REFERENCES another_table (another_id))",
 }
 `);
   });
@@ -234,6 +234,28 @@ Object {
 Object {
   "parameters": Array [],
   "text": "ALTER TABLE foo ADD CONSTRAINT test UNIQUE USING INDEX \\"some index\\"",
+}
+`);
+  });
+
+  it(`should truncate tables restart cascade`, () => {
+    const query = ddl.truncate(`anotherTable`, `foo`).restartIdentity().cascade();
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+Object {
+  "parameters": Array [],
+  "text": "TRUNCATE another_table, foo RESTART IDENTITY CASCADE",
+}
+`);
+  });
+
+  it(`should truncate tables continue restrict`, () => {
+    const query = ddl.truncate(`anotherTable`, `foo`).continueIdentity().restrict();
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+Object {
+  "parameters": Array [],
+  "text": "TRUNCATE another_table, foo CONTINUE IDENTITY RESTRICT",
 }
 `);
   });

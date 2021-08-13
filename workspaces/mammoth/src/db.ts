@@ -11,7 +11,6 @@ import { QueryExecutorFn } from './types';
 import { Table } from './TableType';
 import { Uuid } from './data-types';
 import { makeDeleteFrom } from './delete';
-import { makeTruncate } from './truncate';
 import { makeUpdate } from './update';
 import { makeWith } from './with';
 import { toSnakeCase } from './naming';
@@ -107,7 +106,6 @@ export const makeDefineDb =
       deleteFrom: makeDeleteFrom<Config>(queryExecutor),
       update: makeUpdate<Config>(queryExecutor),
       with: makeWith<Config>(queryExecutor),
-      truncate: makeTruncate<Config>(queryExecutor),
       case: () => new CaseStatement<Config, never>([]),
 
       // TODO: should we pass Config to these sql functions?

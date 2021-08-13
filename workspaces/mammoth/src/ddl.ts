@@ -524,6 +524,45 @@ export const defineDdl = (db: { getQueryExecutor(): any }) => {
       };
     },
 
+    truncate(...tableNames: string[]) {
+      const makeTruncate = (...tokens: Token[]) => {
+        const initialTokens = [
+          new StringToken(`TRUNCATE`),
+          new SeparatorToken(
+            ',',
+            tableNames.map((tableName) => new StringToken(toSnakeCase(tableName))),
+          ),
+        ];
+        return {
+          ...makeDefinitionQuery(queryExecutor, [...initialTokens, ...tokens]),
+          cascade() {
+            return makeDefinitionQuery(queryExecutor, [
+              ...initialTokens,
+              ...tokens,
+              new StringToken(`CASCADE`),
+            ]);
+          },
+          restrict() {
+            return makeDefinitionQuery(queryExecutor, [
+              ...initialTokens,
+              ...tokens,
+              new StringToken(`RESTRICT`),
+            ]);
+          },
+        };
+      };
+
+      return {
+        ...makeTruncate(),
+        restartIdentity() {
+          return makeTruncate(new StringToken(`RESTART IDENTITY`));
+        },
+        continueIdentity() {
+          return makeTruncate(new StringToken(`CONTINUE IDENTITY`));
+        },
+      };
+    },
+
     dropTable() {
       //
     },

@@ -1,4 +1,5 @@
-import { integer, text, uuid, defineTable, defineDb } from '@ff00ff/mammoth';
+import { defineDb, defineDdl, defineTable, integer, text, uuid } from '@ff00ff/mammoth';
+
 import pg from 'pg';
 
 export const setup = () => {
@@ -33,7 +34,8 @@ export const setup = () => {
     },
 
     async truncate() {
-      await db.truncate(db.item);
+      const ddl = defineDdl(db);
+      await ddl.truncate(`item`);
     },
 
     async select() {

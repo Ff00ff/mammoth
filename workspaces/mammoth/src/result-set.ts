@@ -1,14 +1,13 @@
 import { DbConfig, GetResultType } from './config';
+import { Err, GetDataType } from './types';
 
 import type { Column } from './column';
 import { DeleteQuery } from './delete';
 import type { Expression } from './expression';
-import { Err, GetDataType } from './types';
 import { InsertQuery } from './insert';
 import { Query } from './query';
 import { SelectQuery } from './select';
 import { UpdateQuery } from './update';
-import { TruncateQuery } from './truncate';
 
 export type ResultSetDataType<Config extends DbConfig, Type, IsNotNull> = IsNotNull extends true
   ? GetResultType<Config, Type>

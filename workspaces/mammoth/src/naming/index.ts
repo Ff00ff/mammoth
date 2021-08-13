@@ -4,7 +4,8 @@ import { reservedKeywords } from './reserved-keywords';
 export const wrapQuotes = (string: string, extended?: boolean) => {
   const isCamelCase = string.match(/[A-Z]/);
   const isReserved = reservedKeywords.has(string) || (extended && allReservedKeywords.has(string));
-  const shouldWrap = isReserved || isCamelCase;
+  const containsSpace = string.includes(` `);
+  const shouldWrap = isReserved || isCamelCase || containsSpace;
 
   return shouldWrap ? `"${string}"` : string;
 };

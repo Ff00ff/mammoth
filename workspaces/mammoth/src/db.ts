@@ -9,13 +9,12 @@ import { TableDefinition, makeTable } from './table';
 import { CaseStatement } from './case';
 import { QueryExecutorFn } from './types';
 import { Table } from './TableType';
-import { config } from 'process';
+import { Uuid } from './data-types';
 import { makeDeleteFrom } from './delete';
 import { makeTruncate } from './truncate';
 import { makeUpdate } from './update';
 import { makeWith } from './with';
 import { toSnakeCase } from './naming';
-import { Uuid } from './data-types';
 
 const createTables = <
   Config extends DbConfig,
@@ -76,6 +75,11 @@ export const makeDefineDb =
     queryExecutor: QueryExecutorFn,
   ) => {
     return {
+      /** @internal */
+      getQueryExecutor() {
+        return queryExecutor;
+      },
+
       /** @internal */
       getTableDefinitions(): {
         name: string;

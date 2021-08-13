@@ -33,8 +33,6 @@ export type GetMostSignificantDataType<Left, Right> = Left & Right extends Float
   ? Int8
   : Int4;
 
-type SymbolMapTag = { readonly symbol: unique symbol };
-
 export type Int4 = 'Int4';
 export type Int8 = 'Int8';
 export type Float4 = 'Float4';

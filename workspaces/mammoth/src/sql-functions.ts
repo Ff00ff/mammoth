@@ -8,6 +8,7 @@ import {
   StringToken,
   TableStarToken,
   createQueryState,
+  Token,
 } from './tokens';
 import { Any, AnyNumber, Int4, Int8, Text, ToPostgresDataType } from './data-types';
 import { AnyTable, Table } from './TableType';
@@ -323,7 +324,7 @@ export const cast = <
     expression.getName(),
   ) as any;
 
-export function toSql(query: Query<any>) {
+export function toSql(query: Query<any> | { toTokens: () => Token[] }) {
   const queryState = createQueryState(query.toTokens());
 
   return {

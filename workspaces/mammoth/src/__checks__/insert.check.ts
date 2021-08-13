@@ -80,11 +80,6 @@ const db = defineDb({ foo, serialTest }, () => Promise.resolve({ rows: [], affec
     value: null,
   });
 
-  // TODO: this is not possible to recognize, I think. How should we handle this?
-  // db.insertInto(db.serialTest).values({
-  //   value: undefined,
-  // });
-
   // @dts-jest:snap should insert with expression of the not-null correct type
   db.insertInto(db.serialTest).values({
     value: raw<Int4, true>`get_value()`,

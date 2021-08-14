@@ -12,7 +12,7 @@
     "@oclif/plugin-help": "^3.2.1",
     "@pgql/parse": "^1.2.6",
     "chalk": "^4.1.0",
-    "figures": "^3.2.0",
+    "figures": "^4.0.0",
     "fs-extra": "^10.0.0",
     "pg": "^8.4.1",
     "pg-connection-string": "^2.4.0",

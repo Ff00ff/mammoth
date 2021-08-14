@@ -10,7 +10,7 @@
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
     "@oclif/plugin-help": "^3.2.1",
-    "@pgql/parse": "^1.2.6",
+    "@pgql/parse": "^13.0.0",
     "chalk": "^4.1.2",
     "figures": "^4.0.0",
     "fs-extra": "^10.0.0",

@@ -69,4 +69,7 @@ const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 
 {
   // @dts-jest:snap should select count
   toRealSnap(db.select(count()).from(db.foo));
+
+  // @dts-jest:snap should select all data types
+  toRealSnap(db.select(star()).from(db.foo));
 }

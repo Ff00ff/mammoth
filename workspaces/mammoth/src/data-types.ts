@@ -42,6 +42,7 @@ export type AnyNumber = Int4 | Int8 | Float4 | Float8 | Numeric;
 export type Text = 'Text';
 export type Date = 'Date';
 export type DateTime = 'DateTime';
+export type Time = 'Time';
 export type Any = AnyNumber | Text | Date | DateTime;
 export type Uuid<T> = InternalUuid<T>;
 
@@ -323,7 +324,7 @@ export function text<T>(): ColumnDefinition<T>;
 export function text() {
   return makeDataType(`text`);
 }
-export function time(): ColumnDefinition<string>;
+export function time(): ColumnDefinition<Time>;
 export function time<T>(): ColumnDefinition<T>;
 export function time() {
   return makeDataType(`time`);
@@ -333,27 +334,27 @@ export function timeWithoutTimeZone<T>(): ColumnDefinition<T>;
 export function timeWithoutTimeZone() {
   return makeDataType(`time without time zone`);
 }
-export function timeWithTimeZone(): ColumnDefinition<string>;
+export function timeWithTimeZone(): ColumnDefinition<Time>;
 export function timeWithTimeZone<T>(): ColumnDefinition<T>;
 export function timeWithTimeZone() {
   return makeDataType(`time with time zone`);
 }
-export function timestamp(): ColumnDefinition<Date>;
+export function timestamp(): ColumnDefinition<DateTime>;
 export function timestamp<T>(): ColumnDefinition<T>;
 export function timestamp() {
   return makeDataType(`timestamp`);
 }
-export function timestamptz(): ColumnDefinition<Date>;
+export function timestamptz(): ColumnDefinition<DateTime>;
 export function timestamptz<T>(): ColumnDefinition<T>;
 export function timestamptz() {
   return makeDataType(`timestamptz`);
 }
-export function timestampWithoutTimeZone(): ColumnDefinition<Date>;
+export function timestampWithoutTimeZone(): ColumnDefinition<DateTime>;
 export function timestampWithoutTimeZone<T>(): ColumnDefinition<T>;
 export function timestampWithoutTimeZone() {
   return makeDataType(`timestamp without time zone`);
 }
-export function timestampWithTimeZone(): ColumnDefinition<Date>;
+export function timestampWithTimeZone(): ColumnDefinition<DateTime>;
 export function timestampWithTimeZone<T>(): ColumnDefinition<T>;
 export function timestampWithTimeZone() {
   return makeDataType(`timestamp with time zone`);

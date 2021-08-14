@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`custom data types should select all data types (type) should match snapshot 1`] = `"{ int4: MyType<\\"int4\\">; int8: MyType<\\"int8\\">; float4: MyType<\\"float4\\">; float8: MyType<\\"float8\\">; numeric: MyType<\\"numeric\\">; text: MyType<\\"text\\">; date: MyType<\\"date\\">; time: MyType<\\"time\\">; id: string; dateTime: MyType<\\"datetime\\">; }"`;
+
+exports[`custom data types should select count (type) should match snapshot 1`] = `"{ count: MyType<\\"int8\\">; }"`;

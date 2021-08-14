@@ -42,7 +42,7 @@ type ReturningResultSet<Config extends DbConfig, Returning, Test extends boolean
       : Test extends true
       ? GetDataType<D, false>
       : ResultSetDataType<Config, D, false>
-    : Returning[K] extends Expression<Config, infer D, infer IsNotNull, any>
+    : Returning[K] extends Expression<any, infer D, infer IsNotNull, any>
     ? Test extends true
       ? GetDataType<D, IsNotNull>
       : ResultSetDataType<Config, D, IsNotNull>
@@ -89,7 +89,7 @@ export type ResultSet<
           : Test extends true
           ? GetDataType<D, false>
           : ResultSetDataType<Config, D, false>
-        : Returning[K] extends Expression<Config, infer D, infer IsNotNull, string>
+        : Returning[K] extends Expression<any, infer D, infer IsNotNull, string>
         ? Test extends true
           ? GetDataType<D, IsNotNull>
           : ResultSetDataType<Config, D, IsNotNull>
@@ -127,7 +127,7 @@ export type ResultSet<
           : Test extends true
           ? GetDataType<D, false>
           : ResultSetDataType<Config, D, false>
-        : Returning[K] extends Expression<Config, infer D, infer IsNotNull, any>
+        : Returning[K] extends Expression<any, infer D, infer IsNotNull, any>
         ? Test extends true
           ? GetDataType<D, IsNotNull>
           : ResultSetDataType<Config, D, IsNotNull>
@@ -165,7 +165,7 @@ export type ResultSet<
           : Test extends true
           ? GetDataType<D, false>
           : ResultSetDataType<Config, D, false>
-        : Returning[K] extends Expression<Config, infer D, infer IsNotNull, any>
+        : Returning[K] extends Expression<any, infer D, infer IsNotNull, any>
         ? Test extends true
           ? GetDataType<D, IsNotNull>
           : ResultSetDataType<Config, D, IsNotNull>
@@ -203,7 +203,7 @@ export type ResultSet<
           : Test extends true
           ? GetDataType<D, false>
           : ResultSetDataType<Config, D, false>
-        : Returning[K] extends Expression<Config, infer D, infer IsNotNull, any>
+        : Returning[K] extends Expression<any, infer D, infer IsNotNull, any>
         ? Test extends true
           ? GetDataType<D, IsNotNull>
           : ResultSetDataType<Config, D, IsNotNull>
@@ -211,6 +211,4 @@ export type ResultSet<
         ? ResultSet<Config, Returning[K], Test>[keyof ResultSet<Config, Returning[K], Test>]
         : never;
     }
-  : T extends TruncateQuery<any, infer Returning>
-  ? ReturningResultSet<Config, Returning, Test>
   : Err<'not a query'>;

@@ -6,7 +6,7 @@
     "@ff00ff/mammoth": "^2.0.0-beta.7",
     "knex": "^0.21.21",
     "pg": "^8.7.1",
-    "typeorm": "^0.2.36"
+    "typeorm": "^0.2.37"
   },
   "scripts": {
     "start": "node index.js"

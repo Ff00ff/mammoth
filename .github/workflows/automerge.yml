@@ -2,6 +2,7 @@ name: Automerge
 on: pull_request
 jobs:
   auto-merge:
-    - uses: KeisukeYamashita/auto-pull-request-merge@v1
-      with:
-        intervalSeconds: 10
+    steps:
+      - uses: KeisukeYamashita/auto-pull-request-merge@v1
+        with:
+          intervalSeconds: 10

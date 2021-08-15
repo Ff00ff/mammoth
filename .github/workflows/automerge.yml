@@ -4,6 +4,7 @@ jobs:
   auto-merge:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - uses: KeisukeYamashita/auto-pull-request-merge@v1
         with:
           intervalSeconds: 10

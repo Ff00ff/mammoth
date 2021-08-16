@@ -7,11 +7,10 @@ import {
   SeparatorToken,
   StringToken,
   TableStarToken,
-  createQueryState,
   Token,
+  createQueryState,
 } from './tokens';
 import { Any, AnyNumber, Int4, Int8, Text, ToPostgresDataType } from './data-types';
-import { AnyTable, Table } from './TableType';
 import {
   AnyExpression,
   DefaultExpression,
@@ -20,10 +19,19 @@ import {
   InternalExpression,
   RawExpression,
 } from './expression';
-
-import type { ColumnSet } from './column';
+import { AnyTable, Table } from './TableType';
+import type { Column, ColumnSet } from './column';
 import { DbConfig, DefaultDbConfig, GetResultType } from './config';
+import { Err, GetDataType } from './types';
+
 import { Query } from './query';
+
+interface Tokenable {
+  toTokens(): Token[];
+}
+
+const isTokenable = (value: any): value is Tokenable =>
+  value && typeof value === 'object' && 'toTokens' in value;
 
 export class Star {
   private _starBrand: any;
@@ -199,10 +207,10 @@ export const avg = <Config extends DbConfig, T extends AnyNumber>(
 
 // Selecting the sum of an int4 results in a int8, but selecting the sum of any other data type
 // doesn't seem to change the return type at all.
-export const sum = <Config extends DbConfig, T extends AnyNumber>(
-  expression: Expression<Config, T, boolean, any>,
+export const sum = <Config extends DbConfig, T>(
+  expression: Expression<Config, T, boolean, any> | Column<Config, any, any, T, any, any, any>,
 ): Expression<Config, T extends Int4 ? Int8 : T, false, 'sum'> =>
-  new InternalExpression<Config, T, false, 'sum'>(
+  new InternalExpression(
     [new StringToken(`SUM`), new GroupToken(expression.toTokens())],
     'sum',
   ) as any;
@@ -281,10 +289,100 @@ export const notExists = <Config extends DbConfig>(
     new GroupToken(expression.toTokens()),
   ]);
 
-// TODO: it's still possible for coalesce to return nullable. It depends on the input.
-export const coalesce = <Config extends DbConfig, DataType>(
-  ...expressions: (Expression<Config, DataType, boolean, any> | GetResultType<Config, DataType>)[]
-): Expression<Config, DataType, false, 'coalesce'> => {
+export function nullIf<Config extends DbConfig, DataType>(
+  value1: Expression<Config, DataType, any, any>,
+  value2: Expression<any, DataType, any, any> | GetResultType<Config, DataType>,
+): Expression<Config, DataType, false, 'nullif'> {
+  return new InternalExpression(
+    [
+      new StringToken(`nullif`),
+      new GroupToken([
+        new SeparatorToken(',', [
+          new CollectionToken(value1.toTokens()),
+          isTokenable(value2) ? new CollectionToken(value2.toTokens()) : new ParameterToken(value2),
+        ]),
+      ]),
+    ],
+    'nullif',
+  ) as any;
+}
+
+export function greatest<Config extends DbConfig, DataType>(
+  first: Expression<Config, DataType, any, any>,
+  ...rest: (Expression<any, DataType, any, any> | GetResultType<Config, DataType>)[]
+): Expression<Config, DataType, false, 'greatest'> {
+  return new InternalExpression(
+    [
+      new StringToken(`greatest`),
+      new GroupToken([
+        new SeparatorToken(
+          ',',
+          [first, ...rest].map((val) =>
+            isTokenable(val) ? new CollectionToken(val.toTokens()) : new ParameterToken(val),
+          ),
+        ),
+      ]),
+    ],
+    'greatest',
+  ) as any;
+}
+
+export function least<Config extends DbConfig, DataType>(
+  first: Expression<Config, DataType, any, any>,
+  ...rest: (Expression<any, DataType, any, any> | GetResultType<Config, DataType>)[]
+): Expression<Config, DataType, false, 'least'> {
+  return new InternalExpression(
+    [
+      new StringToken(`least`),
+      new GroupToken([
+        new SeparatorToken(
+          ',',
+          [first, ...rest].map((val) =>
+            isTokenable(val) ? new CollectionToken(val.toTokens()) : new ParameterToken(val),
+          ),
+        ),
+      ]),
+    ],
+    'least',
+  ) as any;
+}
+
+// At some point this needs to be extended, because only columns and literal types are supported.
+// The type system kept complaining when using Expression<..> directly and passing in columns.
+export function coalesce<C extends Column<any, any, any, any, any, any, any>>(
+  expression: C,
+  expression2: C,
+): Expression<
+  any,
+  C extends Column<any, any, any, infer DataType, any, any, any>
+    ? DataType
+    : Err<'could not find column data type'>,
+  C extends Column<any, any, any, any, infer IsNotNull, any, any> ? IsNotNull & true : false,
+  'coalesce'
+>;
+export function coalesce<
+  C extends Column<any, any, any, any, any, any, any>,
+  D extends C extends Column<infer Config, any, any, infer DataType, any, any, any>
+    ? GetResultType<Config, DataType> | GetResultType<Config, 'Null'>
+    : Err<'could not find column data type'>,
+>(
+  expression: C,
+  expression2: D,
+): Expression<
+  any,
+  C extends Column<any, any, any, infer DataType, any, any, any>
+    ? DataType
+    : Err<'could not find column data type'>,
+  C extends Column<infer Config, any, any, any, any, any, any>
+    ? [D] extends [GetResultType<Config, 'Null'>]
+      ? [GetResultType<Config, 'Null'>] extends [D]
+        ? false
+        : true
+      : true
+    : false,
+  'coalesce'
+>;
+export function coalesce(...expressions: any[]) {
   return new InternalExpression(
     [
       new StringToken(`coalesce`),
@@ -292,7 +390,7 @@ export const coalesce = <Config extends DbConfig, DataType>(
         new SeparatorToken(
           ',',
           expressions.map((expression) =>
-            expression instanceof InternalExpression
+            isTokenable(expression)
               ? new CollectionToken(expression.toTokens())
               : new ParameterToken(expression),
           ),
@@ -301,7 +399,7 @@ export const coalesce = <Config extends DbConfig, DataType>(
     ],
     'coalesce',
   ) as any;
-};
+}
 
 export const cast = <
   Config extends DbConfig,

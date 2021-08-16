@@ -72,4 +72,7 @@ const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 
 
   // @dts-jest:snap should select all data types
   toRealSnap(db.select(star()).from(db.foo));
+
+  // @dts-jest:snap should select sum of int4 which becomes int8
+  toRealSnap(db.select(sum(db.foo.int4)).from(db.foo));
 }

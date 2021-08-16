@@ -55,14 +55,13 @@ type ReturningResultSet<Config extends DbConfig, Returning, Test extends boolean
 // optional number to `number | undefined`. Instead, it will snapshot to `number`. Because it's
 // important to get the optional behaviour under test as well (it's so easy to create a regression)
 // this flag is introduced to return a nominal class which gets snapshotted with the correct info.
-export type ResultSet<
-  Config extends DbConfig,
-  T extends Query<any>,
-  Test extends boolean,
-> = T extends SelectQuery<Config, infer Returning>
+export type ResultSet<Config extends DbConfig, T, Test extends boolean> = T extends SelectQuery<
+  Config,
+  infer Returning
+>
   ? {
       [K in keyof Returning]: Returning[K] extends Column<
-        Config,
+        any,
         any,
         any,
         infer D,
@@ -89,10 +88,14 @@ export type ResultSet<
           : Test extends true
           ? GetDataType<D, false>
           : ResultSetDataType<Config, D, false>
-        : Returning[K] extends Expression<any, infer D, infer IsNotNull, string>
-        ? Test extends true
-          ? GetDataType<D, IsNotNull>
-          : ResultSetDataType<Config, D, IsNotNull>
+        : // To avoid an issue where I (IsNotNull) would become boolean instead of true or false, we
+        // extend Expression<..> twice with separate infers.
+        Returning[K] extends Expression<any, any, infer I, string>
+        ? Returning[K] extends Expression<any, infer D, I, string>
+          ? Test extends true
+            ? GetDataType<D, I>
+            : ResultSetDataType<Config, D, I>
+          : Err<'not an expression'>
         : Returning[K] extends Query<{}>
         ? ResultSet<Config, Returning[K], Test>[keyof ResultSet<Config, Returning[K], Test>]
         : never;

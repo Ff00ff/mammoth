@@ -17,11 +17,11 @@ import {
   Token,
 } from './tokens';
 import { DbConfig, GetResultType } from './config';
-
-import { wrapQuotes } from './naming';
-import { Column } from './column';
 import { Err, GetDataType } from './types';
+
+import { Column } from './column';
 import { TableDefinition } from './table';
+import { wrapQuotes } from './naming';
 
 export interface SharedExpression<
   Config extends DbConfig,

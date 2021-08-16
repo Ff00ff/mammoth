@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`select coalesce should not convert to not null when passing another nullable value (type) should match snapshot 1`] = `"Argument of type 'Column<DefaultDbConfig, \\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to parameter of type 'number | NumberExpression<DefaultDbConfig, number, boolean, any>'."`;
+exports[`select coalesce should not convert to not null when passing another nullable value (type) should match snapshot 1`] = `"{ coalesce: Maybe<\\"Int4\\">; }"`;
 
 exports[`select float8 + int8 = float8 (type) should match snapshot 1`] = `"NumberExpression<DefaultDbConfig, \\"Float8\\", false, \\"?column?\\">"`;
 
@@ -8,16 +8,9 @@ exports[`select int4 + int4 = int4 (type) should match snapshot 1`] = `"NumberEx
 
 exports[`select int8 + int4 = int8 (type) should match snapshot 1`] = `"NumberExpression<DefaultDbConfig, \\"Int8\\", false, \\"?column?\\">"`;
 
-exports[`select should convert not convert null value to not null using null in coalesce (type) should match snapshot 1`] = `"Argument of type 'Column<DefaultDbConfig, \\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to parameter of type 'number | NumberExpression<DefaultDbConfig, number, boolean, any>'."`;
+exports[`select should coalesce to nullable type (type) should match snapshot 1`] = `"{ coalesce: \\"Int4\\" | Maybe<\\"Int4\\">; }"`;
 
-exports[`select should convert null value to not null using coalesce (type) should match snapshot 1`] = `
-"Argument of type 'Column<DefaultDbConfig, \\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to parameter of type 'number | NumberExpression<DefaultDbConfig, number, boolean, any>'.
-  Type 'Column<DefaultDbConfig, \\"value\\", \\"foo\\", \\"Int4\\", false, false, undefined>' is not assignable to type 'NumberExpression<DefaultDbConfig, number, boolean, any>'.
-    The types of 'plus(...).as(...).isDistinctFrom' are incompatible between these types.
-      Type '(a: \\"Int4\\") => BooleanExpression<DefaultDbConfig, false, true, \\"?column?\\"> | BooleanExpression<DefaultDbConfig, true, true, \\"?column?\\">' is not assignable to type '(a: number) => BooleanExpression<DefaultDbConfig, false, true, \\"?column?\\"> | BooleanExpression<DefaultDbConfig, true, true, \\"?column?\\">'.
-        Types of parameters 'a' and 'a' are incompatible.
-          Type 'number' is not assignable to type '\\"Int4\\"'."
-`;
+exports[`select should convert null value to not null using coalesce (type) should match snapshot 1`] = `"{ coalesce: \\"Int4\\" | Maybe<\\"Int4\\">; }"`;
 
 exports[`select should return correct result in then (type) should match snapshot 1`] = `"{ id: string; }[]"`;
 
@@ -47,7 +40,7 @@ exports[`select should select * from foo right join bar (type) should match snap
 
 exports[`select should select aggregate subquery (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; count: \\"Int8\\" | Maybe<\\"Int8\\">; }"`;
 
-exports[`select should select aggregate with alias (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; total: Maybe<\\"Float4\\">; } | { id: Uuid<\\"..\\">; total: Maybe<\\"Int8\\">; } | { id: Uuid<\\"..\\">; total: Maybe<\\"Float8\\">; } | { id: Uuid<\\"..\\">; total: Maybe<\\"Numeric\\">; }"`;
+exports[`select should select aggregate with alias (type) should match snapshot 1`] = `"{ id: Uuid<\\"..\\">; total: Maybe<\\"Int8\\">; }"`;
 
 exports[`select should select and await result set (type) should match snapshot 1`] = `"{ id: string; value: number; }[]"`;
 

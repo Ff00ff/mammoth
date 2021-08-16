@@ -135,7 +135,7 @@ const selectFromFoo = <T extends GetColumn<typeof db.foo>[]>(...columns: [...T])
   // @dts-jest:snap should convert null value to not null using coalesce
   toSnap(db.select(coalesce(db.foo.value, 1)).from(db.foo));
 
-  // @dts-jest:snap should convert not convert null value to not null using null in coalesce
+  // @dts-jest:snap should coalesce to nullable type
   toSnap(db.select(coalesce(db.foo.value, 1 as null | number)).from(db.foo));
 
   // @dts-jest:snap coalesce should not convert to not null when passing another nullable value

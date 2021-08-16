@@ -1,7 +1,6 @@
+import { AnyColumn, ColumnSet } from '../column';
+import { Expression, NumberExpression } from '../expression';
 import {
-  raw,
-  star,
-  toSql,
   any,
   arrayAgg,
   avg,
@@ -10,24 +9,33 @@ import {
   boolAnd,
   boolOr,
   boolean,
+  coalesce,
   count,
   defineDb,
   defineTable,
+  enumType,
   every,
   exists,
+  float4,
   group,
   integer,
   max,
   min,
   notExists,
+  raw,
+  star,
   stringAgg,
   sum,
   text,
   timestampWithTimeZone,
+  toSql,
   uuid,
-  enumType,
-  float4,
 } from '..';
+import { greatest, least, nullIf } from '../sql-functions';
+
+import { DefaultDbConfig } from '../config';
+import { ResultSet } from '../result-set';
+import { SelectQuery } from '../select';
 
 describe(`select`, () => {
   const foo = defineTable({
@@ -35,6 +43,7 @@ describe(`select`, () => {
     createDate: timestampWithTimeZone().notNull().default(`now()`),
     name: text().notNull(),
     value: integer(),
+    alwaysValue: integer().notNull(),
     enumTest: enumType('my_enum_type', ['A', 'B', 'C'] as const),
   });
 
@@ -67,11 +76,11 @@ describe(`select`, () => {
     const query = db.select(star()).from(db.foo).innerJoin(db.bar).on(db.bar.fooId.eq(db.foo.id));
 
     expect(toSql(query)).toMatchInlineSnapshot(`
-      Object {
-        "parameters": Array [],
-        "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.enum_test \\"enumTest\\", bar.id, bar.foo_id \\"fooId\\", bar.name FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
-      }
-    `);
+Object {
+  "parameters": Array [],
+  "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.always_value \\"alwaysValue\\", foo.enum_test \\"enumTest\\", bar.id, bar.foo_id \\"fooId\\", bar.name FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
+}
+`);
   });
 
   it(`should select star plus bar alias from foo`, () => {
@@ -82,11 +91,11 @@ describe(`select`, () => {
       .on(db.bar.fooId.eq(db.foo.id));
 
     expect(toSql(query)).toMatchInlineSnapshot(`
-      Object {
-        "parameters": Array [],
-        "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.enum_test \\"enumTest\\", bar.id, bar.foo_id \\"fooId\\", bar.name, bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
-      }
-    `);
+Object {
+  "parameters": Array [],
+  "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.always_value \\"alwaysValue\\", foo.enum_test \\"enumTest\\", bar.id, bar.foo_id \\"fooId\\", bar.name, bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
+}
+`);
   });
 
   it(`should select star foo plus bar alias from foo`, () => {
@@ -97,23 +106,23 @@ describe(`select`, () => {
       .on(db.bar.fooId.eq(db.foo.id));
 
     expect(toSql(query)).toMatchInlineSnapshot(`
-      Object {
-        "parameters": Array [],
-        "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.enum_test \\"enumTest\\", bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
-      }
-    `);
+Object {
+  "parameters": Array [],
+  "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.always_value \\"alwaysValue\\", foo.enum_test \\"enumTest\\", bar.id test FROM foo INNER JOIN bar ON (bar.foo_id = foo.id)",
+}
+`);
   });
 
   it(`should select where exists star`, () => {
     const query = db
-      .select(star())
+      .select(db.foo.id)
       .from(db.foo)
       .where(exists(db.select(star()).from(db.bar).where(db.bar.fooId.eq(db.foo.id))));
 
     expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
         "parameters": Array [],
-        "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.enum_test \\"enumTest\\" FROM foo WHERE EXISTS (SELECT bar.id, bar.foo_id \\"fooId\\", bar.name FROM bar WHERE bar.foo_id = foo.id)",
+        "text": "SELECT foo.id FROM foo WHERE EXISTS (SELECT bar.id, bar.foo_id \\"fooId\\", bar.name FROM bar WHERE bar.foo_id = foo.id)",
       }
     `);
   });
@@ -908,9 +917,9 @@ describe(`select`, () => {
 
   it(`should select using row-wise compare using raw expression`, () => {
     const query = db
-      .select(star())
+      .select(db.foo.id)
       .from(db.foo)
-      .where(raw`(name, value)`.gt(raw`(${'Test'}, ${123})`));
+      .where(raw`(name, value)`.gt(raw`(${'Test'},${123})`));
 
     expect(toSql(query)).toMatchInlineSnapshot(`
       Object {
@@ -918,7 +927,7 @@ describe(`select`, () => {
           "Test",
           123,
         ],
-        "text": "SELECT foo.id, foo.create_date \\"createDate\\", foo.name, foo.value, foo.enum_test \\"enumTest\\" FROM foo WHERE (name, value) > ( $1 ,  $2 )",
+        "text": "SELECT foo.id FROM foo WHERE (name, value) > ( $1 , $2 )",
       }
     `);
   });
@@ -954,5 +963,57 @@ describe(`select`, () => {
         "text": "SELECT foo.id FROM foo UNION ALL SELECT bar.id FROM bar",
       }
     `);
+  });
+
+  it(`should coalesce expression`, () => {
+    const query = db.select(coalesce(db.foo.value, 1)).from(db.foo);
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+Object {
+  "parameters": Array [
+    1,
+  ],
+  "text": "SELECT coalesce (foo.value, $1) FROM foo",
+}
+`);
+  });
+
+  it(`should nullif expressions`, () => {
+    const query = db.select(nullIf(db.foo.value, 1)).from(db.foo);
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+Object {
+  "parameters": Array [
+    1,
+  ],
+  "text": "SELECT nullif (foo.value, $1) FROM foo",
+}
+`);
+  });
+
+  it(`should select greatest`, () => {
+    const query = db.select(greatest(db.foo.value, 1)).from(db.foo);
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+Object {
+  "parameters": Array [
+    1,
+  ],
+  "text": "SELECT greatest (foo.value, $1) FROM foo",
+}
+`);
+  });
+
+  it(`should select least`, () => {
+    const query = db.select(least(db.foo.value, 1)).from(db.foo);
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+Object {
+  "parameters": Array [
+    1,
+  ],
+  "text": "SELECT least (foo.value, $1) FROM foo",
+}
+`);
   });
 });

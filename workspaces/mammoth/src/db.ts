@@ -108,9 +108,6 @@ export const makeDefineDb =
       with: makeWith<Config>(queryExecutor),
       case: () => new CaseStatement<Config, never>([]),
 
-      // TODO: should we pass Config to these sql functions?
-      ...sqlFunctions,
-
       ...createTables<Config, TableDefinitions>(tableDefinitions),
     };
   };

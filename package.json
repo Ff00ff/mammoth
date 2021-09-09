@@ -4,7 +4,7 @@
     "@oclif/dev-cli": "^1.22.2",
     "@types/fs-extra": "^9.0.2",
     "@types/jest": "^27.0.1",
-    "@types/node": "^16.6.1",
+    "@types/node": "^16.9.0",
     "@types/pg": "^8.6.1",
     "dts-jest": "^24.0.0",
     "eslint-config-oclif-typescript": "^0.2.0",

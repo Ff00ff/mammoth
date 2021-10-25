@@ -1,7 +1,9 @@
 import { ColumnDefinition, makeColumnDefinition } from './column';
 
-const variableLength = (string: string, ...n: (number | undefined)[]) =>
-  n.length > 0 ? `${string}(${n.join(`, `)})` : string;
+const variableLength = (string: string, ...n: (number | undefined)[]) => {
+  const pruned = n.filter((i) => i != undefined);
+  return pruned.length > 0 ? `${string}(${pruned.join(`, `)})` : string;
+};
 
 const makeDataType = makeColumnDefinition;
 

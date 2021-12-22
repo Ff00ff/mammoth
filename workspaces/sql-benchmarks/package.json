@@ -4,7 +4,7 @@
   "name": "sql-benchmarks",
   "dependencies": {
     "@ff00ff/mammoth": "^2.0.0-beta.7",
-    "knex": "^0.21.21",
+    "knex": "^0.95.15",
     "pg": "^8.7.1",
     "typeorm": "^0.2.37"
   },

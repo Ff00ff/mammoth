@@ -3,7 +3,7 @@
   "devDependencies": {
     "@oclif/dev-cli": "^1.22.2",
     "@types/fs-extra": "^9.0.2",
-    "@types/jest": "^27.0.1",
+    "@types/jest": "^27.4.0",
     "@types/node": "^16.6.1",
     "@types/pg": "^8.6.1",
     "dts-jest": "^24.0.0",

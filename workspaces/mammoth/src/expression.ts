@@ -115,6 +115,7 @@ export interface TextExpression<
   ): DefaultExpression<Config, DataType, GetNotNull<IsNotNull, RightIsNotNull>>;
   like(value: GetResultType<Config, DataType>): DefaultExpression<Config, boolean>;
   ilike(value: GetResultType<Config, DataType>): DefaultExpression<Config, boolean>;
+  notLike(value: GetResultType<Config, DataType>): DefaultExpression<Config, boolean>;
 }
 export interface NumberExpression<
   Config extends DbConfig,
@@ -540,6 +541,14 @@ export class InternalExpression<
     return new InternalDefaultExpression([
       ...this.tokens,
       new StringToken(`ILIKE`),
+      new ParameterToken(value),
+    ]);
+  }
+
+  notLike(value: GetResultType<Config, DataType>) {
+    return new InternalDefaultExpression([
+      ...this.tokens,
+      new StringToken(`NOT LIKE`),
       new ParameterToken(value),
     ]);
   }

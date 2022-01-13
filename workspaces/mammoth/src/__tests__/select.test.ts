@@ -172,6 +172,17 @@ Object {
     `);
   });
 
+  it(`should wrap expression alias in quotes because timestamp is an extended reserved keyword`, () => {
+    const query = db.select(coalesce(db.bar.name, db.bar.name).as(`timestamp`)).from(db.bar);
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+Object {
+  "parameters": Array [],
+  "text": "SELECT coalesce (bar.name, bar.name) \\"timestamp\\" FROM bar",
+}
+`);
+  });
+
   it(`should select as camel case table`, () => {
     const test = db.foo.as(`testMe`);
     const query = db.select(test.id).from(test);

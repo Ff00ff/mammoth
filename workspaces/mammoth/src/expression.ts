@@ -638,7 +638,7 @@ export class InternalExpression<
     if (includeAlias && (this.nameIsAlias || this.name.match(/[A-Z]/))) {
       // Some expression return a train_case name by default such as string_agg. We automatically
       // convert these to camelCase equivalents e.g. stringAgg.
-      return [...this.tokens, new StringToken(`${wrapQuotes(this.name)}`)];
+      return [...this.tokens, new StringToken(`${wrapQuotes(this.name, true)}`)];
     }
 
     return this.tokens;

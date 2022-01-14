@@ -20,6 +20,7 @@ import { ResultSet } from './result-set';
 import { Star } from './sql-functions';
 import { AnyTable, Table } from './TableType';
 import { TableDefinition } from './table';
+import { wrapQuotes } from './naming';
 
 export { SelectFn };
 
@@ -404,7 +405,11 @@ export class SelectQuery<
       new StringToken(`ORDER BY`),
       new SeparatorToken(
         ',',
-        expressions.map((expression) => new CollectionToken(expression.toTokens())),
+        expressions.map((expression) =>
+          expression.hasName()
+            ? new CollectionToken([new StringToken(wrapQuotes(expression.getName()))])
+            : new CollectionToken(expression.toTokens()),
+        ),
       ),
     ]);
   }

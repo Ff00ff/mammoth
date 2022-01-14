@@ -33,6 +33,9 @@ export interface SharedExpression<
   toTokens(includeAlias?: boolean): Token[];
 
   /** @internal */
+  hasName(): boolean;
+
+  /** @internal */
   getName(): string;
 
   as<AliasName extends string>(name: AliasName): Expression<Config, DataType, IsNotNull, AliasName>;
@@ -195,6 +198,9 @@ export interface BooleanExpression<
   toTokens(includeAlias?: boolean): Token[];
 
   /** @internal */
+  hasName(): boolean;
+
+  /** @internal */
   getName(): string;
 
   as<AliasName extends string>(name: AliasName): Expression<Config, DataType, IsNotNull, AliasName>;
@@ -291,6 +297,11 @@ export class InternalExpression<
   /** @internal */
   getName() {
     return this.name;
+  }
+
+  /** @internal */
+  hasName() {
+    return this.name !== `?column?`;
   }
 
   // To avoid Name becoming any, it seems we have to use it somewhere. Because we strip internal
@@ -637,7 +648,11 @@ export class InternalExpression<
       new StringToken(`ORDER BY`),
       new SeparatorToken(
         ',',
-        expressions.map((expression) => new CollectionToken(expression.toTokens())),
+        expressions.map((expression) =>
+          expression.hasName()
+            ? new CollectionToken([new StringToken(wrapQuotes(expression.getName()))])
+            : new CollectionToken(expression.toTokens()),
+        ),
       ),
     ]) as any;
   }

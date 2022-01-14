@@ -456,6 +456,30 @@ Object {
     `);
   });
 
+  it(`should select with order by alias expression`, () => {
+    const winner = max(db.foo.value).as(`winner`);
+    const query = db.select(db.foo.id, winner).orderBy(winner);
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+      Object {
+        "parameters": Array [],
+        "text": "SELECT foo.id, MAX (foo.value) winner ORDER BY winner",
+      }
+    `);
+  });
+
+  it(`should select with order by alias expression with quotes`, () => {
+    const winner = max(db.foo.value).as(`camelCaseAlsoRequiresQuoting`);
+    const query = db.select(db.foo.id, winner).orderBy(winner);
+
+    expect(toSql(query)).toMatchInlineSnapshot(`
+Object {
+  "parameters": Array [],
+  "text": "SELECT foo.id, MAX (foo.value) \\"camelCaseAlsoRequiresQuoting\\" ORDER BY \\"camelCaseAlsoRequiresQuoting\\"",
+}
+`);
+  });
+
   it(`should select with concat`, () => {
     const query = db.select(db.foo.name.concat(`!`)).from(db.foo);
 

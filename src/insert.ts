@@ -327,7 +327,7 @@ export class InsertQuery<
               >
                 ? IsNotNull extends true
                   ? DataType | Expression<DataType, IsNotNull, any> | Query<any>
-                  : DataType | undefined | Expression<DataType, IsNotNull, any> | Query<any>
+                  : DataType | null | Expression<DataType, IsNotNull, any> | Query<any>
                 : never;
             }
           : never,
@@ -430,7 +430,7 @@ export class InsertQuery<
               >
                 ? IsNotNull extends true
                   ? DataType | Expression<DataType, IsNotNull, any> | Query<any>
-                  : DataType | undefined | Expression<DataType, IsNotNull, any> | Query<any>
+                  : DataType | null | Expression<DataType, IsNotNull, any> | Query<any>
                 : never;
             }
           : never,
@@ -545,7 +545,7 @@ export interface InsertIntoResult<
                 | DataType
                 | Query<{ [key: string]: DataType | Expression<DataType, boolean, string> }>
                 | Expression<DataType, boolean, string>
-                | undefined
+                | null
             : never;
         }
     : never,
@@ -572,7 +572,7 @@ export interface InsertIntoResult<
             >
               ? IsNotNull extends true
                 ? DataType | Expression<DataType, boolean, any>
-                : DataType | undefined | Expression<DataType | undefined, boolean, any>
+                : DataType | null | Expression<DataType | null, boolean, any>
               : never;
           }
         : never,
@@ -645,7 +645,7 @@ export const makeInsertInto =
                   >
                     ? IsNotNull extends true
                       ? DataType | Expression<DataType, boolean, any>
-                      : DataType | undefined | Expression<DataType | undefined, boolean, any>
+                      : DataType | null | Expression<DataType | undefined, boolean, any>
                     : never;
                 }
               : never,

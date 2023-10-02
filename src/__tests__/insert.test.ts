@@ -205,4 +205,20 @@ describe(`insert`, () => {
       }
     `);
   });
+
+  it(`should insert non-null with default value`, () => {
+    const query = db.insertInto(db.foo).values({
+        name: `Test`,
+        createDate: new Date('2023-01-01T06:00:00.000Z'),
+    });
+    expect(toSql(query)).toMatchInlineSnapshot(`
+    Object {
+      "parameters": Array [
+        "Test",
+        "2023-01-01T06:00:00.000Z"
+      ],
+      "text": "INSERT INTO foo (name, create_date) VALUES ($1, $2)",
+    }
+  `);
+  })
 });

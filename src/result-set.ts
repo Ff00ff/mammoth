@@ -11,7 +11,7 @@ import { UpdateQuery } from './update';
 //   private _!: Type & IsNull;
 // }
 
-export type ResultSetDataType<Type, IsNotNull> = IsNotNull extends true ? Type : Type | undefined;
+export type ResultSetDataType<Type, IsNotNull> = IsNotNull extends true ? Type : Type | null;
 
 // This is not ideal, but, using dts-jest and it's snapshotting it's not capable to snapshot an e.g.
 // optional number to `number | undefined`. Instead, it will snapshot to `number`. Because it's

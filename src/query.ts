@@ -8,7 +8,7 @@ export type SpecificQuery<
   Q extends Query<any>,
   Result = ResultSet<Q, false>,
 > = Result extends {
-  [K in keyof Result]: DataType | undefined;
+  [K in keyof Result]: DataType | null;
 }
   ? Q
   : never;

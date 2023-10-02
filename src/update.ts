@@ -343,7 +343,7 @@ export const makeUpdate = (queryExecutor: QueryExecutorFn) => <T extends Table<a
             >
               ? IsNotNull extends true
                 ? DataType | Expression<DataType, boolean, any>
-                : DataType | undefined | Expression<DataType | undefined, boolean, any>
+                : DataType | null | Expression<DataType | null, boolean, any>
               : never;
           }
         : never,

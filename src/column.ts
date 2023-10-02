@@ -24,14 +24,19 @@ export interface ColumnDefinition<
 > {
   notNull(): ColumnDefinition<DataType, true, HasDefault>;
   primaryKey(): ColumnDefinition<DataType, true, HasDefault>;
+
+  default(
+    expression: string,
+  ): ColumnDefinition<DataType, IsNotNull, true>;
   // In most cases a default clause means you do not need to provide any value during insert. In
   // theory however it's possible the default expression doesn't set a value in some case. In the
   // case of a NOT NULL constraint this would mean you'd have to set a value when inserting. Because
   // this is not neccesary in most of the cases we just assume a default expression will always set
   // a value. You can opt out of this by setting `IsAlwaysSettingAValue` to false.
-  default<IsAlwaysSettingAValue extends boolean = true>(
+  default<IsAlwaysSettingAValue extends boolean>(
     expression: string,
   ): ColumnDefinition<DataType, IsNotNull, IsAlwaysSettingAValue>;
+
   check(expression: string): ColumnDefinition<DataType, IsNotNull, HasDefault>;
   unique(): ColumnDefinition<DataType, IsNotNull, HasDefault>;
   references<
@@ -96,7 +101,7 @@ export const makeColumnDefinition = <
       return this as any;
     },
 
-    default(expression) {
+    default(expression: string) {
       defaultExpression = expression;
 
       return this as any;

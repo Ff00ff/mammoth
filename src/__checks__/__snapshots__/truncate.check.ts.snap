@@ -1,5 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`truncate should truncate (type) should match snapshot 1`] = `"never"`;
-
-exports[`truncate should truncate and await affected row count (type) should match snapshot 1`] = `"number"`;

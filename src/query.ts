@@ -6,7 +6,7 @@ import { Token } from './tokens';
 export type SpecificQuery<
   DataType,
   Q extends Query<any>,
-  Result = ResultSet<Q, false>,
+  Result = ResultSet<Q>,
 > = Result extends {
   [K in keyof Result]: DataType | null;
 }

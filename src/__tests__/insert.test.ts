@@ -215,7 +215,7 @@ describe(`insert`, () => {
     Object {
       "parameters": Array [
         "Test",
-        "2023-01-01T06:00:00.000Z"
+        2023-01-01T06:00:00.000Z,
       ],
       "text": "INSERT INTO foo (name, create_date) VALUES ($1, $2)",
     }

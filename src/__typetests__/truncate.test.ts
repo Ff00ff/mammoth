@@ -1,12 +1,11 @@
 import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '../../.build';
 import { Query } from '../../.build/query';
 import { ResultSet } from '../../.build/result-set';
+import { expectType } from 'tsd-lite';
 
-const toSnap = <T extends Query<any>>(query: T): ResultSet<T, true> => {
+const toSnap = <T extends Query<any>>(query: T): ResultSet<T> => {
   return undefined as any;
 };
-
-/** @dts-jest enable:test-type */
 
 const foo = defineTable({
   id: uuid().primaryKey().default(`gen_random_uuid()`),
@@ -17,13 +16,12 @@ const foo = defineTable({
 
 const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 
-// @dts-jest:group truncate
-{
-  // @dts-jest:snap should truncate
-  toSnap(db.truncate(db.foo));
+describe('truncate', () => {
+    test('should truncate', () => {
+        expectType<never>(toSnap(db.truncate(db.foo)));
+    });
 
-  db.truncate(db.foo).then((result) => {
-    // @dts-jest:snap should truncate and await affected row count
-    result;
-  });
-}
+    test('should truncate ans await affected row count', async () => {
+        expectType<number>(await db.truncate(db.foo));
+    })
+});

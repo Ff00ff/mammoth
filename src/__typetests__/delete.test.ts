@@ -1,9 +1,9 @@
 import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '../../.build';
-
 import { Query } from '../../.build/query';
 import { ResultSet } from '../../.build/result-set';
+import { expectType} from 'tsd-lite';
 
-const toSnap = <T extends Query<any>>(query: T): ResultSet<T, true> => {
+const toSnap = <T extends Query<any>>(query: T): ResultSet<T> => {
   return undefined as any;
 };
 
@@ -18,20 +18,17 @@ const foo = defineTable({
 
 const db = defineDb({ foo }, () => Promise.resolve({ rows: [], affectedCount: 0 }));
 
-// @dts-jest:group delete
-{
-  // @dts-jest:snap should delete and returning id
-  toSnap(db.deleteFrom(db.foo).returning(`id`));
-
-  db.deleteFrom(db.foo).then((result) => {
-    // @dts-jest:snap should delete and await affected row count
-    result;
-  });
-
-  db.deleteFrom(db.foo)
-    .returning(`id`)
-    .then((result) => {
-      // @dts-jest:snap should delete and await rows
-      result;
+describe('delete', () => {
+    test('should delete and returning id', () => {
+        expectType<{id: string}>(toSnap(db.deleteFrom(db.foo).returning(`id`)))
     });
-}
+
+    test('should delete and await affected row count', async () => {
+        expectType<number>(await db.deleteFrom(db.foo));
+
+    });
+
+    test('should delete and await rows', async () => {
+        expectType<{id: string}[]>(await db.deleteFrom(db.foo).returning(`id`))
+    });
+});

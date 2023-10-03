@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`delete should delete and await affected row count (type) should match snapshot 1`] = `"number"`;
-
-exports[`delete should delete and await rows (type) should match snapshot 1`] = `"{ id: string; }[]"`;
-
-exports[`delete should delete and returning id (type) should match snapshot 1`] = `"{ id: GetDataType<string, true>; }"`;

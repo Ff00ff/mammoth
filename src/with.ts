@@ -1,9 +1,9 @@
 import { CollectionToken, GroupToken, SeparatorToken, StringToken, Token } from './tokens';
-import { GetDataType, QueryExecutorFn } from './types';
+import { QueryExecutorFn } from './types';
 
 import { Expression } from './expression';
 import { Query } from './query';
-import { ResultSet } from './result-set';
+import { ResultSet, ResultSetDataType } from './result-set';
 import { SelectQuery } from './select';
 import { wrapQuotes } from './naming';
 
@@ -15,8 +15,8 @@ export type FromItem<Q> = Q extends Query<any>
     : never
   : never;
 
-type FromItemQuery<Q, Result = Q extends Query<any> ? ResultSet<Q, true> : never> = {
-  [K in keyof Result]: Result[K] extends GetDataType<infer DataType, infer IsNotNull>
+type FromItemQuery<Q, Result = Q extends Query<any> ? ResultSet<Q> : never> = {
+  [K in keyof Result]: Result[K] extends ResultSetDataType<infer DataType, infer IsNotNull>
     ? Expression<DataType, IsNotNull, K extends string ? K : never>
     : never;
 };

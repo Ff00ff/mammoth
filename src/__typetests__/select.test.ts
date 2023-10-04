@@ -210,13 +210,30 @@ describe('select', () => {
         ));
     });
 
-    test('with test as select from foo select * from test', async () => {
+    test('with test as select from foo from test', async () => {
         expectType<{
             id: string;
             createDate: Date;
             name: string;
             value: number | null;
-        }[]>(await db.with(`test`, db.select(db.foo.id, db.foo.createDate, db.foo.name, db.foo.value).from(db.foo), ({ test }) => db.select(test.id, test.createDate, test.name, test.value).from(test)));
+        }[]>(await db.with(
+            `test`, () => db
+                .select(
+                    db.foo.id,
+                    db.foo.createDate,
+                    db.foo.name,
+                    db.foo.value,
+                ).from(db.foo),
+            ({ test }) => db
+                .select(
+                    test.id,
+                    test.createDate,
+                    test.name,
+                    test.value,
+                )
+                .from(test)
+            )
+        );
     });
 
     test('should select case with correct type and alias', () => {

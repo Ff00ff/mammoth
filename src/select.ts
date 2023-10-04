@@ -106,7 +106,7 @@ type GetColumns<From extends Table<any, any> | FromItem<any>> = From extends Tab
   : never;
 
 type LeftJoin<
-  Query extends SelectQuery<any>,
+  Query extends SelectQuery<any, boolean>,
   JoinTable extends Table<any, any> | FromItem<any>,
 > = Query extends SelectQuery<infer ExistingColumns, infer IncludesStar>
   ? IncludesStar extends true
@@ -115,7 +115,7 @@ type LeftJoin<
   : never;
 
 type RightJoin<
-  Query extends SelectQuery<any>,
+  Query extends SelectQuery<any, boolean>,
   JoinTable extends Table<any, any> | FromItem<any>,
 > = Query extends SelectQuery<infer ExistingColumns, infer IncludesStar>
   ? IncludesStar extends true
@@ -124,7 +124,7 @@ type RightJoin<
   : never;
 
 type FullJoin<
-  Query extends SelectQuery<any>,
+  Query extends SelectQuery<any, boolean>,
   JoinTable extends Table<any, any> | FromItem<any>,
 > = Query extends SelectQuery<infer ExistingColumns, infer IncludesStar>
   ? IncludesStar extends true
@@ -135,7 +135,7 @@ type FullJoin<
 // https://www.postgresql.org/docs/12/sql-select.html
 export class SelectQuery<
   Columns extends { [column: string]: any },
-  IncludesStar = false,
+  IncludesStar extends boolean = false,
 > extends Query<Columns> {
   private _selectQueryBrand: any;
 

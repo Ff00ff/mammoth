@@ -1,7 +1,7 @@
 import type { Column } from './column';
 import { DeleteQuery } from './delete';
 import type { Expression } from './expression';
-import { GetDataType } from './types';
+import { Expand, GetDataType } from './types';
 import { InsertQuery } from './insert';
 import { Query } from './query';
 import { SelectQuery } from './select';
@@ -16,7 +16,7 @@ type MaybeCapturingResultSetDataType<Type, IsNotNull extends boolean, ShouldCapt
     ? GetDataType<Type, IsNotNull>
     : ResultSetDataType<Type, IsNotNull>;
 
-type ReturningResultSet<Returning, ShouldCapture extends boolean> = {
+type MaybeCapturingReturningResultSet<Returning, ShouldCapture extends boolean> = {
     [K in keyof Returning]: Returning[K] extends Column<
         any,
         any,
@@ -37,17 +37,20 @@ type ReturningResultSet<Returning, ShouldCapture extends boolean> = {
         : Returning[K] extends Expression<infer D, infer IsNotNull, any>
             ? MaybeCapturingResultSetDataType<D, IsNotNull, ShouldCapture>
             : Returning[K] extends Query<{}>
-                ? ResultSet<Returning[K], ShouldCapture>[keyof ResultSet<Returning[K], ShouldCapture>]
+                ? MaybeCapturingResultSet<Returning[K], ShouldCapture>[keyof MaybeCapturingResultSet<Returning[K], ShouldCapture>]
                 : never;
 };
 
-export type ResultSet<T extends Query<any>, ShouldCapture extends boolean> =
+type MaybeCapturingResultSet<T extends Query<any>, ShouldCapture extends boolean> =
     T extends SelectQuery<infer Returning>
-        ? ReturningResultSet<Returning, ShouldCapture>
+        ? MaybeCapturingReturningResultSet<Returning, ShouldCapture>
         : T extends DeleteQuery<any, infer Returning>
-            ? ReturningResultSet<Returning, ShouldCapture>
+            ? MaybeCapturingReturningResultSet<Returning, ShouldCapture>
             : T extends UpdateQuery<any, infer Returning>
-                ? ReturningResultSet<Returning, ShouldCapture>
+                ? MaybeCapturingReturningResultSet<Returning, ShouldCapture>
                 : T extends InsertQuery<any, infer Returning>
-                    ? ReturningResultSet<Returning, ShouldCapture>
+                    ? MaybeCapturingReturningResultSet<Returning, ShouldCapture>
                     : never;
+
+export type CapturingResultSet<T extends Query<any>> = Expand<MaybeCapturingResultSet<T, true>>;
+export type ResultSet<T extends Query<any>> = Expand<MaybeCapturingResultSet<T, false>>;

@@ -49,7 +49,7 @@ export class InsertQuery<
       | ((
           value: Returning extends number
             ? Returning
-            : ResultSet<InsertQuery<T, Returning>, false>[],
+            : ResultSet<InsertQuery<T, Returning>>[],
         ) => Result1 | PromiseLike<Result1>)
       | undefined
       | null,

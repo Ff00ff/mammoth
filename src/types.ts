@@ -7,6 +7,8 @@ export type PickByValue<T, ValueType> = Pick<
   }[keyof T]
 >;
 
+export type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
+
 export type GetReturning<TableColumns, ColumnName extends keyof TableColumns> = {
   [K in ColumnName]: TableColumns[K];
 };

@@ -43,7 +43,7 @@ export class UpdateQuery<
       | ((
           value: Returning extends number
             ? Returning
-            : ResultSet<UpdateQuery<T, Returning>, false>[],
+            : ResultSet<UpdateQuery<T, Returning>>[],
         ) => Result1 | PromiseLike<Result1>)
       | undefined
       | null,

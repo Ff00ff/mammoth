@@ -155,7 +155,7 @@ export class SelectQuery<
 
   then<Result1, Result2 = never>(
     onFulfilled?:
-      | ((value: ResultSet<SelectQuery<Columns>>[]) => Result1 | PromiseLike<Result1>)
+      | ((value: ResultSet<SelectQuery<Columns>, false>[]) => Result1 | PromiseLike<Result1>)
       | undefined
       | null,
     onRejected?: ((reason: any) => Result2 | PromiseLike<Result2>) | undefined | null,

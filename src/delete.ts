@@ -52,7 +52,7 @@ export class DeleteQuery<
   then<Result1, Result2 = never>(
     onFulfilled?:
       | ((
-          value: Returning extends number ? number : ResultSet<DeleteQuery<T, Returning>>[],
+          value: Returning extends number ? number : ResultSet<DeleteQuery<T, Returning>, false>[],
         ) => Result1 | PromiseLike<Result1>)
       | undefined
       | null,

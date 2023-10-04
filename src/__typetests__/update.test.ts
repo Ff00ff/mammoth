@@ -11,7 +11,7 @@ import { Query } from '../../.build/query';
 import { ResultSet } from '../../.build/result-set';
 import { expectType } from 'tsd-lite';
 
-const toSnap = <T extends Query<any>>(query: T): ResultSet<T> => {
+const toSnap = <T extends Query<any>>(query: T): ResultSet<T, false> => {
     return undefined as any;
 };
 

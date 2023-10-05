@@ -44,15 +44,14 @@
           "js"
         ],
         "coveragePathIgnorePatterns": [
-          "__tests__",
-          "__typetests__"
+          "tests"
         ],
         "testPathIgnorePatterns": [
           "/\\.build/",
           "/node_modules/",
           "helpers"
         ],
-        "testRegex": "/__tests__.*\\.(test)\\.ts$",
+        "testMatch": ["**/tests/unit/*.test.ts"],
         "transform": {
           "\\.ts$": "ts-jest"
         },
@@ -66,7 +65,7 @@
             "name": "types"
         },
         "runner": "jest-runner-tsd",
-        "testMatch": ["**/__typetests__/*.test.ts"]
+        "testMatch": ["**/tests/types/*.test.ts"]
       }
     ]
   }

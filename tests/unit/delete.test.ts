@@ -1,6 +1,6 @@
-import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '..';
+import { defineDb, defineTable, integer, text, timestampWithTimeZone, uuid } from '../../src';
 
-import { toSql } from '../sql-functions';
+import { toSql } from '../../src/sql-functions';
 
 describe(`delete`, () => {
   const foo = defineTable({

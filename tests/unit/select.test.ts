@@ -1,17 +1,14 @@
-import { Star, raw, star, toSql } from '../sql-functions';
+import { raw, star, toSql } from '../../src/sql-functions';
 import {
   any,
   arrayAgg,
   avg,
   bitAnd,
   bitOr,
-  boolAnd,
-  boolOr,
   boolean,
   count,
   defineDb,
   defineTable,
-  every,
   exists,
   group,
   integer,
@@ -23,12 +20,11 @@ import {
   text,
   timestampWithTimeZone,
   uuid,
-} from '..';
+} from '../../src';
 
-import { Expression } from '../expression';
-import { Query } from '../query';
-import { ResultSet } from '../result-set';
-import { enumType } from '../data-types';
+import { Query } from '../../src/query';
+import { ResultSet } from '../../src/result-set';
+import { enumType } from '../../src/data-types';
 
 describe(`select`, () => {
   const foo = defineTable({
@@ -801,8 +797,8 @@ describe(`select`, () => {
     type A = 'a' | 'b';
     type B = { [K in A]: K };
 
-    type BooleanQuery<Q extends Query<any>> = ResultSet<Q, false> extends {
-      [K in keyof ResultSet<Q, false>]: boolean;
+    type BooleanQuery<Q extends Query<any>> = ResultSet<Q> extends {
+      [K in keyof ResultSet<Q>]: boolean;
     }
       ? true
       : false;

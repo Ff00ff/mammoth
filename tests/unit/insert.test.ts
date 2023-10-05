@@ -1,6 +1,6 @@
-import { defineDb, defineTable, integer, text, timestampWithTimeZone, toSql, uuid } from '..';
+import { defineDb, defineTable, integer, text, timestampWithTimeZone, toSql, uuid } from '../../src';
 
-import { raw } from '../sql-functions';
+import { raw } from '../../src';
 
 describe(`insert`, () => {
   const foo = defineTable({

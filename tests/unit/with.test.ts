@@ -8,7 +8,7 @@ import {
   timestampWithTimeZone,
   toSql,
   uuid,
-} from '..';
+} from '../../src';
 
 describe(`with`, () => {
   const orderLog = defineTable({

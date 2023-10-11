@@ -1,7 +1,7 @@
 {
-  "name": "@ff00ff/mammoth",
+  "name": "@anrok/mammoth",
   "license": "MIT",
-  "version": "1.3.0",
+  "version": "0.0.1",
   "main": "./.build/index.js",
   "types": "./.build/index.d.ts",
   "keywords": [

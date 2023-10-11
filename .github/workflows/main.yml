@@ -1,14 +1,9 @@
 name: Lint, build & test
 
 on:
-  pull_request:
-    branches:
-      - '*'
   push:
     branches:
-      - '*'
-      - '!master'
-      - '!main'
+      - main
 
 jobs:
   build:
